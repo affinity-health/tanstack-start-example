@@ -1,0 +1,24 @@
+{
+  "name": "@tanstack-start-example/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@tanstack-start-example/db": "workspace:*",
+    "@tanstack-start-example/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@tanstack-start-example/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
