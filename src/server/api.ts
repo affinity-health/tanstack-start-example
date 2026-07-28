@@ -3,6 +3,62 @@ import "@tanstack/react-start/server-only";
 import { openapi } from "@elysia/openapi";
 import { Elysia, t } from "elysia";
 
+const scalarTheme = `
+  :root {
+    --scalar-font: "Avenir Next", Avenir, "Century Gothic", sans-serif;
+    --scalar-font-code: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  }
+
+  .light-mode {
+    --scalar-color-1: #151512;
+    --scalar-color-2: #58534a;
+    --scalar-color-3: #7b7469;
+    --scalar-color-accent: #c9431a;
+    --scalar-background-1: #f3efe5;
+    --scalar-background-2: #e6dfd0;
+    --scalar-background-3: #d8d0c1;
+    --scalar-background-accent: #f05a2814;
+    --scalar-border-color: #c9c0af;
+    --scalar-color-green: #1f7a4f;
+    --scalar-color-red: #b8341a;
+    --scalar-color-yellow: #806100;
+    --scalar-color-blue: #1f5f86;
+    --scalar-color-orange: #c9431a;
+    --scalar-color-purple: #6d4e89;
+  }
+
+  .dark-mode {
+    --scalar-color-1: #f3efe5;
+    --scalar-color-2: #c9c0af;
+    --scalar-color-3: #8f887c;
+    --scalar-color-accent: #d8ff3e;
+    --scalar-background-1: #151512;
+    --scalar-background-2: #20201c;
+    --scalar-background-3: #2b2a25;
+    --scalar-background-accent: #d8ff3e12;
+    --scalar-border-color: #393831;
+  }
+
+  .light-mode .sidebar,
+  .light-mode .t-doc__sidebar {
+    --scalar-sidebar-background-1: #151512;
+    --scalar-sidebar-color-1: #f3efe5;
+    --scalar-sidebar-color-2: #aaa398;
+    --scalar-sidebar-color-active: #d8ff3e;
+    --scalar-sidebar-item-active-background: #d8ff3e14;
+    --scalar-sidebar-item-hover-background: #ffffff0f;
+    --scalar-sidebar-search-background: #20201c;
+    --scalar-sidebar-search-border-color: #393831;
+    --scalar-sidebar-search-color: #aaa398;
+    --scalar-sidebar-border-color: #393831;
+  }
+
+  ::selection {
+    color: #151512;
+    background: #d8ff3e;
+  }
+`;
+
 const webhookBody = t.Object({
   type: t.String({
     description: "Provider event type",
@@ -28,6 +84,15 @@ export const api = new Elysia({
 })
   .use(
     openapi({
+      scalar: {
+        theme: "saturn",
+        layout: "modern",
+        customCss: scalarTheme,
+        defaultHttpClient: {
+          targetKey: "shell",
+          clientKey: "curl",
+        },
+      },
       documentation: {
         info: {
           title: "Plain Start API",
