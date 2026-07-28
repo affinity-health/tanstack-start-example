@@ -16,9 +16,6 @@ const WebsiteBindings = {
 } as const;
 
 export const Website = Cloudflare.Website.Vite("Website", {
-  assets: {
-    runWorkerFirst: true,
-  },
   compatibility: {
     flags: ["nodejs_compat"],
   },
