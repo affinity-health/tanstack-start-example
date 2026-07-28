@@ -1,115 +1,56 @@
-# tanstack-start-example
+# TanStack Start + Elysia
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Self, ORPC, and more.
+A deliberately small full-stack starter:
 
-## Features
+- TanStack Start for routing, SSR, and server functions
+- Elysia for the HTTP API
+- Better Auth for email/password authentication
+- Cloudflare D1 for auth storage
+- Elysia OpenAPI for generated API documentation
+- Alchemy v2 for Cloudflare Workers infrastructure and deployment
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
-- **Drizzle** - TypeScript-first ORM
-- **Cloudflare D1** - Database engine
-- **Authentication** - Better-Auth
-- **Oxlint** - Oxlint + Oxfmt (linting & formatting)
-- **Vite+** - Unified Vite toolchain, workspace task runner, linting, and formatting
+There is one app, one dependency graph, and one `src/` tree.
 
-## Getting Started
-
-First, install the dependencies:
+## Run it
 
 ```bash
 bun install
-```
-
-## Database Setup
-
-This project uses Cloudflare D1 (SQLite) with Drizzle ORM.
-
-Runtime database access uses the Cloudflare `DB` binding from `packages/infra/alchemy.run.ts`. If a local `DATABASE_URL` is present, it is only for database tooling.
-
-Alchemy provisions the D1 database and applies migrations during `dev` and `deploy`.
-
-1. Generate migration files:
-
-```bash
-bun run db:generate
-```
-
-Then, run the development server:
-
-```bash
 bun run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
+Alchemy authenticates with Cloudflare on first use, provisions the D1 database, applies SQL
+migrations, and starts the app at `http://localhost:3000`. Local development uses the real managed
+D1 binding.
 
-## UI Customization
+## HTTP surface
 
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
+| Method     | URL                     | Purpose                       |
+| ---------- | ----------------------- | ----------------------------- |
+| `GET`      | `/api/health`           | Health check                  |
+| `POST`     | `/api/webhooks/:source` | Receive a webhook event       |
+| `GET`      | `/api/openapi`          | Interactive OpenAPI reference |
+| `GET`      | `/api/openapi/json`     | Raw OpenAPI document          |
+| `GET/POST` | `/api/auth/*`           | Better Auth handler           |
 
-- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
-- Update shared primitives in `packages/ui/src/components/*`
-- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
-
-### Add more shared components
-
-Run this from the project root to add more primitives to the shared UI package:
+Example webhook:
 
 ```bash
-npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
+curl -i http://localhost:3000/api/webhooks/example \
+  -H 'content-type: application/json' \
+  -H 'x-webhook-id: evt_123' \
+  -d '{"type":"thing.created","data":{"id":"thing_123"}}'
 ```
 
-Import shared components like this:
+The starter validates and acknowledges webhook payloads with `202 Accepted`. Put
+provider-specific signature verification and durable queueing in the handler before using it in
+production.
 
-```tsx
-import { Button } from "@tanstack-start-example/ui/components/button";
+## Commands
+
+```bash
+bun run dev          # migrate auth DB and start development
+bun run check        # lint, format check, and typecheck
+bun run build        # production build
+bun run deploy       # deploy the Worker and D1 database
+bun run destroy      # remove the managed stack
 ```
-
-### Add app-specific blocks
-
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
-
-## Deployment
-
-### Cloudflare via Alchemy
-
-- Target: web + server
-- Dev: bun run dev
-- Deploy: bun run deploy
-- Destroy: bun run destroy
-
-For more details, see the guide on [Deploying to Cloudflare with Alchemy](https://www.better-t-stack.dev/docs/guides/cloudflare-alchemy).
-
-## Git Hooks and Formatting
-
-- Optional native Vite+ hooks: `bun run hooks:setup`
-- Docs: [Vite+ commit hooks](https://viteplus.dev/guide/commit-hooks)
-- Run checks: `bun run check`
-
-## Project Structure
-
-```
-tanstack-start-example/
-├── apps/
-│   └── web/         # Fullstack application (React + TanStack Start)
-├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
-```
-
-## Available Scripts
-
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:generate`: Generate database client/types
-- `bun run check`: Run Vite+ format/lint checks and workspace TypeScript checks
-- `bun run lint`: Run Vite+ lint checks
-- `bun run format`: Run Vite+ formatting
-- `bun run staged`: Run Vite+ checks against staged files
-- `bun run hooks:setup`: Install Vite+ native Git hooks with `vp config`

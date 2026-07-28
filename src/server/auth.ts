@@ -1,0 +1,19 @@
+import "@tanstack/react-start/server-only";
+
+import { betterAuth } from "better-auth";
+import { tanstackStartCookies } from "better-auth/tanstack-start";
+
+import { env } from "../env";
+
+export function createAuth(request: Request) {
+  return betterAuth({
+    appName: "Plain Start",
+    baseURL: new URL(request.url).origin,
+    database: env.DB,
+    emailAndPassword: {
+      enabled: true,
+    },
+    secret: env.BETTER_AUTH_SECRET,
+    plugins: [tanstackStartCookies()],
+  });
+}

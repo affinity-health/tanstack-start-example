@@ -4,6 +4,13 @@
   "categories": {
     "correctness": "error"
   },
+  "ignorePatterns": [
+    "node_modules/**",
+    ".output/**",
+    ".tanstack/**",
+    "dist/**",
+    "src/routeTree.gen.ts"
+  ],
   "rules": {},
   "env": {
     "builtin": true

@@ -1,42 +1,19 @@
-import { defineConfig } from "vite-plus";
+import tailwindcss from "@tailwindcss/vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  lint: {
-    ignorePatterns: [
-      "node_modules/**",
-      "**/node_modules/**",
-      "apps/web/dist/**",
-      "apps/web/.vinxi/**",
-      "apps/web/.tanstack/**",
-      "apps/web/src/routeTree.gen.ts",
-      "packages/db/dist/**",
-      ".alchemy/**",
-      ".wrangler/**",
-      "**/.wrangler/**",
-    ],
-    options: {
-      typeAware: false,
-      typeCheck: false,
+  build: {
+    rolldownOptions: {
+      external: ["cloudflare:workers"],
     },
   },
-  fmt: {
-    ignorePatterns: [
-      "node_modules/**",
-      "**/node_modules/**",
-      "apps/web/dist/**",
-      "apps/web/.vinxi/**",
-      "apps/web/.tanstack/**",
-      "apps/web/src/routeTree.gen.ts",
-      "packages/db/dist/**",
-      ".alchemy/**",
-      ".wrangler/**",
-      "**/.wrangler/**",
-    ],
-    singleQuote: false,
-    semi: true,
-    sortPackageJson: true,
+  server: {
+    port: 3000,
   },
-  staged: {
-    "*.{js,ts,jsx,tsx,vue,svelte,json,jsonc,css,md}": "vp check --fix",
+  resolve: {
+    tsconfigPaths: true,
   },
+  plugins: [tailwindcss(), tanstackStart(), viteReact()],
 });

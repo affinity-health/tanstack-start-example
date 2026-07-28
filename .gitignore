@@ -6,10 +6,12 @@ node_modules
 # Build outputs
 dist
 build
+.output
+.tanstack
 *.tsbuildinfo
 
 # Generated files
-apps/web/src/routeTree.gen.ts
+src/routeTree.gen.ts
 
 # Environment variables
 .env
@@ -40,9 +42,14 @@ lerna-debug.log*
 .turbo
 .nx
 
-# Better-T-Stack
+# Infrastructure state
 .alchemy
 .vercel
+
+# Local data
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
 # Testing
 coverage
