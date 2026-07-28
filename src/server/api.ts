@@ -3,6 +3,9 @@ import "@tanstack/react-start/server-only";
 import { openapi } from "@elysia/openapi";
 import { Elysia, t } from "elysia";
 
+const productionOrigin =
+  "https://tanstackstartexample-website-ptrck3f2wizqxmzmk4grvhgi4.dawsson.workers.dev";
+
 const scalarTheme = `
   :root {
     --scalar-font: "Avenir Next", Avenir, "Century Gothic", sans-serif;
@@ -97,7 +100,22 @@ export const api = new Elysia({
         info: {
           title: "Plain Start API",
           version: "1.0.0",
-          description: "The small public HTTP surface for this TanStack Start app.",
+          description:
+            "A small, typed API for health checks and inbound webhooks. Use the production server to exercise the live Cloudflare Worker, or select local development when running the app with Bun.",
+        },
+        servers: [
+          {
+            url: productionOrigin,
+            description: "Production — Cloudflare Workers",
+          },
+          {
+            url: "http://localhost:3000",
+            description: "Local development",
+          },
+        ],
+        externalDocs: {
+          description: "Open the Plain Start app",
+          url: productionOrigin,
         },
         tags: [
           { name: "System", description: "Operational endpoints" },
@@ -114,6 +132,7 @@ export const api = new Elysia({
     }),
     {
       detail: {
+        operationId: "getHealth",
         summary: "Check API health",
         tags: ["System"],
       },
@@ -154,6 +173,7 @@ export const api = new Elysia({
         202: acceptedWebhook,
       },
       detail: {
+        operationId: "acceptWebhook",
         summary: "Accept an inbound webhook",
         description:
           "Validates a generic event envelope and acknowledges it. Add source-specific signature verification before production use.",
