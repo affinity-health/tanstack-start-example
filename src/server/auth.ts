@@ -5,6 +5,8 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 
 import { env } from "../env";
 
+const trustedOrigins = ["http://localhost:3001", "https://api.dawson.gg"];
+
 export function createAuth(request: Request) {
   return betterAuth({
     appName: "Plain Start",
@@ -15,5 +17,6 @@ export function createAuth(request: Request) {
     },
     secret: env.BETTER_AUTH_SECRET,
     plugins: [tanstackStartCookies()],
+    trustedOrigins,
   });
 }

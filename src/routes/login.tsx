@@ -23,23 +23,27 @@ function Login() {
     const email = String(form.get("email"));
     const password = String(form.get("password"));
 
-    const result =
-      mode === "sign-up"
-        ? await authClient.signUp.email({
-            email,
-            password,
-            name: String(form.get("name")),
-          })
-        : await authClient.signIn.email({ email, password });
+    try {
+      const result =
+        mode === "sign-up"
+          ? await authClient.signUp.email({
+              email,
+              password,
+              name: String(form.get("name")),
+            })
+          : await authClient.signIn.email({ email, password });
 
-    setPending(false);
+      if (result.error) {
+        setError(result.error.message ?? "Unable to sign in. Check your details and try again.");
+        return;
+      }
 
-    if (result.error) {
-      setError(result.error.message ?? "Something went wrong.");
-      return;
+      await navigate({ to: "/dashboard" });
+    } catch {
+      setError("Unable to reach the server. Check your connection and try again.");
+    } finally {
+      setPending(false);
     }
-
-    await navigate({ to: "/dashboard" });
   }
 
   return (
@@ -89,6 +93,7 @@ function Login() {
               name="email"
               type="email"
               autoComplete="email"
+              aria-describedby={error ? "auth-error" : undefined}
               required
               placeholder="you@example.com"
             />
@@ -100,16 +105,19 @@ function Login() {
               name="password"
               type="password"
               autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+              aria-describedby={error ? "auth-error" : undefined}
               required
               minLength={8}
               placeholder="At least 8 characters"
             />
           </label>
 
-          {error ? <p className="form-error">{error}</p> : null}
+          <p className="form-error" id="auth-error" role="alert">
+            {error}
+          </p>
 
           <button className="button button-dark submit-button" disabled={pending} type="submit">
-            {pending ? <LoaderCircle className="spin" size={18} /> : null}
+            {pending ? <LoaderCircle aria-hidden="true" className="spin" size={18} /> : null}
             {mode === "sign-in" ? "Sign in" : "Create account"}
           </button>
 
