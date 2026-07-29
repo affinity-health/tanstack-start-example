@@ -23,23 +23,15 @@ const WebsiteBindings = {
   DB: Database,
 } as const;
 
-export const Website = Cloudflare.Website.Vite(
-  "Website",
-  Effect.gen(function* () {
-    const stage = yield* Alchemy.Stage;
-
-    return {
-      compatibility: {
-        flags: ["nodejs_compat"],
-      },
-      dev: {
-        port: 3001,
-      },
-      domain: stage === "production" ? "api.dawson.gg" : undefined,
-      env: WebsiteBindings,
-    };
-  }),
-);
+export const Website = Cloudflare.Website.Vite("Website", {
+  compatibility: {
+    flags: ["nodejs_compat"],
+  },
+  dev: {
+    port: 3001,
+  },
+  env: WebsiteBindings,
+});
 
 export type WebsiteEnv = {
   AFFINITY_API_KEY: string;
