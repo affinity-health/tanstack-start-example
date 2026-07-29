@@ -26,8 +26,14 @@ AFFINITY_WEBHOOK_SECRET=whsec_...
 AFFINITY_PROVIDER_MAPPING_ID=pmap_...
 ```
 
-The provider mapping must be verified and its `externalId` must equal the Better Auth user ID shown
-on the signed-in dashboard. In the Affinity staging Platform settings, allow both origins you use:
+`AFFINITY_PROVIDER_MAPPING_ID` is not a credential. It is the durable `pmap_...` identifier that
+links one provider in this platform to Affinity's independently verified provider identity, Test
+practice, and platform user. This deliberately single-provider demo stores one mapping in the
+environment and grants it to its authenticated demo user. A real platform resolves and authorizes
+a separate mapping ID from its own provider record for every session.
+
+The configured mapping must be verified. In the Affinity staging Platform settings, allow both
+origins you use:
 
 ```text
 http://localhost:3001
@@ -45,13 +51,13 @@ Alchemy authenticates with Cloudflare on first use, provisions the D1 database, 
 migrations, and starts the app at `http://localhost:3001`. Local development uses the real managed
 D1 binding.
 
-The public TypeScript SDK is `@affinity-health/sdk`. This demo pins `0.1.1` and explicitly selects
-the current `2026-07-29` staging API version. That npm release predates the delegated-session
-resources, so this example uses the SDK for API-key access validation and makes the two new
-versioned requests through server-side `fetch`. The API key remains server-only in both cases.
+The public TypeScript SDK is `@affinity-health/sdk`. Until the next npm release is published, this
+example installs the neighboring `../../affinity-typescript` checkout. The SDK owns the dated API
+types, provider-mapping and component-session resources, exhaustive webhook event union, and
+raw-body HMAC verifier. The API key and webhook secret remain server-only.
 
-The browser Elements and webhook-helper packages are not public yet, so the example contains the
-small origin-checked iframe handshake and Web Crypto signature verifier directly.
+The browser Elements package is not public yet, so the example contains only the small
+origin-checked iframe handshake locally.
 
 ## HTTP surface
 

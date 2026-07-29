@@ -1,41 +1,21 @@
 import "@tanstack/react-start/server-only";
 
-import { Affinity, ResponseError } from "@affinity-health/sdk";
+import {
+  Affinity,
+  AffinityWebhookVerificationError,
+  ResponseError,
+  verifyAffinityWebhook,
+} from "@affinity-health/sdk";
 import { openapi } from "@elysia/openapi";
 import { Elysia, t } from "elysia";
 
 import { env } from "../env";
-import { verifyAffinityWebhook, WebhookVerificationError } from "./affinity-webhooks";
 import { createAuth } from "./auth";
 
 const directWorkerOrigin =
   "https://tanstackstartexample-website-ptrck3f2wizqxmzmk4grvhgi4.dawsson.workers.dev";
 const productionOrigin = "https://api.dawson.gg";
 const affinityApiVersion = "2026-07-29";
-
-type AffinityProviderMapping = {
-  externalId: string;
-  id: string;
-  practiceId: string;
-  status: "pending" | "verified" | "revoked";
-  userId: string;
-};
-
-type AffinityComponentSession = {
-  clientSecret: string;
-  expiresAt: string;
-  id: string;
-};
-
-class AffinityHttpError extends Error {
-  constructor(
-    readonly code: string,
-    readonly status: number,
-  ) {
-    super(`Affinity request failed with ${code}`);
-    this.name = "AffinityHttpError";
-  }
-}
 
 const scalarTheme = `
   :root {
@@ -203,59 +183,46 @@ export const api = new Elysia({
           });
         }
 
-        const mapping = await affinityRequest<AffinityProviderMapping>(
-          `/v1/provider-mappings/${encodeURIComponent(providerMappingId)}`,
-        );
-        if (mapping.externalId !== session.user.id) {
-          return status(403, {
-            error: "The signed-in demo user does not own this Affinity provider mapping.",
-          });
-        }
+        const mapping = await affinity.providerMappings.retrieve(providerMappingId);
         if (mapping.status !== "verified") {
           return status(409, {
             error: "Complete Affinity provider verification before opening the composer.",
           });
         }
 
-        const componentSession = await affinityRequest<AffinityComponentSession>(
-          "/v1/component-sessions",
+        const componentSession = await affinity.componentSessions.create(
           {
-            body: JSON.stringify({
-              allowedOrigin: new URL(request.url).origin,
-              components: {
-                prescriptionComposer: {
-                  enabled: true,
-                  features: {
-                    changePatient: true,
-                    createDraft: true,
-                    sign: false,
-                    viewHistory: false,
-                  },
+            allowedOrigin: new URL(request.url).origin,
+            components: {
+              prescriptionComposer: {
+                enabled: true,
+                features: {
+                  changePatient: true,
+                  createDraft: true,
+                  sign: false,
+                  viewHistory: false,
                 },
               },
-              consent: {
-                authorizedProviderAccess: true,
-                minimumNecessaryPhi: true,
-                recordedAt: new Date().toISOString(),
-              },
-              context: {
-                patientSelection: "search",
-              },
-              practiceId: mapping.practiceId,
-              providerMappingId: mapping.id,
-              userId: mapping.userId,
-            }),
-            headers: {
-              "Idempotency-Key": `component:${crypto.randomUUID()}`,
             },
-            method: "POST",
+            consent: {
+              authorizedProviderAccess: true,
+              minimumNecessaryPhi: true,
+              recordedAt: new Date(),
+            },
+            context: {
+              patientSelection: "search",
+            },
+            practiceId: mapping.practiceId,
+            providerMappingId: mapping.id,
+            userId: mapping.userId,
           },
+          { idempotencyKey: `component:${crypto.randomUUID()}` },
         );
 
         return {
           clientSecret: componentSession.clientSecret,
           connectUrl: env.AFFINITY_CONNECT_URL,
-          expiresAt: componentSession.expiresAt,
+          expiresAt: componentSession.expiresAt.toISOString(),
         };
       } catch (error) {
         return status(502, {
@@ -296,7 +263,7 @@ export const api = new Elysia({
           signature: request.headers.get("affinity-signature"),
         });
       } catch (error) {
-        if (error instanceof WebhookVerificationError) {
+        if (error instanceof AffinityWebhookVerificationError) {
           return status(400, { error: error.message });
         }
         throw error;
@@ -344,7 +311,6 @@ export const api = new Elysia({
   );
 
 async function affinityErrorCode(error: unknown) {
-  if (error instanceof AffinityHttpError) return error.code;
   if (!(error instanceof ResponseError)) return "request_failed";
   try {
     const problem = (await error.response.clone().json()) as { code?: unknown };
@@ -353,28 +319,4 @@ async function affinityErrorCode(error: unknown) {
     // Fall through to the stable HTTP status below.
   }
   return `http_${error.response.status}`;
-}
-
-async function affinityRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const headers = new Headers(init?.headers);
-  headers.set("Accept", "application/json");
-  headers.set("Affinity-Version", affinityApiVersion);
-  headers.set("Authorization", `Bearer ${env.AFFINITY_API_KEY}`);
-  if (init?.body) headers.set("Content-Type", "application/json");
-
-  const response = await fetch(new URL(path, env.AFFINITY_API_URL), {
-    ...init,
-    headers,
-  });
-  if (!response.ok) {
-    let code = `http_${response.status}`;
-    try {
-      const problem = (await response.clone().json()) as { code?: unknown };
-      if (typeof problem.code === "string") code = problem.code;
-    } catch {
-      // The stable status code remains safe to expose when the response is not problem JSON.
-    }
-    throw new AffinityHttpError(code, response.status);
-  }
-  return (await response.json()) as T;
 }

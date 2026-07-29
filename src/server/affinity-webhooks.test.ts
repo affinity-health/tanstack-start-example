@@ -1,23 +1,23 @@
 import { describe, expect, test } from "bun:test";
 
-import { WebhookVerificationError, verifyAffinityWebhook } from "./affinity-webhooks";
+import { AffinityWebhookVerificationError, verifyAffinityWebhook } from "@affinity-health/sdk";
 
 const encoder = new TextEncoder();
 const timestamp = 1_785_326_400;
-const secret = "whsec_test_example";
+const secret = "whsec_test_example_signing_secret";
 const payload = JSON.stringify({
   api_version: "2026-07-29",
   created: timestamp,
   data: {
     object: {
-      id: "order_01k00000000000000000000000",
-      object: "order",
+      id: "whe_01k00000000000000000000000",
+      object: "webhook_endpoint",
     },
   },
   id: "evt_01k00000000000000000000000",
   livemode: false,
   object: "event",
-  organization_id: "org_01k00000000000000000000000",
+  organization_id: "acct_01k00000000000000000000000",
   request_id: null,
   type: "webhook_endpoint.test",
 });
@@ -43,7 +43,7 @@ describe("Affinity webhook verification", () => {
         secret,
         signature: await signatureFor(payload),
       }),
-    ).rejects.toBeInstanceOf(WebhookVerificationError);
+    ).rejects.toBeInstanceOf(AffinityWebhookVerificationError);
   });
 
   test("rejects an old delivery", async () => {
@@ -54,7 +54,7 @@ describe("Affinity webhook verification", () => {
         secret,
         signature: await signatureFor(payload),
       }),
-    ).rejects.toBeInstanceOf(WebhookVerificationError);
+    ).rejects.toBeInstanceOf(AffinityWebhookVerificationError);
   });
 });
 

@@ -14,7 +14,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@affinity-health/sdk": "0.1.1",
+    "@affinity-health/sdk": "file:../../affinity-typescript",
     "@cloudflare/workers-types": "^5.20260728.1",
     "@effect/platform-bun": "4.0.0-beta.102",
     "@effect/platform-node": "4.0.0-beta.102",
