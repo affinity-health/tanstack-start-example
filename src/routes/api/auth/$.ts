@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 async function handle({ request }: { request: Request }) {
-  const { createAuth } = await import("../server/auth");
+  const { createAuth } = await import("../../../server/auth");
   return createAuth(request).handler(request);
 }
 
