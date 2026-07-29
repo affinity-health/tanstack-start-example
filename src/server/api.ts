@@ -11,10 +11,11 @@ import { Elysia, t } from "elysia";
 
 import { env } from "../env";
 import { createAuth } from "./auth";
+import { requestOrigin } from "./request-origin";
 
 const directWorkerOrigin =
   "https://tanstackstartexample-website-ptrck3f2wizqxmzmk4grvhgi4.dawsson.workers.dev";
-const productionOrigin = "https://api.dawson.gg";
+const productionOrigin = env.APP_URL;
 const affinityApiVersion = "2026-07-29";
 
 const scalarTheme = `
@@ -192,7 +193,7 @@ export const api = new Elysia({
 
         const componentSession = await affinity.componentSessions.create(
           {
-            allowedOrigin: new URL(request.url).origin,
+            allowedOrigin: requestOrigin(request, env.APP_URL),
             components: {
               prescriptionComposer: {
                 enabled: true,

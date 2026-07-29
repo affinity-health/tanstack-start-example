@@ -641,11 +641,20 @@ a:focus-visible {
   font-size: 11px;
 }
 
+.affinity-status-error {
+  color: #9e321c;
+}
+
 .affinity-frame-wrap {
+  position: relative;
   min-height: 560px;
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--paper);
+}
+
+.affinity-frame-mount {
+  min-height: 560px;
 }
 
 .affinity-frame {
@@ -653,6 +662,45 @@ a:focus-visible {
   width: 100%;
   min-height: 560px;
   border: 0;
+}
+
+.affinity-frame-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.affinity-frame-state strong {
+  margin-top: 16px;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.affinity-frame-state span {
+  max-width: 440px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.affinity-frame-state-loading {
+  color: var(--muted);
+}
+
+.affinity-frame-state-error {
+  color: #9e321c;
+  background: #fff9f3;
+}
+
+.affinity-retry {
+  margin-top: 22px;
 }
 
 .not-found {

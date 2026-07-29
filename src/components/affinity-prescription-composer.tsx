@@ -1,3 +1,4 @@
+import { AlertCircle, LoaderCircle, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type ComponentSession = {
@@ -17,11 +18,17 @@ type AffinityFrameMessage =
 
 export function AffinityPrescriptionComposer() {
   const container = useRef<HTMLDivElement>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [phase, setPhase] = useState<"connected" | "error" | "loading">("loading");
   const [status, setStatus] = useState("Creating a secure Affinity session…");
 
   useEffect(() => {
     const target = container.current;
     if (!target) return;
+
+    setPhase("loading");
+    setStatus("Creating a secure Affinity session…");
+    target.replaceChildren();
 
     let destroyed = false;
     let frame: HTMLIFrameElement | null = null;
@@ -33,9 +40,21 @@ export function AffinityPrescriptionComposer() {
         method: "POST",
         credentials: "include",
       });
-      const result = (await response.json()) as ComponentSession | { error: string };
-      if (!response.ok || !("clientSecret" in result)) {
-        throw new Error("error" in result ? result.error : "Affinity session creation failed.");
+      const body = await response.text();
+      let result: unknown;
+      try {
+        result = JSON.parse(body);
+      } catch {
+        throw new Error(
+          response.ok
+            ? "Affinity returned an invalid component session response."
+            : `Affinity session request failed (HTTP ${response.status}).`,
+        );
+      }
+      if (!response.ok || !isComponentSession(result)) {
+        throw new Error(
+          isErrorResponse(result) ? result.error : "Affinity session creation failed.",
+        );
       }
       if (destroyed) return;
 
@@ -75,6 +94,7 @@ export function AffinityPrescriptionComposer() {
             connectUrl.origin,
           );
           clientSecret = null;
+          setPhase("connected");
           setStatus("Secure component connected");
         }
         if (event.data.type === "affinity.resize") {
@@ -95,6 +115,7 @@ export function AffinityPrescriptionComposer() {
 
     void start().catch((error: unknown) => {
       if (!destroyed) {
+        setPhase("error");
         setStatus(error instanceof Error ? error.message : "Affinity session creation failed.");
       }
     });
@@ -105,15 +126,67 @@ export function AffinityPrescriptionComposer() {
       removeMessageListener?.();
       frame?.remove();
     };
-  }, []);
+  }, [attempt]);
 
   return (
     <div>
-      <p className="affinity-status" role="status">
+      <p
+        className={`affinity-status${phase === "error" ? " affinity-status-error" : ""}`}
+        role={phase === "error" ? "alert" : "status"}
+      >
         {status}
       </p>
-      <div className="affinity-frame-wrap" ref={container} />
+      <div className="affinity-frame-wrap">
+        <div className="affinity-frame-mount" ref={container} />
+        {phase !== "connected" ? (
+          <div className={`affinity-frame-state affinity-frame-state-${phase}`}>
+            {phase === "loading" ? (
+              <>
+                <LoaderCircle aria-hidden="true" className="spin" size={24} />
+                <strong>Opening Affinity securely</strong>
+                <span>Creating a short-lived session for this provider and practice.</span>
+              </>
+            ) : (
+              <>
+                <AlertCircle aria-hidden="true" size={24} />
+                <strong>Affinity could not open</strong>
+                <span>{status}</span>
+                <button
+                  className="button button-dark affinity-retry"
+                  type="button"
+                  onClick={() => setAttempt((value) => value + 1)}
+                >
+                  <RotateCcw aria-hidden="true" size={15} />
+                  Try again
+                </button>
+              </>
+            )}
+          </div>
+        ) : null}
+      </div>
     </div>
+  );
+}
+
+function isComponentSession(value: unknown): value is ComponentSession {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "clientSecret" in value &&
+    typeof value.clientSecret === "string" &&
+    "connectUrl" in value &&
+    typeof value.connectUrl === "string" &&
+    "expiresAt" in value &&
+    typeof value.expiresAt === "string"
+  );
+}
+
+function isErrorResponse(value: unknown): value is { error: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "error" in value &&
+    typeof value.error === "string"
   );
 }
 

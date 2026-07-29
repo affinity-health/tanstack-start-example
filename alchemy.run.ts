@@ -19,6 +19,7 @@ const WebsiteBindings = {
     Config.withDefault(""),
   ),
   AFFINITY_WEBHOOK_SECRET: Config.redacted("AFFINITY_WEBHOOK_SECRET"),
+  APP_URL: "https://api.dawson.gg",
   BETTER_AUTH_SECRET: AuthSecretValue,
   DB: Database,
 } as const;
@@ -39,6 +40,7 @@ export type WebsiteEnv = {
   AFFINITY_CONNECT_URL: string;
   AFFINITY_PROVIDER_MAPPING_ID: string;
   AFFINITY_WEBHOOK_SECRET: string;
+  APP_URL: string;
   BETTER_AUTH_SECRET: string;
   DB: Cloudflare.InferEnv<{ DB: typeof Database }>["DB"];
 };

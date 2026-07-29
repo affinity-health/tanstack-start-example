@@ -29,8 +29,14 @@ AFFINITY_PROVIDER_MAPPING_ID=pmap_...
 `AFFINITY_PROVIDER_MAPPING_ID` is not a credential. It is the durable `pmap_...` identifier that
 links one provider in this platform to Affinity's independently verified provider identity, Test
 practice, and platform user. This deliberately single-provider demo stores one mapping in the
-environment and grants it to its authenticated demo user. A real platform resolves and authorizes
-a separate mapping ID from its own provider record for every session.
+environment. A real platform resolves and authorizes a separate mapping ID from its own provider
+record for every session.
+
+There is no separate membership ID to configure. The provider mapping answers “which verified
+Affinity provider is this?” Affinity then resolves that provider's active access to the requested
+practice, which answers “what may this provider do here?” Keeping identity and practice access
+separate prevents a platform from granting itself prescribing authority, but the demo backend only
+needs the provider mapping ID.
 
 The configured mapping must be verified. In the Affinity staging Platform settings, allow both
 origins you use:
