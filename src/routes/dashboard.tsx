@@ -1,6 +1,7 @@
 import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { ArrowUpRight, LogOut } from "lucide-react";
 
+import { AffinityPrescriptionComposer } from "../components/affinity-prescription-composer";
 import { authClient } from "../lib/auth-client";
 import { getSession } from "../lib/session.functions";
 
@@ -60,15 +61,30 @@ function Dashboard() {
         </article>
 
         <article className="next-card">
-          <span>API</span>
-          <h2>Your webhook is ready.</h2>
+          <span>Affinity API</span>
+          <h2>Your signed webhook is ready.</h2>
           <p>
-            Send a validated event envelope to the Elysia route or inspect its generated schema.
+            Affinity signs the exact request bytes. This app verifies them before recording the
+            event in D1.
           </p>
           <a href="/api/openapi">
             Open API reference <ArrowUpRight size={17} />
           </a>
         </article>
+      </section>
+
+      <section className="affinity-demo" aria-labelledby="affinity-demo-title">
+        <div className="affinity-demo-heading">
+          <div>
+            <p className="eyebrow">Delegated platform access</p>
+            <h2 id="affinity-demo-title">Affinity prescription composer</h2>
+          </div>
+          <p>
+            This app authenticates you. Its backend creates a short-lived session for an
+            independently verified Affinity provider, and the API key never reaches this browser.
+          </p>
+        </div>
+        <AffinityPrescriptionComposer />
       </section>
 
       <Link className="back-link" to="/">

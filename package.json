@@ -8,11 +8,13 @@
     "preview": "vite preview",
     "deploy": "alchemy deploy",
     "destroy": "alchemy destroy",
-    "check": "oxlint && oxfmt --check && tsc --noEmit",
+    "check": "bun test && oxlint && oxfmt --check && tsc --noEmit",
     "check-types": "tsc --noEmit",
-    "format": "oxfmt --write"
+    "format": "oxfmt --write",
+    "test": "bun test"
   },
   "dependencies": {
+    "@affinity-health/sdk": "0.1.1",
     "@cloudflare/workers-types": "^5.20260728.1",
     "@effect/platform-bun": "4.0.0-beta.102",
     "@effect/platform-node": "4.0.0-beta.102",

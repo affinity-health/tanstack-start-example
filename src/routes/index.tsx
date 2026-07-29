@@ -32,17 +32,17 @@ function Home() {
       <section className="hero page-shell">
         <div className="hero-copy">
           <p className="eyebrow">
-            <span>Full-stack starter</span>
-            <span>2026 edition</span>
+            <span>Affinity platform example</span>
+            <span>Test mode</span>
           </p>
           <h1>
-            Less stack.
+            Your app.
             <br />
-            More <em>application.</em>
+            Affinity <em>inside.</em>
           </h1>
           <p className="hero-summary">
-            A compact TanStack Start app with a real Elysia API, generated OpenAPI docs, and Better
-            Auth. The important parts fit on one screen.
+            A minimal partner implementation: authenticate your user, create a scoped component
+            session on your backend, and render Affinity without exposing your API key.
           </p>
           <div className="hero-actions">
             <Link className="button button-accent" to="/login">
@@ -58,16 +58,18 @@ function Home() {
             <span className="method">POST</span>
             <span>OpenAPI ready</span>
           </div>
-          <code>/api/webhooks/:source</code>
+          <code>/api/affinity/webhook</code>
           <pre>{`{
-  "type": "thing.created",
+  "type": "webhook_endpoint.test",
   "data": {
-    "id": "thing_123"
+    "object": {
+      "id": "..."
+    }
   }
 }`}</pre>
           <div className="response-line">
             <span />
-            202 Accepted
+            200 Accepted
           </div>
         </aside>
       </section>

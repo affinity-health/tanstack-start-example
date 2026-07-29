@@ -597,6 +597,59 @@ a:focus-visible {
   text-underline-offset: 4px;
 }
 
+.affinity-demo {
+  margin: 0 0 34px;
+  padding: 32px;
+  border: 1px solid var(--ink);
+  background: #fffdf7;
+}
+
+.affinity-demo-heading {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 0.75fr);
+  gap: 48px;
+  align-items: end;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.affinity-demo-heading h2 {
+  margin: 12px 0 0;
+  font-family: var(--serif);
+  font-size: clamp(36px, 5vw, 58px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.affinity-demo-heading > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.affinity-status {
+  margin: 20px 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.affinity-frame-wrap {
+  min-height: 560px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.affinity-frame {
+  display: block;
+  width: 100%;
+  min-height: 560px;
+  border: 0;
+}
+
 .not-found {
   display: grid;
   place-content: center;
@@ -629,7 +682,8 @@ a:focus-visible {
 @media (max-width: 860px) {
   .hero,
   .auth-page,
-  .dashboard-grid {
+  .dashboard-grid,
+  .affinity-demo-heading {
     grid-template-columns: 1fr;
   }
 
@@ -672,6 +726,10 @@ a:focus-visible {
 
   .next-card {
     min-height: 330px;
+  }
+
+  .affinity-demo-heading {
+    gap: 24px;
   }
 }
 
@@ -750,7 +808,8 @@ a:focus-visible {
   }
 
   .profile-card,
-  .next-card {
+  .next-card,
+  .affinity-demo {
     padding: 24px 19px;
   }
 
