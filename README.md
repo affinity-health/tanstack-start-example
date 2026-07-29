@@ -57,13 +57,13 @@ Alchemy authenticates with Cloudflare on first use, provisions the D1 database, 
 migrations, and starts the app at `http://localhost:3001`. Local development uses the real managed
 D1 binding.
 
-The public TypeScript SDK is `@affinity-health/sdk`. Until the next npm release is published, this
-example installs the neighboring `../../affinity-typescript` checkout. The SDK owns the dated API
-types, provider-mapping and component-session resources, exhaustive webhook event union, and
-raw-body HMAC verifier. The API key and webhook secret remain server-only.
+The public TypeScript SDK is `@affinity-health/sdk`. It owns the dated API types, provider-mapping
+and component-session resources, exhaustive webhook event union, and raw-body HMAC verifier. The
+API key and webhook secret remain server-only.
 
-The browser Elements package is not public yet, so the example contains only the small
-origin-checked iframe handshake locally.
+The public browser package is `@affinity-health/elements`. Its React wrapper creates the
+origin-checked iframe, exchanges the one-time component secret, validates lifecycle messages, and
+applies the approved appearance options.
 
 ## HTTP surface
 
