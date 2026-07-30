@@ -25,14 +25,29 @@ export const Route = createRootRoute({
         content: "A deliberately small TanStack Start application.",
       },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      {
+        rel: "icon",
+        href: "https://cdn.joinaffinityai.com/logos/affinity/mark-white-on-violet.v1.webp",
+        type: "image/webp",
+      },
+    ],
   }),
   component: RootDocument,
 });
 
 function RootDocument() {
-  const isDashboard = useRouterState({
-    select: (state) => state.location.pathname === "/dashboard",
+  const isWorkspace = useRouterState({
+    select: (state) =>
+      [
+        "/dashboard",
+        "/documents",
+        "/medication-orders",
+        "/messages",
+        "/patients",
+        "/schedule",
+      ].includes(state.location.pathname),
   });
 
   return (
@@ -40,8 +55,8 @@ function RootDocument() {
       <head>
         <HeadContent />
       </head>
-      <body className={isDashboard ? "emr-body" : undefined}>
-        {isDashboard ? null : (
+      <body className={isWorkspace ? "emr-body" : undefined}>
+        {isWorkspace ? null : (
           <header className="site-header">
             <Link className="wordmark" to="/">
               <span className="wordmark-dot" />
@@ -57,7 +72,7 @@ function RootDocument() {
           </header>
         )}
         <Outlet />
-        {isDashboard ? null : (
+        {isWorkspace ? null : (
           <footer className="site-footer">
             <p>TanStack Start / Elysia / Better Auth</p>
             <p>One app. Nothing hiding.</p>

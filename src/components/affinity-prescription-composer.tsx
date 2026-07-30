@@ -21,7 +21,7 @@ const affinityAppearance: AffinityAppearance = {
     colorPrimaryText: "#ffffff",
     colorSuccess: "#15803d",
     colorText: "#17211d",
-    fontFamily: '"Avenir Next", Avenir, "Century Gothic", sans-serif',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif',
   },
 };
 

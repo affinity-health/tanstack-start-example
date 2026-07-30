@@ -1,209 +1,180 @@
-import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import {
-  Activity,
-  ArrowUpRight,
-  CalendarDays,
-  ClipboardList,
-  FileText,
-  LayoutDashboard,
-  LogOut,
-  MessageSquare,
-  Pill,
-  ShieldCheck,
-  Stethoscope,
-  Users,
-  Wifi,
-} from "lucide-react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { CalendarDays, Clock3, FileWarning, MessageSquare, Pill, Users, Video } from "lucide-react";
 
-import { AffinityPrescriptionComposer } from "../components/affinity-prescription-composer";
-import { authClient } from "../lib/auth-client";
-import { getSession } from "../lib/session.functions";
+import { EmrSectionHeading, EmrShell, EmrStatus } from "../components/emr-shell";
+import { demoOrders, demoSchedule } from "../lib/demo-data";
+import { requireSession } from "../lib/require-session";
 
 export const Route = createFileRoute("/dashboard")({
-  beforeLoad: async () => {
-    const session = await getSession();
-
-    if (!session) {
-      throw redirect({ to: "/login" });
-    }
-
-    return { session };
-  },
+  beforeLoad: requireSession,
   head: () => ({
-    meta: [{ title: "Medication orders | Northstar Health" }],
+    meta: [{ title: "Overview | Northstar Health" }],
   }),
   component: Dashboard,
 });
 
+const overviewStats = [
+  { detail: "4 remaining today", icon: CalendarDays, label: "Appointments", value: "12" },
+  { detail: "2 need review", icon: Users, label: "Active patients", value: "86" },
+  { detail: "1 draft", icon: Pill, label: "Medication orders", value: "7" },
+  { detail: "2 unread", icon: MessageSquare, label: "Messages", value: "3" },
+] as const;
+
 function Dashboard() {
-  const navigate = useNavigate();
   const { session } = Route.useRouteContext();
-  const initials = session.user.name
-    .split(/\s+/u)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
+  const firstName = session.user.name.split(/\s+/u)[0] || "Clinician";
+  const appointments = demoSchedule["Jul 29"].slice(0, 3);
 
   return (
-    <main className="emr-app">
-      <header className="emr-topbar">
-        <Link className="emr-brand" to="/">
-          <span className="emr-brand-mark">
-            <Stethoscope aria-hidden size={18} />
-          </span>
-          <span>
-            <strong>Northstar Health</strong>
-            <small>Clinical workspace</small>
-          </span>
+    <EmrShell
+      actions={
+        <Link className="emr-button emr-button-primary" to="/medication-orders">
+          <Pill aria-hidden size={16} />
+          New prescription
         </Link>
-        <div className="emr-topbar-actions">
-          <span className="emr-environment">
-            <span aria-hidden />
-            Demo environment
-          </span>
-          <div className="emr-user">
-            <span className="emr-avatar" aria-hidden>
-              {initials}
+      }
+      current="overview"
+      description="Your schedule, clinical work, and Affinity integration in one place."
+      session={session}
+      title={`Good evening, ${firstName}`}
+    >
+      <section className="emr-stat-strip" aria-label="Workspace summary">
+        {overviewStats.map(({ detail, icon: Icon, label, value }) => (
+          <div key={label}>
+            <span className="emr-stat-icon">
+              <Icon aria-hidden size={17} />
             </span>
-            <span className="emr-user-copy">
-              <strong>{session.user.name}</strong>
-              <small>{session.user.email}</small>
+            <span>
+              <small>{label}</small>
+              <strong>{value}</strong>
+              <small>{detail}</small>
             </span>
           </div>
-          <button
-            aria-label="Sign out"
-            className="emr-icon-button"
-            title="Sign out"
-            type="button"
-            onClick={async () => {
-              await authClient.signOut();
-              await navigate({ to: "/" });
-            }}
-          >
-            <LogOut aria-hidden size={17} />
-          </button>
-        </div>
-      </header>
+        ))}
+      </section>
 
-      <div className="emr-layout">
-        <aside className="emr-sidebar">
-          <nav aria-label="Clinical workspace">
-            <p>Workspace</p>
-            <a href="#workspace-overview">
-              <LayoutDashboard aria-hidden size={17} /> Overview
-            </a>
-            <a href="#schedule">
-              <CalendarDays aria-hidden size={17} /> Schedule
-              <span>12</span>
-            </a>
-            <a href="#patients">
-              <Users aria-hidden size={17} /> Patients
-            </a>
-            <a className="is-active" href="#prescription-composer" aria-current="page">
-              <Pill aria-hidden size={17} /> Medication orders
-            </a>
-            <a href="#documents">
-              <FileText aria-hidden size={17} /> Documents
-            </a>
-            <a href="#messages">
-              <MessageSquare aria-hidden size={17} /> Messages
-              <span>3</span>
-            </a>
-          </nav>
-
-          <div className="emr-practice-card">
-            <span className="emr-practice-icon">
-              <Activity aria-hidden size={17} />
-            </span>
-            <div>
-              <small>Active practice</small>
-              <strong>Northstar Telehealth</strong>
-              <span>Test workspace</span>
-            </div>
-          </div>
-
-          <a className="emr-api-link" href="/api/openapi">
-            API reference <ArrowUpRight aria-hidden size={15} />
-          </a>
-        </aside>
-
-        <section className="emr-main" id="workspace-overview">
-          <div className="emr-breadcrumb">
-            Clinical <span>/</span> Medication orders
-          </div>
-
-          <div className="emr-page-heading">
-            <div>
-              <p>Prescribing workspace</p>
-              <h1>New prescription</h1>
-              <span>
-                Create a medication order with the verified provider and practice context.
-              </span>
-            </div>
-            <div className="emr-date">
-              <CalendarDays aria-hidden size={17} />
-              <span>
-                <small>Today</small>
-                <strong>July 29, 2026</strong>
-              </span>
-            </div>
-          </div>
-
-          <section className="emr-status-grid" aria-label="Integration status">
-            <article>
-              <span className="emr-status-icon is-success">
-                <Wifi aria-hidden size={16} />
-              </span>
-              <div>
-                <small>Integration</small>
-                <strong>Affinity connected</strong>
-              </div>
-              <span className="emr-status-dot">Online</span>
-            </article>
-            <article>
-              <span className="emr-status-icon">
-                <ShieldCheck aria-hidden size={16} />
-              </span>
-              <div>
-                <small>Access</small>
-                <strong>Provider verified</strong>
-              </div>
-            </article>
-            <article>
-              <span className="emr-status-icon">
-                <ClipboardList aria-hidden size={16} />
-              </span>
-              <div>
-                <small>Environment</small>
-                <strong>Test data only</strong>
-              </div>
-            </article>
-          </section>
-
-          <section
-            className="affinity-demo"
-            id="prescription-composer"
-            aria-labelledby="affinity-demo-title"
-          >
-            <div className="affinity-demo-heading">
-              <div>
-                <div className="affinity-demo-label">
-                  <span>Affinity Elements</span>
-                  <span>Secure iframe</span>
+      <div className="emr-overview-grid">
+        <section className="emr-panel">
+          <EmrSectionHeading
+            action={
+              <Link className="emr-text-link" to="/schedule">
+                View schedule
+              </Link>
+            }
+            description="Wednesday, July 29"
+            title="Next appointments"
+          />
+          <div className="emr-agenda-list">
+            {appointments.map((appointment) => (
+              <article className="emr-agenda-row" key={appointment.id}>
+                <div className="emr-agenda-time">
+                  <strong>{appointment.time}</strong>
+                  <span>{appointment.duration}</span>
                 </div>
-                <h2 id="affinity-demo-title">Prescription composer</h2>
-                <p>
-                  The platform authenticates this user. Affinity independently scopes the provider,
-                  practice, patient access, and permitted actions.
-                </p>
-              </div>
-              <span className="affinity-mode-badge">Test mode</span>
-            </div>
-            <AffinityPrescriptionComposer />
-          </section>
+                <div className="emr-agenda-person">
+                  <strong>{appointment.patient}</strong>
+                  <span>{appointment.type}</span>
+                </div>
+                <span className="emr-agenda-mode">
+                  {appointment.mode === "Telehealth" ? (
+                    <Video aria-hidden size={14} />
+                  ) : (
+                    <Users aria-hidden size={14} />
+                  )}
+                  {appointment.mode}
+                </span>
+                <EmrStatus tone={appointment.status === "Needs intake" ? "attention" : "success"}>
+                  {appointment.status}
+                </EmrStatus>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="emr-panel">
+          <EmrSectionHeading description="Items that need a decision" title="Needs attention" />
+          <div className="emr-task-list">
+            <Link to="/documents">
+              <span className="emr-task-icon">
+                <FileWarning aria-hidden size={16} />
+              </span>
+              <span>
+                <strong>Review Denise Kuhn’s lab results</strong>
+                <small>Received this morning</small>
+              </span>
+              <span>Review</span>
+            </Link>
+            <Link to="/medication-orders">
+              <span className="emr-task-icon">
+                <Pill aria-hidden size={16} />
+              </span>
+              <span>
+                <strong>Complete Ada Zieme’s prescription</strong>
+                <small>Draft saved 8 minutes ago</small>
+              </span>
+              <span>Continue</span>
+            </Link>
+            <Link to="/messages">
+              <span className="emr-task-icon">
+                <MessageSquare aria-hidden size={16} />
+              </span>
+              <span>
+                <strong>Reply to 2 patient messages</strong>
+                <small>Oldest received at 9:16 AM</small>
+              </span>
+              <span>Open</span>
+            </Link>
+          </div>
         </section>
       </div>
-    </main>
+
+      <section className="emr-panel">
+        <EmrSectionHeading
+          action={
+            <Link className="emr-text-link" to="/medication-orders">
+              Open prescribing
+            </Link>
+          }
+          description="Test-mode activity from the Affinity integration"
+          title="Recent medication orders"
+        />
+        <div className="emr-table-wrap">
+          <table className="emr-table">
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Medication</th>
+                <th>Pharmacy</th>
+                <th>Status</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {demoOrders.map((order) => (
+                <tr key={order.id}>
+                  <td>
+                    <strong>{order.patient}</strong>
+                    <small>{order.id}</small>
+                  </td>
+                  <td>{order.medication}</td>
+                  <td>{order.pharmacy}</td>
+                  <td>
+                    <EmrStatus tone={order.status === "Accepted" ? "success" : "neutral"}>
+                      {order.status}
+                    </EmrStatus>
+                  </td>
+                  <td>
+                    <span className="emr-inline-meta">
+                      <Clock3 aria-hidden size={13} />
+                      {order.updated}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </EmrShell>
   );
 }
