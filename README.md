@@ -7,6 +7,7 @@ A deliberately small example of the Affinity platform integration model:
 - Better Auth for email/password authentication
 - `@affinity-health/sdk` for trusted server-side Affinity API calls
 - An origin-bound Affinity prescription composer session
+- A single-use Affinity Hosted prescription session
 - Signed Affinity webhooks stored idempotently in Cloudflare D1
 - Cloudflare D1 for auth storage
 - Elysia OpenAPI for generated API documentation
@@ -65,16 +66,31 @@ The public browser package is `@affinity-health/elements`. Its React wrapper cre
 origin-checked iframe, exchanges the one-time component secret, validates lifecycle messages, and
 applies the approved appearance options.
 
+The hosted workflow uses `@affinity-health/sdk` on the platform backend. The backend returns a
+single-use hosted session URL to the authenticated browser. The platform API key remains on the
+backend.
+
+## Test the prescribing modes
+
+Sign in and open **Medication orders**. Use the launch-mode control to select one mode:
+
+- **Embedded** renders the Affinity Elements iframe in the platform page.
+- **Popup window** opens the complete Affinity Hosted workflow in a focused window.
+
+The popup opens directly from the user click. The browser can then wait for the backend to create
+the hosted session without blocking the popup.
+
 ## HTTP surface
 
-| Method     | URL                               | Purpose                               |
-| ---------- | --------------------------------- | ------------------------------------- |
-| `GET`      | `/api/health`                     | Health check                          |
-| `POST`     | `/api/affinity/component-session` | Create a delegated component session  |
-| `POST`     | `/api/affinity/webhook`           | Verify and record an Affinity webhook |
-| `GET`      | `/api/openapi`                    | Interactive OpenAPI reference         |
-| `GET`      | `/api/openapi/json`               | Raw OpenAPI document                  |
-| `GET/POST` | `/api/auth/*`                     | Better Auth handler                   |
+| Method     | URL                               | Purpose                       |
+| ---------- | --------------------------------- | ----------------------------- |
+| `GET`      | `/api/health`                     | Health check                  |
+| `POST`     | `/api/affinity/component-session` | Create a component session    |
+| `POST`     | `/api/affinity/hosted-session`    | Create a hosted session       |
+| `POST`     | `/api/affinity/webhook`           | Verify and record a webhook   |
+| `GET`      | `/api/openapi`                    | Interactive OpenAPI reference |
+| `GET`      | `/api/openapi/json`               | Raw OpenAPI document          |
+| `GET/POST` | `/api/auth/*`                     | Better Auth request handler   |
 
 Configure the Affinity webhook endpoint as:
 

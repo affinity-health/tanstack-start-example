@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ClipboardList, ShieldCheck, Wifi } from "lucide-react";
+import { useState } from "react";
 
+import { AffinityHostedLauncher } from "../components/affinity-hosted-launcher";
 import { AffinityPrescriptionComposer } from "../components/affinity-prescription-composer";
 import { EmrShell } from "../components/emr-shell";
 import { requireSession } from "../lib/require-session";
@@ -15,11 +17,32 @@ export const Route = createFileRoute("/medication-orders")({
 
 function MedicationOrders() {
   const { session } = Route.useRouteContext();
+  const [launchMode, setLaunchMode] = useState<"embedded" | "popup">("embedded");
 
   return (
     <EmrShell
+      actions={
+        <div className="emr-segmented" aria-label="Affinity launch mode">
+          <button
+            aria-pressed={launchMode === "embedded"}
+            className={launchMode === "embedded" ? "is-active" : undefined}
+            type="button"
+            onClick={() => setLaunchMode("embedded")}
+          >
+            Embedded
+          </button>
+          <button
+            aria-pressed={launchMode === "popup"}
+            className={launchMode === "popup" ? "is-active" : undefined}
+            type="button"
+            onClick={() => setLaunchMode("popup")}
+          >
+            Popup window
+          </button>
+        </div>
+      }
       current="prescriptions"
-      description="Create a test prescription through a provider- and practice-scoped Affinity session."
+      description="Choose an embedded component or a focused Affinity Hosted window."
       session={session}
       title="Medication orders"
     >
@@ -54,23 +77,27 @@ function MedicationOrders() {
         </div>
       </section>
 
-      <section className="affinity-demo" aria-labelledby="affinity-demo-title">
-        <div className="affinity-demo-heading">
-          <div>
-            <div className="affinity-demo-label">
-              <span>Affinity Elements</span>
-              <span>Secure iframe</span>
+      {launchMode === "embedded" ? (
+        <section className="affinity-demo" aria-labelledby="affinity-demo-title">
+          <div className="affinity-demo-heading">
+            <div>
+              <div className="affinity-demo-label">
+                <span>Affinity Elements</span>
+                <span>Secure iframe</span>
+              </div>
+              <h2 id="affinity-demo-title">Prescription composer</h2>
+              <p>
+                Northstar authenticates this user. Affinity independently scopes the provider,
+                practice, patient access, and permitted actions.
+              </p>
             </div>
-            <h2 id="affinity-demo-title">Prescription composer</h2>
-            <p>
-              Northstar authenticates this user. Affinity independently scopes the provider,
-              practice, patient access, and permitted actions.
-            </p>
+            <span className="affinity-mode-badge">Test mode</span>
           </div>
-          <span className="affinity-mode-badge">Test mode</span>
-        </div>
-        <AffinityPrescriptionComposer />
-      </section>
+          <AffinityPrescriptionComposer />
+        </section>
+      ) : (
+        <AffinityHostedLauncher />
+      )}
     </EmrShell>
   );
 }

@@ -90,6 +90,12 @@ const componentSessionResponse = t.Object({
   expiresAt: t.String({ format: "date-time" }),
 });
 
+const hostedSessionResponse = t.Object({
+  expiresAt: t.String({ format: "date-time" }),
+  id: t.String(),
+  url: t.String({ format: "uri" }),
+});
+
 export const api = new Elysia({
   prefix: "/api",
   // Cloudflare Workers do not allow runtime code generation with `new Function`.
@@ -241,6 +247,85 @@ export const api = new Elysia({
       },
       response: {
         200: componentSessionResponse,
+        401: affinityError,
+        403: affinityError,
+        409: affinityError,
+        502: affinityError,
+        503: affinityError,
+      },
+    },
+  )
+  .post(
+    "/affinity/hosted-session",
+    async ({ request, status }) => {
+      const session = await createAuth(request).api.getSession({
+        headers: request.headers,
+      });
+      if (!session) return status(401, { error: "Sign in before opening Affinity." });
+
+      const providerMappingId = env.AFFINITY_PROVIDER_MAPPING_ID.trim();
+      if (!providerMappingId) {
+        return status(503, {
+          error: "Set AFFINITY_PROVIDER_MAPPING_ID to a verified test provider mapping.",
+        });
+      }
+
+      const affinity = new Affinity(env.AFFINITY_API_KEY, {
+        apiVersion: affinityApiVersion,
+        baseUrl: env.AFFINITY_API_URL,
+      });
+      try {
+        const access = await affinity.account.retrieveAccess();
+        if (access.livemode) {
+          return status(409, {
+            error: "Use an Affinity test-mode API key for this demo.",
+          });
+        }
+
+        const mapping = await affinity.providerMappings.retrieve(providerMappingId);
+        if (mapping.status !== "verified") {
+          return status(409, {
+            error: "Complete Affinity provider verification before opening the composer.",
+          });
+        }
+
+        const hostedSession = await affinity.hostedSessions.create(
+          {
+            consent: {
+              authorizedProviderAccess: true,
+              minimumNecessaryPhi: true,
+              recordedAt: new Date(),
+            },
+            flow: "prescription_composer",
+            practiceId: mapping.practiceId,
+            providerMappingId: mapping.id,
+            returnUrl: null,
+            userId: mapping.userId,
+          },
+          { idempotencyKey: `hosted:${crypto.randomUUID()}` },
+        );
+
+        return {
+          expiresAt: hostedSession.expiresAt.toISOString(),
+          id: hostedSession.id,
+          url: hostedSession.url,
+        };
+      } catch (error) {
+        return status(502, {
+          error: `Affinity could not create the hosted session (${await affinityErrorCode(error)}).`,
+        });
+      }
+    },
+    {
+      detail: {
+        description:
+          "Authenticates the partner user and creates a single-use Affinity Hosted prescription-composer URL for a popup, new tab, or redirect.",
+        operationId: "createAffinityHostedSession",
+        summary: "Create an Affinity Hosted session",
+        tags: ["Affinity"],
+      },
+      response: {
+        200: hostedSessionResponse,
         401: affinityError,
         403: affinityError,
         409: affinityError,
