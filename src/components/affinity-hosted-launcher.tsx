@@ -114,8 +114,8 @@ export function AffinityHostedLauncher() {
         <li>
           <span>2</span>
           <div>
-            <strong>Confirm delegated access</strong>
-            <p>Affinity shows the platform, practice, and verified provider.</p>
+            <strong>Validate delegated access</strong>
+            <p>Affinity redeems and verifies the scoped session automatically.</p>
           </div>
         </li>
         <li>
