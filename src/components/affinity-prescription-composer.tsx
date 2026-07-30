@@ -1,3 +1,4 @@
+import type { AffinityAppearance } from "@affinity-health/elements";
 import { AffinityProvider, PrescriptionComposer } from "@affinity-health/elements/react";
 import { AlertCircle, LoaderCircle, RotateCcw } from "lucide-react";
 import { useCallback, useState } from "react";
@@ -9,6 +10,20 @@ type ComponentSession = {
 };
 
 const affinityConnectUrl = "https://connect-staging.joinaffinityai.com";
+const affinityAppearance: AffinityAppearance = {
+  theme: "light",
+  variables: {
+    borderRadius: "8px",
+    colorBackground: "#ffffff",
+    colorBorder: "#d9e2de",
+    colorMutedText: "#66736d",
+    colorPrimary: "#0f766e",
+    colorPrimaryText: "#ffffff",
+    colorSuccess: "#15803d",
+    colorText: "#17211d",
+    fontFamily: '"Avenir Next", Avenir, "Century Gothic", sans-serif',
+  },
+};
 
 export function AffinityPrescriptionComposer() {
   const [attempt, setAttempt] = useState(0);
@@ -56,6 +71,7 @@ export function AffinityPrescriptionComposer() {
       </p>
       <div className="affinity-frame-wrap">
         <AffinityProvider
+          appearance={affinityAppearance}
           connectUrl={affinityConnectUrl}
           fetchClientSecret={fetchClientSecret}
           key={attempt}
