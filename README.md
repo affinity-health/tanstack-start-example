@@ -6,8 +6,9 @@ A deliberately small example of the Affinity platform integration model:
 - Elysia for the HTTP API
 - Better Auth for email/password authentication
 - `@affinity-health/sdk` for trusted server-side Affinity API calls
+- Stripe.js practice card setup without card data touching the platform server
 - An origin-bound Affinity prescription composer session
-- A single-use Affinity Hosted prescription session
+- Single-use Affinity Hosted prescribing and provider-verification sessions
 - Signed Affinity webhooks stored idempotently in Cloudflare D1
 - Cloudflare D1 for auth storage
 - Elysia OpenAPI for generated API documentation
@@ -16,6 +17,10 @@ A deliberately small example of the Affinity platform integration model:
 The user signs in to this application. Its backend uses the Affinity service key and returns only a
 short-lived component secret to the authenticated browser. The service key never reaches client
 code.
+
+Hosted Test demo: [tanstackstartexample-website-release-ksulwrzuogvlekqa.dawsson.workers.dev](https://tanstackstartexample-website-release-ksulwrzuogvlekqa.dawsson.workers.dev). It uses Affinity's
+Production-hosted Test environment, Stripe Test, synthetic patients, and the internal Test
+pharmacy; it cannot create a Live prescription or send one to a real pharmacy.
 
 ## Run it
 
@@ -43,10 +48,13 @@ The configured mapping must be verified. In the Affinity production Platform por
 allow every browser origin you use:
 
 ```text
-http://localhost:3001
 https://api.dawson.gg
 https://your-generated-worker.workers.dev
 ```
+
+Affinity's Test allowlist accepts HTTPS origins. When developing locally, browse through the
+existing `https://api.dawson.gg` tunnel to `localhost:3001`; do not replace that tunnel with the
+deployed Worker.
 
 Then start the app:
 
@@ -71,27 +79,46 @@ The hosted workflow uses `@affinity-health/sdk` on the platform backend. The bac
 single-use hosted session URL to the authenticated browser. The platform API key remains on the
 backend.
 
+The payment setup uses the SDK only on the backend. The authenticated browser receives a one-time
+Stripe Test client secret and publishable key, renders Stripe's Payment Element, and sends only the
+confirmed SetupIntent ID back to the backend. This demo assumes its signed-in user is authorized to
+manage billing for the practice linked to the configured provider mapping. A real platform must
+enforce that practice authorization in its own session before calling the Affinity payment-profile
+endpoints.
+
 ## Test the prescribing modes
 
 Sign in and open **Medication orders**. Use the launch-mode control to select one mode:
 
+- **Practice billing** records the user's consent and adds a Stripe Test card before an order can
+  be accepted.
 - **Embedded** renders the Affinity Elements iframe in the platform page.
 - **Popup window** opens the complete Affinity Hosted workflow in a focused window.
+- **Provider setup** opens a single-use verification session where the provider sets or resets the
+  six-digit signing PIN. The PIN is entered only inside Affinity and is never returned to the
+  platform.
+
+The embedded component emits only the current `prescription.draft_created`,
+`prescription.signed`, and `order.submitted` browser events. Treat those events as UI hints and use
+the signed webhook receiver for authoritative state changes.
 
 The popup opens directly from the user click. The browser can then wait for the backend to create
 the hosted session without blocking the popup.
 
 ## HTTP surface
 
-| Method     | URL                               | Purpose                       |
-| ---------- | --------------------------------- | ----------------------------- |
-| `GET`      | `/api/health`                     | Health check                  |
-| `POST`     | `/api/affinity/component-session` | Create a component session    |
-| `POST`     | `/api/affinity/hosted-session`    | Create a hosted session       |
-| `POST`     | `/api/affinity/webhook`           | Verify and record a webhook   |
-| `GET`      | `/api/openapi`                    | Interactive OpenAPI reference |
-| `GET`      | `/api/openapi/json`               | Raw OpenAPI document          |
-| `GET/POST` | `/api/auth/*`                     | Better Auth request handler   |
+| Method     | URL                                    | Purpose                               |
+| ---------- | -------------------------------------- | ------------------------------------- |
+| `GET`      | `/api/health`                          | Health check                          |
+| `POST`     | `/api/affinity/component-session`      | Create a component session            |
+| `POST`     | `/api/affinity/hosted-session`         | Create a prescribing or setup session |
+| `GET`      | `/api/affinity/payment-profile`        | Read safe practice payment status     |
+| `POST`     | `/api/affinity/payment-setup`          | Start Stripe Test card setup          |
+| `POST`     | `/api/affinity/payment-setup/complete` | Complete Test card setup              |
+| `POST`     | `/api/affinity/webhook`                | Verify and record a webhook           |
+| `GET`      | `/api/openapi`                         | Interactive OpenAPI reference         |
+| `GET`      | `/api/openapi/json`                    | Raw OpenAPI document                  |
+| `GET/POST` | `/api/auth/*`                          | Better Auth request handler           |
 
 Configure the Affinity webhook endpoint for the environment that should receive events:
 
@@ -117,11 +144,11 @@ bun run test         # webhook verification tests
 bun run check        # test, lint, format check, and typecheck
 bun run build        # production build
 bun run deploy       # deploy the Worker and D1 database
-bun run deploy:production # deploy with explicit process secrets, ignoring local .env credentials
+bun run deploy:hosted  # deploy the persistent release-stage demo with explicit process secrets
 bun run destroy      # remove the managed stack
 ```
 
 For the persistent hosted demo, export `APP_URL`, `AFFINITY_API_KEY`,
 `AFFINITY_PROVIDER_MAPPING_ID`, and `AFFINITY_WEBHOOK_SECRET` in the calling shell, then run
-`bun run deploy:production`. The deploy script reads only non-secret Cloudflare configuration from
+`bun run deploy:hosted`. The deploy script reads only non-secret Cloudflare configuration from
 `.alchemy-deploy.env`, so an older local `.env` cannot replace the intended Test credentials.

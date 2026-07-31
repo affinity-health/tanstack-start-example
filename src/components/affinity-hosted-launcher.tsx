@@ -9,9 +9,14 @@ type HostedSession = {
 
 type LaunchPhase = "closed" | "creating" | "error" | "idle" | "open";
 
-const popupName = "affinity-prescription-composer";
+type HostedWorkflow = "prescription_composer" | "provider_verification";
 
-export function AffinityHostedLauncher() {
+export function AffinityHostedLauncher({
+  workflow = "prescription_composer",
+}: {
+  workflow?: HostedWorkflow;
+}) {
+  const providerSetup = workflow === "provider_verification";
   const popup = useRef<Window | null>(null);
   const [phase, setPhase] = useState<LaunchPhase>("idle");
   const [message, setMessage] = useState(
@@ -39,7 +44,11 @@ export function AffinityHostedLauncher() {
       return;
     }
 
-    const hostedWindow = window.open("about:blank", popupName, popupFeatures());
+    const hostedWindow = window.open(
+      "about:blank",
+      providerSetup ? "affinity-provider-verification" : "affinity-prescription-composer",
+      popupFeatures(),
+    );
     if (!hostedWindow) {
       setPhase("error");
       setMessage("Your browser blocked the popup. Allow popups for this site and try again.");
@@ -58,7 +67,9 @@ export function AffinityHostedLauncher() {
 
     try {
       const response = await fetch("/api/affinity/hosted-session", {
+        body: JSON.stringify({ flow: workflow }),
         credentials: "include",
+        headers: { "content-type": "application/json" },
         method: "POST",
       });
       const body = await response.text();
@@ -76,7 +87,11 @@ export function AffinityHostedLauncher() {
       hostedWindow.location.replace(result.url);
       hostedWindow.focus();
       setPhase("open");
-      setMessage("Affinity is open in a separate window. Close it when you finish prescribing.");
+      setMessage(
+        providerSetup
+          ? "Affinity is open in a separate window. The platform cannot see the signing PIN."
+          : "Affinity is open in a separate window. Close it when you finish prescribing.",
+      );
     } catch (error) {
       if (!hostedWindow.closed) hostedWindow.close();
       popup.current = null;
@@ -95,10 +110,15 @@ export function AffinityHostedLauncher() {
         </span>
         <div>
           <span>Affinity Hosted</span>
-          <h2>Prescribe in a focused window</h2>
+          <h2>
+            {providerSetup
+              ? "Verify the provider and set the signing PIN"
+              : "Prescribe in a focused window"}
+          </h2>
           <p>
-            Northstar creates a single-use session on its backend. Affinity opens the complete
-            workflow in a separate browser window without exposing the platform API key.
+            {providerSetup
+              ? "Northstar creates a single-use provider-verification session. The provider sets or resets the signing PIN only inside Affinity."
+              : "Northstar creates a single-use session on its backend. Affinity opens the complete workflow in a separate browser window without exposing the platform API key."}
           </p>
         </div>
       </div>
@@ -121,8 +141,14 @@ export function AffinityHostedLauncher() {
         <li>
           <span>3</span>
           <div>
-            <strong>Complete the prescription</strong>
-            <p>Close the hosted window when the focused workflow is complete.</p>
+            <strong>
+              {providerSetup ? "Complete provider setup" : "Complete the prescription"}
+            </strong>
+            <p>
+              {providerSetup
+                ? "Verify the provider and save a six-digit signing PIN inside Affinity."
+                : "Close the hosted window when the focused workflow is complete."}
+            </p>
           </div>
         </li>
       </ol>
@@ -147,7 +173,9 @@ export function AffinityHostedLauncher() {
             ? "Opening Affinity…"
             : phase === "open"
               ? "Focus Affinity window"
-              : "Open Affinity window"}
+              : providerSetup
+                ? "Open provider setup"
+                : "Open Affinity window"}
         </button>
       </div>
     </section>

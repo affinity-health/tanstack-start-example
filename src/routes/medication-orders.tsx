@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AffinityHostedLauncher } from "../components/affinity-hosted-launcher";
 import { AffinityPrescriptionComposer } from "../components/affinity-prescription-composer";
 import { EmrShell } from "../components/emr-shell";
+import { PracticePaymentSetup } from "../components/practice-payment-setup";
 import { requireSession } from "../lib/require-session";
 
 export const Route = createFileRoute("/medication-orders")({
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/medication-orders")({
 
 function MedicationOrders() {
   const { session } = Route.useRouteContext();
-  const [launchMode, setLaunchMode] = useState<"embedded" | "popup">("embedded");
+  const [launchMode, setLaunchMode] = useState<"embedded" | "popup" | "setup">("embedded");
 
   return (
     <EmrShell
@@ -38,6 +39,14 @@ function MedicationOrders() {
             onClick={() => setLaunchMode("popup")}
           >
             Popup window
+          </button>
+          <button
+            aria-pressed={launchMode === "setup"}
+            className={launchMode === "setup" ? "is-active" : undefined}
+            type="button"
+            onClick={() => setLaunchMode("setup")}
+          >
+            Provider setup
           </button>
         </div>
       }
@@ -77,6 +86,8 @@ function MedicationOrders() {
         </div>
       </section>
 
+      <PracticePaymentSetup />
+
       {launchMode === "embedded" ? (
         <section className="affinity-demo" aria-labelledby="affinity-demo-title">
           <div className="affinity-demo-heading">
@@ -95,8 +106,10 @@ function MedicationOrders() {
           </div>
           <AffinityPrescriptionComposer />
         </section>
-      ) : (
+      ) : launchMode === "popup" ? (
         <AffinityHostedLauncher />
+      ) : (
+        <AffinityHostedLauncher workflow="provider_verification" />
       )}
     </EmrShell>
   );

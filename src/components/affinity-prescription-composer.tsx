@@ -87,7 +87,8 @@ export function AffinityPrescriptionComposer() {
               setPhase("connected");
               setStatus("Secure component connected");
             }}
-            onSubmitted={() => setStatus("Prescription submitted")}
+            onOrderSubmitted={() => setStatus("Order submitted")}
+            onPrescriptionSigned={() => setStatus("Prescription signed")}
           />
         </AffinityProvider>
         {phase !== "connected" ? (

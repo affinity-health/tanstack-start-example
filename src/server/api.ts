@@ -94,6 +94,31 @@ const hostedSessionResponse = t.Object({
   url: t.String({ format: "uri" }),
 });
 
+const paymentMethodResponse = t.Nullable(
+  t.Object({
+    brand: t.String(),
+    last4: t.String(),
+    type: t.Literal("card"),
+  }),
+);
+
+const paymentProfileResponse = t.Object({
+  environment: t.Literal("sandbox"),
+  paymentMethod: paymentMethodResponse,
+  status: t.Union([
+    t.Literal("setup_required"),
+    t.Literal("ready"),
+    t.Literal("action_required"),
+    t.Literal("disabled"),
+  ]),
+});
+
+const paymentSetupResponse = t.Object({
+  clientSecret: t.String(),
+  consentVersion: t.String(),
+  publishableKey: t.String(),
+});
+
 export const api = new Elysia({
   prefix: "/api",
   // Cloudflare Workers do not allow runtime code generation with `new Function`.
@@ -200,7 +225,7 @@ export const api = new Elysia({
                 features: {
                   changePatient: true,
                   createDraft: true,
-                  sign: false,
+                  sign: true,
                   viewHistory: false,
                 },
               },
@@ -251,7 +276,7 @@ export const api = new Elysia({
   )
   .post(
     "/affinity/hosted-session",
-    async ({ request, status }) => {
+    async ({ body, request, status }) => {
       const session = await createAuth(request).api.getSession({
         headers: request.headers,
       });
@@ -290,7 +315,7 @@ export const api = new Elysia({
               minimumNecessaryPhi: true,
               recordedAt: new Date(),
             },
-            flow: "prescription_composer",
+            flow: body?.flow ?? "prescription_composer",
             practiceId: mapping.practiceId,
             providerMappingId: mapping.id,
             returnUrl: null,
@@ -313,15 +338,134 @@ export const api = new Elysia({
     {
       detail: {
         description:
-          "Authenticates the partner user and creates a single-use Affinity Hosted prescription-composer URL for a popup, new tab, or redirect.",
+          "Authenticates the partner user and creates a single-use Affinity Hosted prescribing or provider-verification URL for a popup, new tab, or redirect.",
         operationId: "createAffinityHostedSession",
         summary: "Create an Affinity Hosted session",
         tags: ["Affinity"],
       },
+      body: t.Optional(
+        t.Object({
+          flow: t.Union([t.Literal("prescription_composer"), t.Literal("provider_verification")]),
+        }),
+      ),
       response: {
         200: hostedSessionResponse,
         401: affinityError,
         403: affinityError,
+        409: affinityError,
+        502: affinityError,
+        503: affinityError,
+      },
+    },
+  )
+  .get(
+    "/affinity/payment-profile",
+    async ({ request, status }) => {
+      try {
+        const { affinity, practiceId } = await requireTestPractice(request);
+        const profile = await affinity.billing.retrievePaymentProfile(practiceId);
+        if (profile.environment !== "sandbox") {
+          return status(409, { error: "This demo only supports Affinity Test billing." });
+        }
+        return paymentProfileView(profile);
+      } catch (error) {
+        if (error instanceof DemoRequestError) {
+          return status(error.statusCode, { error: error.message });
+        }
+        return status(502, {
+          error: `Affinity could not retrieve the payment profile (${await affinityErrorCode(error)}).`,
+        });
+      }
+    },
+    {
+      detail: {
+        description:
+          "Returns the configured Test practice's safe payment status and card display summary to an authenticated practice user.",
+        operationId: "getAffinityPaymentProfile",
+        summary: "Get the practice payment profile",
+        tags: ["Affinity"],
+      },
+      response: {
+        200: paymentProfileResponse,
+        401: affinityError,
+        409: affinityError,
+        502: affinityError,
+        503: affinityError,
+      },
+    },
+  )
+  .post(
+    "/affinity/payment-setup",
+    async ({ body, request, status }) => {
+      try {
+        const { affinity, practiceId } = await requireTestPractice(request);
+        return await affinity.billing.createPaymentSetup(
+          practiceId,
+          { consentAccepted: body.consentAccepted },
+          { idempotencyKey: `payment-setup:${crypto.randomUUID()}` },
+        );
+      } catch (error) {
+        if (error instanceof DemoRequestError) {
+          return status(error.statusCode, { error: error.message });
+        }
+        return status(502, {
+          error: `Affinity could not start payment setup (${await affinityErrorCode(error)}).`,
+        });
+      }
+    },
+    {
+      body: t.Object({ consentAccepted: t.Literal(true) }),
+      detail: {
+        description:
+          "Records the authenticated practice user's consent and returns a one-time Stripe Test SetupIntent secret for Stripe.js.",
+        operationId: "createAffinityPaymentSetup",
+        summary: "Start practice payment setup",
+        tags: ["Affinity"],
+      },
+      response: {
+        200: paymentSetupResponse,
+        401: affinityError,
+        409: affinityError,
+        502: affinityError,
+        503: affinityError,
+      },
+    },
+  )
+  .post(
+    "/affinity/payment-setup/complete",
+    async ({ body, request, status }) => {
+      try {
+        const { affinity, practiceId } = await requireTestPractice(request);
+        const profile = await affinity.billing.completePaymentSetup(
+          practiceId,
+          { setupIntentId: body.setupIntentId },
+          { idempotencyKey: `payment-complete:${crypto.randomUUID()}` },
+        );
+        if (profile.environment !== "sandbox") {
+          return status(409, { error: "This demo only supports Affinity Test billing." });
+        }
+        return paymentProfileView(profile);
+      } catch (error) {
+        if (error instanceof DemoRequestError) {
+          return status(error.statusCode, { error: error.message });
+        }
+        return status(502, {
+          error: `Affinity could not complete payment setup (${await affinityErrorCode(error)}).`,
+        });
+      }
+    },
+    {
+      body: t.Object({ setupIntentId: t.String({ minLength: 1 }) }),
+      detail: {
+        description:
+          "Completes the Test practice payment profile after Stripe.js confirms the SetupIntent; no card data reaches this API.",
+        operationId: "completeAffinityPaymentSetup",
+        summary: "Complete practice payment setup",
+        tags: ["Affinity"],
+      },
+      response: {
+        200: paymentProfileResponse,
+        401: affinityError,
         409: affinityError,
         502: affinityError,
         503: affinityError,
@@ -389,6 +533,60 @@ export const api = new Elysia({
       },
     },
   );
+
+class DemoRequestError extends Error {
+  constructor(
+    readonly statusCode: 401 | 409 | 503,
+    message: string,
+  ) {
+    super(message);
+    this.name = "DemoRequestError";
+  }
+}
+
+async function requireTestPractice(request: Request) {
+  const session = await createAuth(request).api.getSession({ headers: request.headers });
+  if (!session) throw new DemoRequestError(401, "Sign in before managing practice billing.");
+
+  const providerMappingId = env.AFFINITY_PROVIDER_MAPPING_ID.trim();
+  if (!providerMappingId) {
+    throw new DemoRequestError(
+      503,
+      "Set AFFINITY_PROVIDER_MAPPING_ID to a verified test provider mapping.",
+    );
+  }
+
+  const affinity = new Affinity(env.AFFINITY_API_KEY, {
+    apiVersion: affinityApiVersion,
+    baseUrl: env.AFFINITY_API_URL,
+  });
+  const access = await affinity.account.retrieveAccess();
+  if (access.livemode) {
+    throw new DemoRequestError(409, "Use an Affinity test-mode API key for this demo.");
+  }
+
+  const mapping = await affinity.providerMappings.retrieve(providerMappingId);
+  if (mapping.status !== "verified") {
+    throw new DemoRequestError(
+      409,
+      "Complete Affinity provider verification before managing practice billing.",
+    );
+  }
+
+  return { affinity, practiceId: mapping.practiceId };
+}
+
+function paymentProfileView(profile: {
+  environment: "production" | "sandbox";
+  paymentMethod: { brand: string; last4: string; type: "card" } | null;
+  status: "action_required" | "disabled" | "ready" | "setup_required";
+}) {
+  return {
+    environment: "sandbox" as const,
+    paymentMethod: profile.paymentMethod,
+    status: profile.status,
+  };
+}
 
 async function affinityErrorCode(error: unknown) {
   if (!(error instanceof ResponseError)) return "request_failed";

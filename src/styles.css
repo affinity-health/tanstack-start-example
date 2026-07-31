@@ -873,6 +873,140 @@ a:focus-visible {
   border-radius: 12px;
 }
 
+.practice-billing {
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--emr-border);
+  border-radius: 12px;
+}
+
+.practice-billing-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--emr-border);
+}
+
+.practice-billing-heading > div {
+  min-width: 0;
+}
+
+.practice-billing-heading h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.practice-billing-heading p {
+  margin: 3px 0 0;
+  color: var(--emr-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.practice-billing-heading .affinity-mode-badge {
+  margin-left: auto;
+}
+
+.practice-billing-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  color: var(--emr-accent);
+  background: var(--emr-accent-soft);
+  border-radius: 9px;
+  place-items: center;
+}
+
+.practice-billing-state,
+.practice-billing-summary,
+.practice-billing-form {
+  padding: 16px 18px;
+}
+
+.practice-billing-state {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--emr-muted);
+  font-size: 11px;
+}
+
+.practice-billing-summary {
+  display: grid;
+  grid-template-columns: minmax(210px, 1fr) minmax(280px, 1.4fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.practice-billing-summary > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--emr-accent);
+}
+
+.practice-billing-summary > div > span {
+  display: grid;
+  gap: 2px;
+}
+
+.practice-billing-summary strong {
+  color: var(--emr-ink);
+  font-size: 11px;
+}
+
+.practice-billing-summary small,
+.practice-billing-consent {
+  color: var(--emr-muted);
+  font-size: 9px;
+}
+
+.practice-billing-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--emr-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.practice-billing-checkbox input {
+  margin-top: 1px;
+  accent-color: var(--emr-accent);
+}
+
+.practice-billing-form {
+  display: grid;
+  gap: 14px;
+}
+
+.stripe-payment-element {
+  min-height: 116px;
+}
+
+.practice-billing-consent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.practice-billing-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #9e321c;
+  font-size: 10px;
+}
+
+.practice-billing-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .affinity-demo-heading {
   display: flex;
   align-items: flex-start;
@@ -2487,6 +2621,18 @@ a:focus-visible {
 
   .affinity-frame-state {
     padding: 24px;
+  }
+
+  .practice-billing-heading {
+    align-items: flex-start;
+  }
+
+  .practice-billing-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-billing-summary > button {
+    justify-self: start;
   }
 }
 
