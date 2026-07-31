@@ -13,8 +13,12 @@ const AuthSecretValue = AuthSecret.pipe(Effect.map((secret) => secret.text));
 
 const WebsiteBindings = {
   AFFINITY_API_KEY: Config.redacted("AFFINITY_API_KEY"),
-  AFFINITY_API_URL: "https://api-staging.joinaffinityai.com",
-  AFFINITY_CONNECT_URL: "https://connect-staging.joinaffinityai.com",
+  AFFINITY_API_URL: Config.string("AFFINITY_API_URL").pipe(
+    Config.withDefault("https://api.joinaffinityai.com"),
+  ),
+  AFFINITY_CONNECT_URL: Config.string("AFFINITY_CONNECT_URL").pipe(
+    Config.withDefault("https://connect.joinaffinityai.com"),
+  ),
   AFFINITY_PROVIDER_MAPPING_ID: Config.string("AFFINITY_PROVIDER_MAPPING_ID").pipe(
     Config.withDefault(""),
   ),

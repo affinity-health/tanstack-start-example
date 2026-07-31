@@ -19,7 +19,7 @@ code.
 
 ## Run it
 
-Create `.env` with the staging test credentials:
+Create `.env` with a production-hosted Test credential:
 
 ```bash
 AFFINITY_API_KEY=sk_test_...
@@ -39,8 +39,8 @@ practice, which answers “what may this provider do here?” Keeping identity a
 separate prevents a platform from granting itself prescribing authority, but the demo backend only
 needs the provider mapping ID.
 
-The configured mapping must be verified. In the Affinity staging Platform settings, allow both
-origins you use:
+The configured mapping must be verified. In the Affinity production Platform portal's Test mode,
+allow both origins you use:
 
 ```text
 http://localhost:3001

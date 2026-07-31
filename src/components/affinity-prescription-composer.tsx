@@ -9,7 +9,7 @@ type ComponentSession = {
   expiresAt: string;
 };
 
-const affinityConnectUrl = "https://connect-staging.joinaffinityai.com";
+const affinityConnectUrl = "https://connect.joinaffinityai.com";
 const affinityAppearance: AffinityAppearance = {
   theme: "light",
   variables: {
