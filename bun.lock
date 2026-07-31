@@ -6,7 +6,7 @@
       "name": "tanstack-start-example",
       "dependencies": {
         "@affinity-health/elements": "1.0.0",
-        "@affinity-health/sdk": "1.0.0",
+        "@affinity-health/sdk": "1.0.1",
         "@cloudflare/workers-types": "^5.20260728.1",
         "@effect/platform-bun": "4.0.0-beta.102",
         "@effect/platform-node": "4.0.0-beta.102",
@@ -39,7 +39,7 @@
   "packages": {
     "@affinity-health/elements": ["@affinity-health/elements@1.0.0", "", { "peerDependencies": { "react": ">=18.3 <20" }, "optionalPeers": ["react"] }, "sha512-9o4esgcUKir2Ln1Efm0boXDsyQ6A44TUyIWpBpfjGbQTlNlGael0rkM4DAsDzkBOBntsdmotpOa/fCsbJY1K9Q=="],
 
-    "@affinity-health/sdk": ["@affinity-health/sdk@1.0.0", "", {}, "sha512-jsg4960wdNs6PQ9KG5x1txveQz1YR/fqkrVSOrF9ET9WciVnNL8eLxLNOiA26gWHlQ1Iuhx+N2TuO7z+Ne2JhA=="],
+    "@affinity-health/sdk": ["@affinity-health/sdk@1.0.1", "", {}, "sha512-SZuIWhIl2NttXCsvk2Tm2gU3TiSVekUuZ1/9bsE0YRM83Hu+GlpJkrTW8Yu7VJ6MPQHN19U4felPu1SInRyCvA=="],
 
     "@alcalzone/ansi-tokenize": ["@alcalzone/ansi-tokenize@0.2.5", "", { "dependencies": { "ansi-styles": "^6.2.1", "is-fullwidth-code-point": "^5.0.0" } }, "sha512-3NX/MpTdroi0aKz134A6RC2Gb2iXVECN4QaAXnvCIxxIm3C3AVB1mkUe8NaaiyvOpDfsrqWhYtj+Q6a62RrTsw=="],
 
