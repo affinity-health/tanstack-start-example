@@ -13,8 +13,6 @@ import { env } from "../env";
 import { createAuth } from "./auth";
 import { requestOrigin } from "./request-origin";
 
-const directWorkerOrigin =
-  "https://tanstackstartexample-website-ptrck3f2wizqxmzmk4grvhgi4.dawsson.workers.dev";
 const productionOrigin = env.APP_URL;
 const affinityApiVersion = "2026-07-29";
 
@@ -123,10 +121,6 @@ export const api = new Elysia({
           {
             url: productionOrigin,
             description: "Configured demo endpoint",
-          },
-          {
-            url: directWorkerOrigin,
-            description: "Direct Cloudflare Worker",
           },
           {
             url: "http://localhost:3001",

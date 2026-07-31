@@ -40,11 +40,12 @@ separate prevents a platform from granting itself prescribing authority, but the
 needs the provider mapping ID.
 
 The configured mapping must be verified. In the Affinity production Platform portal's Test mode,
-allow both origins you use:
+allow every browser origin you use:
 
 ```text
 http://localhost:3001
 https://api.dawson.gg
+https://your-generated-worker.workers.dev
 ```
 
 Then start the app:
@@ -92,10 +93,10 @@ the hosted session without blocking the popup.
 | `GET`      | `/api/openapi/json`               | Raw OpenAPI document          |
 | `GET/POST` | `/api/auth/*`                     | Better Auth request handler   |
 
-Configure the Affinity webhook endpoint as:
+Configure the Affinity webhook endpoint for the environment that should receive events:
 
 ```text
-https://api.dawson.gg/api/affinity/webhook
+https://your-generated-worker.workers.dev/api/affinity/webhook
 ```
 
 The receiver verifies the `affinity-signature` HMAC against the exact raw request body with a
@@ -103,6 +104,10 @@ five-minute timestamp tolerance. Valid events are inserted into `affinity_webhoo
 ID, so retries are acknowledged without duplicating rows. It logs only event metadata to the
 Worker console. The D1 payload log is for synthetic test-mode data; do not use this demo retention
 policy for production PHI.
+
+`api.dawson.gg` is the optional Cloudflare Tunnel entrypoint for local development on
+`localhost:3001`; deployment does not create or modify that DNS record. Set `APP_URL` to the
+generated Worker origin when deploying a persistent hosted demo.
 
 ## Commands
 

@@ -23,7 +23,7 @@ const WebsiteBindings = {
     Config.withDefault(""),
   ),
   AFFINITY_WEBHOOK_SECRET: Config.redacted("AFFINITY_WEBHOOK_SECRET"),
-  APP_URL: "https://api.dawson.gg",
+  APP_URL: Config.string("APP_URL").pipe(Config.withDefault("http://localhost:3001")),
   BETTER_AUTH_SECRET: AuthSecretValue,
   DB: Database,
 } as const;
