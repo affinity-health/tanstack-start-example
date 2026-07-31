@@ -5,8 +5,8 @@
     "": {
       "name": "tanstack-start-example",
       "dependencies": {
-        "@affinity-health/elements": "0.2.0",
-        "@affinity-health/sdk": "0.3.0",
+        "@affinity-health/elements": "1.0.0",
+        "@affinity-health/sdk": "1.0.0",
         "@cloudflare/workers-types": "^5.20260728.1",
         "@effect/platform-bun": "4.0.0-beta.102",
         "@effect/platform-node": "4.0.0-beta.102",
@@ -37,9 +37,9 @@
     },
   },
   "packages": {
-    "@affinity-health/elements": ["@affinity-health/elements@0.2.0", "", { "peerDependencies": { "react": ">=18.3 <20" }, "optionalPeers": ["react"] }, "sha512-4tVCb+jIiZfGE2KKRhSIYa+Lb9iWXgVaC2i6Fdw05wt0A3Xz+aUgNUg/CR0/TutzFbkICWlQJqoQ2WS8ZIAxfQ=="],
+    "@affinity-health/elements": ["@affinity-health/elements@1.0.0", "", { "peerDependencies": { "react": ">=18.3 <20" }, "optionalPeers": ["react"] }, "sha512-9o4esgcUKir2Ln1Efm0boXDsyQ6A44TUyIWpBpfjGbQTlNlGael0rkM4DAsDzkBOBntsdmotpOa/fCsbJY1K9Q=="],
 
-    "@affinity-health/sdk": ["@affinity-health/sdk@0.3.0", "", {}, "sha512-8keQFFifw8LQnSekE7giwACLKOLTcMPPuroMR4j851rTV5Gd6haiK5HpTUyNetL92ENllP6q42NJUoKx0OuPrg=="],
+    "@affinity-health/sdk": ["@affinity-health/sdk@1.0.0", "", {}, "sha512-jsg4960wdNs6PQ9KG5x1txveQz1YR/fqkrVSOrF9ET9WciVnNL8eLxLNOiA26gWHlQ1Iuhx+N2TuO7z+Ne2JhA=="],
 
     "@alcalzone/ansi-tokenize": ["@alcalzone/ansi-tokenize@0.2.5", "", { "dependencies": { "ansi-styles": "^6.2.1", "is-fullwidth-code-point": "^5.0.0" } }, "sha512-3NX/MpTdroi0aKz134A6RC2Gb2iXVECN4QaAXnvCIxxIm3C3AVB1mkUe8NaaiyvOpDfsrqWhYtj+Q6a62RrTsw=="],
 
