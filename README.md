@@ -117,5 +117,11 @@ bun run test         # webhook verification tests
 bun run check        # test, lint, format check, and typecheck
 bun run build        # production build
 bun run deploy       # deploy the Worker and D1 database
+bun run deploy:production # deploy with explicit process secrets, ignoring local .env credentials
 bun run destroy      # remove the managed stack
 ```
+
+For the persistent hosted demo, export `APP_URL`, `AFFINITY_API_KEY`,
+`AFFINITY_PROVIDER_MAPPING_ID`, and `AFFINITY_WEBHOOK_SECRET` in the calling shell, then run
+`bun run deploy:production`. The deploy script reads only non-secret Cloudflare configuration from
+`.alchemy-deploy.env`, so an older local `.env` cannot replace the intended Test credentials.

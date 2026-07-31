@@ -7,6 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "alchemy deploy",
+    "deploy:production": "alchemy deploy --env-file .alchemy-deploy.env --stage production",
     "destroy": "alchemy destroy",
     "check": "bun test && oxlint && oxfmt --check && tsc --noEmit",
     "check-types": "tsc --noEmit",
