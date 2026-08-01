@@ -78,7 +78,9 @@ export function AffinityPrescriptionComposer() {
         >
           <PrescriptionComposer
             className="affinity-frame-mount"
-            onDraftCreated={() => setStatus("Prescription draft created")}
+            onOrderDraftCreated={({ prescriptionIds }) =>
+              setStatus(`Order drafted with ${prescriptionIds.length} prescription(s)`)
+            }
             onLoadError={(error) => {
               setPhase("error");
               setStatus(error.message);
@@ -87,8 +89,12 @@ export function AffinityPrescriptionComposer() {
               setPhase("connected");
               setStatus("Secure component connected");
             }}
-            onOrderSubmitted={() => setStatus("Order submitted")}
-            onPrescriptionSigned={() => setStatus("Prescription signed")}
+            onOrderSigned={({ prescriptionIds }) =>
+              setStatus(`Order signed with ${prescriptionIds.length} prescription(s)`)
+            }
+            onOrderSubmitted={({ fulfillmentIds }) =>
+              setStatus(`Order submitted with ${fulfillmentIds.length} fulfillment(s)`)
+            }
           />
         </AffinityProvider>
         {phase !== "connected" ? (

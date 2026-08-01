@@ -98,8 +98,8 @@ Sign in and open **Medication orders**. Use the launch-mode control to select on
   six-digit signing PIN. The PIN is entered only inside Affinity and is never returned to the
   platform.
 
-The embedded component emits only the current `prescription.draft_created`,
-`prescription.signed`, and `order.submitted` browser events. Treat those events as UI hints and use
+The embedded component emits only the current `order.draft_created`, `order.signed`, and
+`order.submitted` browser events. Treat those events as UI hints and use
 the signed webhook receiver for authoritative state changes.
 
 The popup opens directly from the user click. The browser can then wait for the backend to create
