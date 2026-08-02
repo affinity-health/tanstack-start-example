@@ -121,6 +121,10 @@ curl --request POST http://localhost:3001/api/affinity/headless-order \
     "patientId": "pat_01j2y8m6jcc9tt24af5pw9x1bc",
     "prescriptions": [{
       "daysSupply": 30,
+      "diagnoses": [{
+        "code": "E66.9",
+        "display": "Obesity, unspecified"
+      }],
       "directions": "Inject 0.25 mL subcutaneously once weekly",
       "medicationId": "cat_01j2y8m6jcc9tt24af5pw9x1bc",
       "quantity": 1,
@@ -140,7 +144,10 @@ curl --request POST http://localhost:3001/api/affinity/headless-order \
 
 Repeat the prescription object to create multiple prescriptions for the same patient. Reuse the
 same idempotency key only when retrying the identical logical request. Open the returned
-`signingSession.url` only for the authenticated provider.
+`signingSession.url` only for the authenticated provider. Put the primary ICD-10-CM diagnosis
+first. When the selected catalog formulation requires a patient-specific compounding reason, send
+`compoundingReason` with one of the documented categories and the provider-entered explanation;
+do not infer or preselect it.
 
 ## HTTP surface
 

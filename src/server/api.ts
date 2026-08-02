@@ -104,7 +104,31 @@ const headlessOrderResponse = t.Object({
 });
 
 const headlessPrescription = t.Object({
+  compoundingReason: t.Optional(
+    t.Object({
+      category: t.Union([
+        t.Literal("drug_shortage"),
+        t.Literal("commercial_product_discontinued"),
+        t.Literal("modified_release"),
+        t.Literal("inactive_ingredient_sensitivity"),
+        t.Literal("concentration_adjustment"),
+        t.Literal("alternate_route"),
+        t.Literal("dosage_form_unavailable"),
+        t.Literal("patient_cannot_use_commercial_product"),
+        t.Literal("no_approved_product_available"),
+        t.Literal("other_patient_specific_need"),
+      ]),
+      context: t.String({ maxLength: 2000, minLength: 1 }),
+    }),
+  ),
   daysSupply: t.Integer({ maximum: 365, minimum: 1 }),
+  diagnoses: t.Array(
+    t.Object({
+      code: t.String({ maxLength: 16, minLength: 1 }),
+      display: t.String({ maxLength: 240, minLength: 1 }),
+    }),
+    { maxItems: 20, minItems: 1 },
+  ),
   directions: t.String({ maxLength: 2000, minLength: 1 }),
   medicationId: t.String({ minLength: 1 }),
   quantity: t.Number({ exclusiveMinimum: 0, maximum: 100000 }),
@@ -204,7 +228,12 @@ export const api = new Elysia({
             patientId: body.patientId,
             practiceId: mapping.practiceId,
             prescriptions: body.prescriptions.map((prescription) => ({
-              clinical: { currentMedications: [], observations: [] },
+              clinical: {
+                compoundingReason: prescription.compoundingReason,
+                currentMedications: [],
+                diagnoses: prescription.diagnoses,
+                observations: [],
+              },
               daysSupply: prescription.daysSupply,
               directions: prescription.directions,
               dispensing: {
