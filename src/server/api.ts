@@ -94,6 +94,32 @@ const hostedSessionResponse = t.Object({
   url: t.String({ format: "uri" }),
 });
 
+const headlessOrderResponse = t.Object({
+  orderId: t.String(),
+  prescriptionIds: t.Array(t.String()),
+  signingSession: t.Object({
+    expiresAt: t.String({ format: "date-time" }),
+    url: t.String({ format: "uri" }),
+  }),
+});
+
+const headlessPrescription = t.Object({
+  daysSupply: t.Integer({ maximum: 365, minimum: 1 }),
+  directions: t.String({ maxLength: 2000, minLength: 1 }),
+  medicationId: t.String({ minLength: 1 }),
+  quantity: t.Number({ exclusiveMinimum: 0, maximum: 100000 }),
+  quantityUnit: t.String({ maxLength: 80, minLength: 1 }),
+  refills: t.Integer({ maximum: 99, minimum: 0 }),
+  structuredSig: t.Object({
+    dose: t.String({ maxLength: 80, minLength: 1 }),
+    doseUnit: t.String({ maxLength: 80, minLength: 1 }),
+    frequency: t.String({ maxLength: 120, minLength: 1 }),
+    prn: t.Boolean({ default: false }),
+    route: t.String({ maxLength: 120, minLength: 1 }),
+  }),
+  substitutionPermitted: t.Boolean({ default: false }),
+});
+
 const paymentMethodResponse = t.Nullable(
   t.Object({
     brand: t.String(),
@@ -163,6 +189,96 @@ export const api = new Elysia({
         ],
       },
     }),
+  )
+  .post(
+    "/affinity/headless-order",
+    async ({ body, headers, request, status }) => {
+      try {
+        const { affinity, mapping, session } = await requireTestPractice(
+          request,
+          "creating a patient order",
+        );
+        const actingAffinity = affinity.withActor({ id: session.user.id, type: "user" });
+        const order = await actingAffinity.orders.create(
+          {
+            patientId: body.patientId,
+            practiceId: mapping.practiceId,
+            prescriptions: body.prescriptions.map((prescription) => ({
+              clinical: { currentMedications: [], observations: [] },
+              daysSupply: prescription.daysSupply,
+              directions: prescription.directions,
+              dispensing: {
+                dispenseUponAcceptance: true,
+                substitutionPermitted: prescription.substitutionPermitted,
+              },
+              medicationId: prescription.medicationId,
+              quantity: prescription.quantity,
+              quantityUnit: prescription.quantityUnit,
+              refills: prescription.refills,
+              structuredSig: prescription.structuredSig,
+            })),
+            providerMappingId: mapping.id,
+          },
+          { idempotencyKey: `${headers["idempotency-key"]}:order` },
+        );
+        const signingSession = await affinity.orderSigningSessions.create(
+          {
+            consent: {
+              authorizedProviderAccess: true,
+              minimumNecessaryPhi: true,
+              recordedAt: new Date(),
+            },
+            orderId: order.id,
+            practiceId: mapping.practiceId,
+            providerMappingId: mapping.id,
+            returnUrl: body.returnUrl ?? null,
+            userId: mapping.userId,
+          },
+          { idempotencyKey: `${headers["idempotency-key"]}:signing` },
+        );
+
+        return {
+          orderId: order.id,
+          prescriptionIds: order.prescriptions.map((prescription) => prescription.id),
+          signingSession: {
+            expiresAt: signingSession.expiresAt.toISOString(),
+            url: signingSession.url,
+          },
+        };
+      } catch (error) {
+        if (error instanceof DemoRequestError) {
+          return status(error.statusCode, { error: error.message });
+        }
+        return status(502, {
+          error: `Affinity could not create the patient order (${await affinityErrorCode(error)}).`,
+        });
+      }
+    },
+    {
+      body: t.Object({
+        patientId: t.String({ minLength: 1 }),
+        prescriptions: t.Array(headlessPrescription, { maxItems: 20, minItems: 1 }),
+        returnUrl: t.Optional(t.Nullable(t.String({ format: "uri" }))),
+      }),
+      detail: {
+        description:
+          "Creates one Test patient order with one or more prescriptions, then returns a single-use provider signing URL. The backend supplies actor attribution and never receives the provider PIN.",
+        operationId: "createAffinityHeadlessOrder",
+        summary: "Create a headless patient order",
+        tags: ["Affinity"],
+      },
+      headers: t.Object({
+        "idempotency-key": t.String({ minLength: 1 }),
+      }),
+      response: {
+        200: headlessOrderResponse,
+        400: affinityError,
+        401: affinityError,
+        409: affinityError,
+        502: affinityError,
+        503: affinityError,
+      },
+    },
   )
   .get(
     "/health",
@@ -544,9 +660,9 @@ class DemoRequestError extends Error {
   }
 }
 
-async function requireTestPractice(request: Request) {
+async function requireTestPractice(request: Request, action = "managing practice billing") {
   const session = await createAuth(request).api.getSession({ headers: request.headers });
-  if (!session) throw new DemoRequestError(401, "Sign in before managing practice billing.");
+  if (!session) throw new DemoRequestError(401, `Sign in before ${action}.`);
 
   const providerMappingId = env.AFFINITY_PROVIDER_MAPPING_ID.trim();
   if (!providerMappingId) {
@@ -567,13 +683,10 @@ async function requireTestPractice(request: Request) {
 
   const mapping = await affinity.providerMappings.retrieve(providerMappingId);
   if (mapping.status !== "verified") {
-    throw new DemoRequestError(
-      409,
-      "Complete Affinity provider verification before managing practice billing.",
-    );
+    throw new DemoRequestError(409, `Complete Affinity provider verification before ${action}.`);
   }
 
-  return { affinity, practiceId: mapping.practiceId };
+  return { affinity, mapping, practiceId: mapping.practiceId, session };
 }
 
 function paymentProfileView(profile: {

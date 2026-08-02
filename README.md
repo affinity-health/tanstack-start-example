@@ -9,6 +9,7 @@ A deliberately small example of the Affinity platform integration model:
 - Stripe.js practice card setup without card data touching the platform server
 - An origin-bound Affinity prescription composer session
 - Single-use Affinity Hosted prescribing and provider-verification sessions
+- A headless SDK route that creates one multi-prescription patient order and signing session
 - Signed Affinity webhooks stored idempotently in Cloudflare D1
 - Cloudflare D1 for auth storage
 - Elysia OpenAPI for generated API documentation
@@ -105,6 +106,42 @@ the signed webhook receiver for authoritative state changes.
 The popup opens directly from the user click. The browser can then wait for the backend to create
 the hosted session without blocking the popup.
 
+## Test the headless SDK flow
+
+Use this route when your platform owns the prescribing interface. Send one patient and the complete
+prescription list from your authenticated backend session. The example creates the unsigned order
+and returns one provider-bound signing URL. Affinity collects the signing PIN on that URL.
+
+```bash
+curl --request POST http://localhost:3001/api/affinity/headless-order \
+  --header 'Content-Type: application/json' \
+  --header 'Idempotency-Key: encounter_123' \
+  --cookie 'your-authenticated-session-cookie' \
+  --data '{
+    "patientId": "pat_test_patient_id",
+    "prescriptions": [{
+      "daysSupply": 30,
+      "directions": "Inject 0.25 mL subcutaneously once weekly",
+      "medicationId": "cat_test_medication_id",
+      "quantity": 1,
+      "quantityUnit": "mL",
+      "refills": 0,
+      "structuredSig": {
+        "dose": "0.25",
+        "doseUnit": "mL",
+        "frequency": "once weekly",
+        "prn": false,
+        "route": "subcutaneous"
+      },
+      "substitutionPermitted": false
+    }]
+  }'
+```
+
+Repeat the prescription object to create multiple prescriptions for the same patient. Reuse the
+same idempotency key only when retrying the identical logical request. Open the returned
+`signingSession.url` only for the authenticated provider.
+
 ## HTTP surface
 
 | Method     | URL                                    | Purpose                               |
@@ -112,6 +149,7 @@ the hosted session without blocking the popup.
 | `GET`      | `/api/health`                          | Health check                          |
 | `POST`     | `/api/affinity/component-session`      | Create a component session            |
 | `POST`     | `/api/affinity/hosted-session`         | Create a prescribing or setup session |
+| `POST`     | `/api/affinity/headless-order`         | Create an order and signing session   |
 | `GET`      | `/api/affinity/payment-profile`        | Read safe practice payment status     |
 | `POST`     | `/api/affinity/payment-setup`          | Start Stripe Test card setup          |
 | `POST`     | `/api/affinity/payment-setup/complete` | Complete Test card setup              |
