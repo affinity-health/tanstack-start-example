@@ -267,9 +267,12 @@ export const api = new Elysia({
         summary: "Create a headless patient order",
         tags: ["Affinity"],
       },
-      headers: t.Object({
-        "idempotency-key": t.String({ minLength: 1 }),
-      }),
+      headers: t.Object(
+        {
+          "idempotency-key": t.String({ minLength: 1 }),
+        },
+        { additionalProperties: true },
+      ),
       response: {
         200: headlessOrderResponse,
         400: affinityError,

@@ -118,11 +118,11 @@ curl --request POST http://localhost:3001/api/affinity/headless-order \
   --header 'Idempotency-Key: encounter_123' \
   --cookie 'your-authenticated-session-cookie' \
   --data '{
-    "patientId": "pat_test_patient_id",
+    "patientId": "pat_01j2y8m6jcc9tt24af5pw9x1bc",
     "prescriptions": [{
       "daysSupply": 30,
       "directions": "Inject 0.25 mL subcutaneously once weekly",
-      "medicationId": "cat_test_medication_id",
+      "medicationId": "cat_01j2y8m6jcc9tt24af5pw9x1bc",
       "quantity": 1,
       "quantityUnit": "mL",
       "refills": 0,
