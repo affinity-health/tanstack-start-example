@@ -520,7 +520,7 @@ a:focus-visible {
   --emr-accent-soft: #e7f4f1;
   --emr-border: #d6dfdb;
   --emr-ink: #17211d;
-  --emr-muted: #66736d;
+  --emr-muted: #53615b;
   min-height: 100vh;
   color: var(--emr-ink);
   background: #eef2f0;
@@ -770,13 +770,13 @@ a:focus-visible {
 }
 
 .emr-breadcrumb {
-  color: #77847e;
+  color: #5f6c66;
   font-size: 11px;
 }
 
 .emr-breadcrumb span {
   margin-inline: 7px;
-  color: #a3ada8;
+  color: #68756f;
 }
 
 .emr-page-heading {
@@ -974,7 +974,7 @@ a:focus-visible {
 }
 
 .showcase-picker-grid small {
-  color: #7a8781;
+  color: #56635e;
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.08em;
