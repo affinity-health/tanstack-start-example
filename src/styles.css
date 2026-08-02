@@ -675,7 +675,7 @@ a:focus-visible {
 
 .emr-sidebar nav > p {
   margin: 0 10px 8px;
-  color: #8a9691;
+  color: #65716c;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.11em;
@@ -711,7 +711,7 @@ a:focus-visible {
 .emr-sidebar nav > a > span {
   min-width: 20px;
   padding: 2px 5px;
-  color: #6b7772;
+  color: #4f5c56;
   background: #e8eeeb;
   border-radius: 999px;
   font-size: 9px;
