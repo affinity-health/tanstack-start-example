@@ -105,7 +105,7 @@ export function AffinityHeadlessOrder() {
               substitutionPermitted: false,
             },
           ],
-          returnUrl: window.location.href,
+          returnUrl: `${window.location.origin}${window.location.pathname}`,
         }),
         credentials: "include",
         headers: {
