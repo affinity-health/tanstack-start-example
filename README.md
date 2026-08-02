@@ -94,6 +94,8 @@ Sign in and open **Medication orders**. Use the launch-mode control to select on
 - **Practice billing** records the user's consent and adds a Stripe Test card before an order can
   be accepted.
 - **Embedded** renders the Affinity Elements iframe in the platform page.
+- **Headless SDK** renders a Northstar-owned prescription form, creates the unsigned order from the
+  platform backend, and opens Affinity only for provider signing.
 - **Popup window** opens the complete Affinity Hosted workflow in a focused window.
 - **Provider setup** opens a single-use verification session where the provider sets or resets the
   six-digit signing PIN. The PIN is entered only inside Affinity and is never returned to the
@@ -121,10 +123,6 @@ curl --request POST http://localhost:3001/api/affinity/headless-order \
     "patientId": "pat_01j2y8m6jcc9tt24af5pw9x1bc",
     "prescriptions": [{
       "daysSupply": 30,
-      "diagnoses": [{
-        "code": "E66.9",
-        "display": "Obesity, unspecified"
-      }],
       "directions": "Inject 0.25 mL subcutaneously once weekly",
       "medicationId": "cat_01j2y8m6jcc9tt24af5pw9x1bc",
       "quantity": 1,
@@ -144,10 +142,10 @@ curl --request POST http://localhost:3001/api/affinity/headless-order \
 
 Repeat the prescription object to create multiple prescriptions for the same patient. Reuse the
 same idempotency key only when retrying the identical logical request. Open the returned
-`signingSession.url` only for the authenticated provider. Put the primary ICD-10-CM diagnosis
-first. When the selected catalog formulation requires a patient-specific compounding reason, send
-`compoundingReason` with one of the documented categories and the provider-entered explanation;
-do not infer or preselect it.
+`signingSession.url` only for the authenticated provider. Diagnoses are optional. When supplied,
+put the primary ICD-10-CM diagnosis first. When the selected catalog formulation requires a
+patient-specific compounding reason, send `compoundingReason` with one of the documented categories
+and the provider-entered explanation; do not infer or preselect it.
 
 ## HTTP surface
 
@@ -155,6 +153,7 @@ do not infer or preselect it.
 | ---------- | -------------------------------------- | ------------------------------------- |
 | `GET`      | `/api/health`                          | Health check                          |
 | `POST`     | `/api/affinity/component-session`      | Create a component session            |
+| `GET`      | `/api/affinity/headless-options`       | List Test patients and formulations   |
 | `POST`     | `/api/affinity/hosted-session`         | Create a prescribing or setup session |
 | `POST`     | `/api/affinity/headless-order`         | Create an order and signing session   |
 | `GET`      | `/api/affinity/payment-profile`        | Read safe practice payment status     |

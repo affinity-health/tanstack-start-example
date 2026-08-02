@@ -3,6 +3,7 @@ import { ClipboardList, ShieldCheck, Wifi } from "lucide-react";
 import { useState } from "react";
 
 import { AffinityHostedLauncher } from "../components/affinity-hosted-launcher";
+import { AffinityHeadlessOrder } from "../components/affinity-headless-order";
 import { AffinityPrescriptionComposer } from "../components/affinity-prescription-composer";
 import { EmrShell } from "../components/emr-shell";
 import { PracticePaymentSetup } from "../components/practice-payment-setup";
@@ -18,7 +19,9 @@ export const Route = createFileRoute("/medication-orders")({
 
 function MedicationOrders() {
   const { session } = Route.useRouteContext();
-  const [launchMode, setLaunchMode] = useState<"embedded" | "popup" | "setup">("embedded");
+  const [launchMode, setLaunchMode] = useState<"embedded" | "headless" | "popup" | "setup">(
+    "embedded",
+  );
 
   return (
     <EmrShell
@@ -31,6 +34,14 @@ function MedicationOrders() {
             onClick={() => setLaunchMode("embedded")}
           >
             Embedded
+          </button>
+          <button
+            aria-pressed={launchMode === "headless"}
+            className={launchMode === "headless" ? "is-active" : undefined}
+            type="button"
+            onClick={() => setLaunchMode("headless")}
+          >
+            Headless SDK
           </button>
           <button
             aria-pressed={launchMode === "popup"}
@@ -51,7 +62,7 @@ function MedicationOrders() {
         </div>
       }
       current="prescriptions"
-      description="Choose an embedded component or a focused Affinity Hosted window."
+      description="Compare embedded Elements, a platform-owned SDK flow, and Affinity Hosted."
       session={session}
       title="Medication orders"
     >
@@ -106,6 +117,8 @@ function MedicationOrders() {
           </div>
           <AffinityPrescriptionComposer />
         </section>
+      ) : launchMode === "headless" ? (
+        <AffinityHeadlessOrder />
       ) : launchMode === "popup" ? (
         <AffinityHostedLauncher />
       ) : (

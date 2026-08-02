@@ -1344,9 +1344,189 @@ a:focus-visible {
   text-underline-offset: 3px;
 }
 
-.emr-app :where(a, button, input, textarea):focus-visible {
+.emr-app :where(a, button, input, select, textarea):focus-visible {
   outline: 3px solid rgb(15 118 110 / 28%);
   outline-offset: 2px;
+}
+
+.headless-demo-body {
+  display: grid;
+  gap: 18px;
+  padding: 18px 22px 22px;
+}
+
+.affinity-demo > .headless-demo-body {
+  padding: 18px 22px 22px;
+}
+
+.headless-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  color: #8a9892;
+  list-style: none;
+}
+
+.headless-flow li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #f7faf8;
+  border: 1px solid var(--emr-border);
+  border-radius: 10px;
+}
+
+.headless-flow li > strong {
+  display: grid;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  color: #0b665f;
+  background: var(--emr-accent-soft);
+  border-radius: 8px;
+  font-size: 10px;
+  place-items: center;
+}
+
+.headless-flow li > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: var(--emr-muted);
+  font-size: 9px;
+}
+
+.headless-flow li b {
+  overflow: hidden;
+  color: var(--emr-ink);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headless-state {
+  display: flex;
+  min-height: 180px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: var(--emr-muted);
+  background: #fbfcfb;
+  border: 1px dashed var(--emr-border);
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.headless-state-error {
+  flex-direction: column;
+  color: #9e321c;
+}
+
+.headless-form {
+  overflow: hidden;
+  background: #fbfcfb;
+  border: 1px solid var(--emr-border);
+  border-radius: 10px;
+}
+
+.headless-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px;
+}
+
+.headless-field {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  color: #46564f;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.headless-field-wide {
+  grid-column: span 2;
+}
+
+.headless-field :where(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  color: var(--emr-ink);
+  background: white;
+  border: 1px solid #cfd9d5;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.headless-field :where(input, select) {
+  min-height: 38px;
+}
+
+.headless-field textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.headless-field input[readonly] {
+  color: #52615b;
+  background: #f0f4f2;
+}
+
+.headless-field :where(input, textarea)::placeholder {
+  color: #95a19c;
+}
+
+.headless-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 18px;
+  background: white;
+  border-top: 1px solid var(--emr-border);
+}
+
+.headless-form-footer p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--emr-muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.headless-form-error {
+  padding: 0 18px 14px;
+  margin: 0;
+  color: #9e321c;
+  background: white;
+  font-size: 10px;
+}
+
+.headless-success {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 18px;
+  color: #0f6a43;
+  background: #edf9f1;
+  border-top: 1px solid #cfead8;
+  font-size: 10px;
+}
+
+.headless-success strong {
+  display: block;
+  color: #145a3d;
+  font-size: 11px;
 }
 
 .emr-panel {
@@ -2673,6 +2853,10 @@ a:focus-visible {
 }
 
 @media (max-width: 920px) {
+  .headless-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .emr-stat-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2707,6 +2891,27 @@ a:focus-visible {
 }
 
 @media (max-width: 720px) {
+  .affinity-demo > .headless-demo-body {
+    padding: 14px;
+  }
+
+  .headless-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .headless-flow > svg {
+    display: none;
+  }
+
+  .headless-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .headless-form-footer .emr-button {
+    width: 100%;
+  }
+
   .emr-page-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -2782,6 +2987,15 @@ a:focus-visible {
 }
 
 @media (max-width: 600px) {
+  .headless-form-grid {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .headless-field-wide {
+    grid-column: auto;
+  }
+
   .emr-page-content {
     gap: 14px;
     margin-top: 20px;

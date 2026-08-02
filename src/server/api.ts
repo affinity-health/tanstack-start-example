@@ -103,6 +103,25 @@ const headlessOrderResponse = t.Object({
   }),
 });
 
+const headlessOptionsResponse = t.Object({
+  medications: t.Array(
+    t.Object({
+      dosageForm: t.String(),
+      id: t.String(),
+      name: t.String(),
+      route: t.String(),
+      strength: t.Nullable(t.String()),
+    }),
+  ),
+  patients: t.Array(
+    t.Object({
+      id: t.String(),
+      name: t.String(),
+      state: t.String(),
+    }),
+  ),
+});
+
 const headlessPrescription = t.Object({
   compoundingReason: t.Optional(
     t.Object({
@@ -122,12 +141,14 @@ const headlessPrescription = t.Object({
     }),
   ),
   daysSupply: t.Integer({ maximum: 365, minimum: 1 }),
-  diagnoses: t.Array(
-    t.Object({
-      code: t.String({ maxLength: 16, minLength: 1 }),
-      display: t.String({ maxLength: 240, minLength: 1 }),
-    }),
-    { maxItems: 20, minItems: 1 },
+  diagnoses: t.Optional(
+    t.Array(
+      t.Object({
+        code: t.String({ maxLength: 16, minLength: 1 }),
+        display: t.String({ maxLength: 240, minLength: 1 }),
+      }),
+      { maxItems: 20 },
+    ),
   ),
   directions: t.String({ maxLength: 2000, minLength: 1 }),
   medicationId: t.String({ minLength: 1 }),
@@ -214,6 +235,63 @@ export const api = new Elysia({
       },
     }),
   )
+  .get(
+    "/affinity/headless-options",
+    async ({ request, status }) => {
+      try {
+        const { affinity, mapping, session } = await requireTestPractice(
+          request,
+          "loading the headless prescribing demo",
+        );
+        const actingAffinity = affinity.withActor({ id: session.user.id, type: "user" });
+        const [patientList, catalog] = await Promise.all([
+          actingAffinity.patients.list(mapping.practiceId, { limit: 50 }),
+          affinity.catalog.list({ limit: 50 }),
+        ]);
+        return {
+          medications: catalog.data
+            .filter((item) => item.isOrderable)
+            .map((item) => ({
+              dosageForm: item.dosageForm,
+              id: item.id,
+              name: item.name,
+              route: item.route,
+              strength: item.strength,
+            })),
+          patients: patientList.data
+            .filter((patient) => patient.status === "active")
+            .map((patient) => ({
+              id: patient.id,
+              name: [patient.name.preferred ?? patient.name.first, patient.name.last].join(" "),
+              state: patient.address.state,
+            })),
+        };
+      } catch (error) {
+        if (error instanceof DemoRequestError) {
+          return status(error.statusCode, { error: error.message });
+        }
+        return status(502, {
+          error: `Affinity could not load the headless demo (${await affinityErrorCode(error)}).`,
+        });
+      }
+    },
+    {
+      detail: {
+        description:
+          "Returns the Test patients and orderable formulations available to the authenticated provider for the native headless SDK demo.",
+        operationId: "getAffinityHeadlessOptions",
+        summary: "List headless demo options",
+        tags: ["Affinity"],
+      },
+      response: {
+        200: headlessOptionsResponse,
+        401: affinityError,
+        409: affinityError,
+        502: affinityError,
+        503: affinityError,
+      },
+    },
+  )
   .post(
     "/affinity/headless-order",
     async ({ body, headers, request, status }) => {
@@ -231,7 +309,7 @@ export const api = new Elysia({
               clinical: {
                 compoundingReason: prescription.compoundingReason,
                 currentMedications: [],
-                diagnoses: prescription.diagnoses,
+                diagnoses: prescription.diagnoses ?? [],
                 observations: [],
               },
               daysSupply: prescription.daysSupply,
