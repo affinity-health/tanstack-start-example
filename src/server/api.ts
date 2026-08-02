@@ -120,6 +120,7 @@ const headlessOptionsResponse = t.Object({
       state: t.String(),
     }),
   ),
+  recommendedPatientId: t.Nullable(t.String()),
 });
 
 const headlessPrescription = t.Object({
@@ -248,6 +249,14 @@ export const api = new Elysia({
           actingAffinity.patients.list(mapping.practiceId, { limit: 50 }),
           affinity.catalog.list({ limit: 50 }),
         ]);
+        const patients = patientList.data
+          .filter((patient) => patient.status === "active")
+          .map((patient) => ({
+            id: patient.id,
+            name: [patient.name.preferred ?? patient.name.first, patient.name.last].join(" "),
+            state: patient.address.state,
+          }));
+        const preferredState = env.AFFINITY_DEMO_PATIENT_STATE.trim().toUpperCase();
         return {
           medications: catalog.data
             .filter((item) => item.isOrderable)
@@ -258,13 +267,9 @@ export const api = new Elysia({
               route: item.route,
               strength: item.strength,
             })),
-          patients: patientList.data
-            .filter((patient) => patient.status === "active")
-            .map((patient) => ({
-              id: patient.id,
-              name: [patient.name.preferred ?? patient.name.first, patient.name.last].join(" "),
-              state: patient.address.state,
-            })),
+          patients,
+          recommendedPatientId:
+            patients.find((patient) => patient.state.toUpperCase() === preferredState)?.id ?? null,
         };
       } catch (error) {
         if (error instanceof DemoRequestError) {

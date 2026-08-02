@@ -19,6 +19,9 @@ const WebsiteBindings = {
   AFFINITY_CONNECT_URL: Config.string("AFFINITY_CONNECT_URL").pipe(
     Config.withDefault("https://connect.joinaffinityai.com"),
   ),
+  AFFINITY_DEMO_PATIENT_STATE: Config.string("AFFINITY_DEMO_PATIENT_STATE").pipe(
+    Config.withDefault("CA"),
+  ),
   AFFINITY_PROVIDER_MAPPING_ID: Config.string("AFFINITY_PROVIDER_MAPPING_ID").pipe(
     Config.withDefault(""),
   ),
@@ -42,6 +45,7 @@ export type WebsiteEnv = {
   AFFINITY_API_KEY: string;
   AFFINITY_API_URL: string;
   AFFINITY_CONNECT_URL: string;
+  AFFINITY_DEMO_PATIENT_STATE: string;
   AFFINITY_PROVIDER_MAPPING_ID: string;
   AFFINITY_WEBHOOK_SECRET: string;
   APP_URL: string;

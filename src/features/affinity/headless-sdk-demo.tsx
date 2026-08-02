@@ -16,6 +16,7 @@ type HeadlessOptions = {
     name: string;
     state: string;
   }>;
+  recommendedPatientId: string | null;
 };
 
 type HeadlessOrder = {
@@ -207,7 +208,11 @@ const signing = await affinity.orderSigningSessions.create({
             <div className="headless-form-grid">
               <label className="headless-field headless-field-wide">
                 Patient
-                <select defaultValue={options.patients[0]?.id} name="patientId" required>
+                <select
+                  defaultValue={options.recommendedPatientId ?? options.patients[0]?.id}
+                  name="patientId"
+                  required
+                >
                   {options.patients.map((patient) => (
                     <option key={patient.id} value={patient.id}>
                       {patient.name} · {patient.state}
@@ -386,7 +391,9 @@ function isHeadlessOptions(value: unknown): value is HeadlessOptions {
     "patients" in value &&
     Array.isArray(value.patients) &&
     "medications" in value &&
-    Array.isArray(value.medications)
+    Array.isArray(value.medications) &&
+    "recommendedPatientId" in value &&
+    (value.recommendedPatientId === null || typeof value.recommendedPatientId === "string")
   );
 }
 

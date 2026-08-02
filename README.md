@@ -55,6 +55,7 @@ Create `.env` with a production-hosted Test credential:
 AFFINITY_API_KEY=sk_test_...
 AFFINITY_WEBHOOK_SECRET=whsec_...
 AFFINITY_PROVIDER_MAPPING_ID=pmap_...
+AFFINITY_DEMO_PATIENT_STATE=CA
 ```
 
 `AFFINITY_PROVIDER_MAPPING_ID` is not a credential. It is the durable `pmap_...` identifier that
@@ -68,6 +69,10 @@ Affinity provider is this?” Affinity then resolves that provider's active acce
 practice, which answers “what may this provider do here?” Keeping identity and practice access
 separate prevents a platform from granting itself prescribing authority, but the demo backend only
 needs the provider mapping ID.
+
+Set `AFFINITY_DEMO_PATIENT_STATE` to a state where that demo provider is licensed. The headless
+example selects a matching synthetic patient first, while still listing the other Test patients so
+the provider-eligibility guard is easy to demonstrate.
 
 The configured mapping must be verified. In the Affinity production Platform portal's Test mode,
 allow every browser origin you use:
