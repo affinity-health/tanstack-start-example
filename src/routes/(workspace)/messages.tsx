@@ -2,11 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MessageSquare, Search, Send } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 
-import { EmrShell } from "../components/emr-shell";
-import { demoThreads, type DemoMessage } from "../lib/demo-data";
-import { requireSession } from "../lib/require-session";
+import { EmrShell } from "../../components/emr-shell";
+import { demoThreads, type DemoMessage } from "../../lib/demo-data";
+import { requireSession } from "../../lib/require-session";
 
-export const Route = createFileRoute("/messages")({
+export const Route = createFileRoute("/(workspace)/messages")({
   beforeLoad: requireSession,
   head: () => ({
     meta: [{ title: "Messages | Northstar Health" }],

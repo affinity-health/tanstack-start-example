@@ -2,9 +2,9 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
-import { authClient } from "../lib/auth-client";
+import { authClient } from "../../lib/auth-client";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/(public)/login")({
   component: Login,
 });
 
@@ -53,18 +53,18 @@ function Login() {
           <ArrowLeft size={15} /> Back home
         </Link>
         <div>
-          <p className="eyebrow">Better Auth</p>
+          <p className="eyebrow">Northstar demo workspace</p>
           <h1>
-            One door.
+            Test Affinity.
             <br />
-            Properly locked.
+            End to end.
           </h1>
           <p>
-            Email and password authentication with server-managed sessions. No auth abstraction
-            layered on top of the auth abstraction.
+            Sign in as a platform user to compare embedded, hosted, and headless prescribing with
+            practice-owned Test billing.
           </p>
         </div>
-        <p className="auth-footnote">Sessions are stored in Cloudflare D1.</p>
+        <p className="auth-footnote">Test mode / Synthetic patient data only</p>
       </section>
 
       <section className="auth-form-wrap">

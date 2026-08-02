@@ -1,11 +1,11 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { CalendarDays, Clock3, FileWarning, MessageSquare, Pill, Users, Video } from "lucide-react";
 
-import { EmrSectionHeading, EmrShell, EmrStatus } from "../components/emr-shell";
-import { demoOrders, demoSchedule } from "../lib/demo-data";
-import { requireSession } from "../lib/require-session";
+import { EmrSectionHeading, EmrShell, EmrStatus } from "../../components/emr-shell";
+import { demoOrders, demoSchedule } from "../../lib/demo-data";
+import { requireSession } from "../../lib/require-session";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/(workspace)/dashboard")({
   beforeLoad: requireSession,
   head: () => ({
     meta: [{ title: "Overview | Northstar Health" }],

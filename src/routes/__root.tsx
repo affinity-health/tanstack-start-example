@@ -18,11 +18,11 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Plain Start — TanStack, Elysia & Better Auth",
+        title: "Affinity platform example",
       },
       {
         name: "description",
-        content: "A deliberately small TanStack Start application.",
+        content: "A working showcase of Affinity integration patterns in a partner application.",
       },
     ],
     links: [
@@ -60,7 +60,7 @@ function RootDocument() {
           <header className="site-header">
             <Link className="wordmark" to="/">
               <span className="wordmark-dot" />
-              Plain Start
+              Affinity example
             </Link>
             <nav aria-label="Primary navigation">
               <a href="/api/openapi">API docs</a>
@@ -74,8 +74,8 @@ function RootDocument() {
         <Outlet />
         {isWorkspace ? null : (
           <footer className="site-footer">
-            <p>TanStack Start / Elysia / Better Auth</p>
-            <p>One app. Nothing hiding.</p>
+            <p>Affinity Elements / SDK / Hosted</p>
+            <p>Test mode. Synthetic data only.</p>
           </footer>
         )}
         <Scripts />

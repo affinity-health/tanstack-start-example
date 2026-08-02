@@ -309,7 +309,7 @@ a:focus-visible {
 
 .stack-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   border-top: 1px solid var(--ink);
   border-left: 1px solid var(--ink);
 }
@@ -327,6 +327,15 @@ a:focus-visible {
 
 .stack-card:nth-child(3) {
   background: var(--acid);
+}
+
+.stack-card:nth-child(4) {
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.stack-card:nth-child(4) p {
+  color: #aaa69e;
 }
 
 .stack-card-top {
@@ -866,6 +875,122 @@ a:focus-visible {
   text-transform: uppercase;
 }
 
+.showcase-picker {
+  overflow: hidden;
+  color: white;
+  background: #17211d;
+  border: 1px solid #17211d;
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgb(23 33 29 / 10%);
+}
+
+.showcase-picker > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.75fr);
+  gap: 36px;
+  align-items: end;
+  padding: 22px 24px;
+}
+
+.showcase-picker > header span {
+  color: #7ad7c4;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.showcase-picker > header h2 {
+  margin: 7px 0 0;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+}
+
+.showcase-picker > header p {
+  margin: 0;
+  color: #b9c8c2;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.showcase-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  background: white;
+  border-top: 1px solid #32413b;
+}
+
+.showcase-picker-grid > button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 150px;
+  padding: 16px;
+  color: var(--emr-ink);
+  text-align: left;
+  background: white;
+  border: 0;
+  border-right: 1px solid var(--emr-border);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.showcase-picker-grid > button:last-child {
+  border-right: 0;
+}
+
+.showcase-picker-grid > button:hover {
+  background: #f5faf8;
+}
+
+.showcase-picker-grid > button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--emr-accent);
+  outline-offset: -2px;
+}
+
+.showcase-picker-grid > button.is-active {
+  background: #e6f5f0;
+  box-shadow: inset 0 3px 0 var(--emr-accent);
+}
+
+.showcase-picker-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  color: var(--emr-accent);
+  background: var(--emr-accent-soft);
+  border-radius: 9px;
+  place-items: center;
+}
+
+.showcase-picker-grid > button > span:last-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.showcase-picker-grid small {
+  color: #7a8781;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.showcase-picker-grid strong {
+  font-size: 12px;
+}
+
+.showcase-picker-grid button > span:last-child > span {
+  color: var(--emr-muted);
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
 .affinity-demo {
   overflow: hidden;
   background: white;
@@ -936,21 +1061,51 @@ a:focus-visible {
 
 .practice-billing-summary {
   display: grid;
-  grid-template-columns: minmax(210px, 1fr) minmax(280px, 1.4fr) auto;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(320px, 1.2fr);
   align-items: center;
   gap: 16px;
 }
 
-.practice-billing-summary > div {
+.practice-billing-profile {
   display: flex;
   align-items: center;
   gap: 9px;
   color: var(--emr-accent);
 }
 
-.practice-billing-summary > div > span {
+.practice-billing-profile > span {
   display: grid;
   gap: 2px;
+}
+
+.practice-billing-manage {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.practice-billing-manage p {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--emr-muted);
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+.practice-billing-manage button {
+  flex: 0 0 auto;
+}
+
+.practice-billing-enrollment {
+  display: grid;
+  gap: 12px;
+}
+
+.practice-billing-enrollment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .practice-billing-summary strong {
@@ -2811,12 +2966,29 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .practice-billing-summary > button {
-    justify-self: start;
+  .practice-billing-manage {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .practice-billing-enrollment-actions {
+    justify-content: flex-start;
   }
 }
 
 @media (max-width: 1120px) {
+  .showcase-picker-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .showcase-picker-grid > button:nth-child(3) {
+    border-right: 0;
+  }
+
+  .showcase-picker-grid > button:nth-child(n + 4) {
+    border-top: 1px solid var(--emr-border);
+  }
+
   .emr-overview-grid,
   .emr-patient-layout,
   .emr-document-layout {
@@ -2891,6 +3063,25 @@ a:focus-visible {
 }
 
 @media (max-width: 720px) {
+  .showcase-picker > header {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .showcase-picker-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-picker-grid > button {
+    min-height: auto;
+    border-top: 1px solid var(--emr-border);
+    border-right: 0;
+  }
+
+  .showcase-picker-grid > button:first-child {
+    border-top: 0;
+  }
+
   .affinity-demo > .headless-demo-body {
     padding: 14px;
   }

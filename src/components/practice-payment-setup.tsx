@@ -17,6 +17,7 @@ type PaymentSetup = {
 export function PracticePaymentSetup() {
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState<string>();
+  const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [paymentElementReady, setPaymentElementReady] = useState(false);
   const [pending, setPending] = useState(false);
@@ -131,6 +132,7 @@ export function PracticePaymentSetup() {
       setProfile(result);
       setSetup(undefined);
       setAccepted(false);
+      setEditing(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Payment setup could not finish.");
     } finally {
@@ -148,7 +150,7 @@ export function PracticePaymentSetup() {
         </span>
         <div>
           <h2 id="practice-billing-title">Practice billing</h2>
-          <p>Stripe Test collects the card. Northstar and its server never receive card data.</p>
+          <p>The practice adds its own payment method directly through Stripe Test.</p>
         </div>
         <span className="affinity-mode-badge">Test mode</span>
       </div>
@@ -170,7 +172,11 @@ export function PracticePaymentSetup() {
             <button
               className="button"
               disabled={pending}
-              onClick={() => setSetup(undefined)}
+              onClick={() => {
+                setAccepted(false);
+                setEditing(false);
+                setSetup(undefined);
+              }}
               type="button"
             >
               Cancel
@@ -186,7 +192,7 @@ export function PracticePaymentSetup() {
         </form>
       ) : (
         <div className="practice-billing-summary">
-          <div>
+          <div className="practice-billing-profile">
             {ready ? <CheckCircle2 aria-hidden size={18} /> : <CreditCard aria-hidden size={18} />}
             <span>
               <strong>
@@ -194,28 +200,58 @@ export function PracticePaymentSetup() {
               </strong>
               <small>
                 {ready
-                  ? "Ready for automatic Test balance collection"
-                  : "Add a Stripe Test card before submitting an order"}
+                  ? "Owned by this practice and ready for automatic Test collection"
+                  : "A payment method is required before an order can be accepted"}
               </small>
             </span>
           </div>
-          <label className="practice-billing-checkbox">
-            <input
-              checked={accepted}
-              onChange={(event) => setAccepted(event.target.checked)}
-              type="checkbox"
-            />
-            I am authorized to add this practice payment method and accept Test collection terms.
-          </label>
+          {ready && !editing ? (
+            <div className="practice-billing-manage">
+              <p>
+                Northstar receives only the card brand, last four digits, and readiness status. Card
+                details never touch the platform server.
+              </p>
+              <button className="button button-dark" onClick={() => setEditing(true)} type="button">
+                Replace test card
+              </button>
+            </div>
+          ) : (
+            <div className="practice-billing-enrollment">
+              <label className="practice-billing-checkbox">
+                <input
+                  checked={accepted}
+                  onChange={(event) => setAccepted(event.target.checked)}
+                  type="checkbox"
+                />
+                I am authorized to manage this practice payment method and accept Test collection
+                terms.
+              </label>
+              <div className="practice-billing-enrollment-actions">
+                {ready ? (
+                  <button
+                    className="button"
+                    disabled={pending}
+                    onClick={() => {
+                      setAccepted(false);
+                      setEditing(false);
+                    }}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                ) : null}
+                <button
+                  className="button button-dark"
+                  disabled={!accepted || pending}
+                  onClick={startSetup}
+                  type="button"
+                >
+                  {pending ? "Opening Stripe…" : ready ? "Continue" : "Add test card"}
+                </button>
+              </div>
+            </div>
+          )}
           {error ? <p className="practice-billing-error">{error}</p> : null}
-          <button
-            className="button button-dark"
-            disabled={!accepted || pending}
-            onClick={startSetup}
-            type="button"
-          >
-            {pending ? "Opening Stripe…" : ready ? "Replace test card" : "Add test card"}
-          </button>
         </div>
       )}
     </section>
