@@ -1,6 +1,8 @@
 import { ExternalLink, LoaderCircle, ShieldCheck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { DemoCode } from "./demo-code";
+
 type HostedSession = {
   expiresAt: string;
   id: string;
@@ -11,11 +13,7 @@ type LaunchPhase = "closed" | "creating" | "error" | "idle" | "open";
 
 type HostedWorkflow = "prescription_composer" | "provider_verification";
 
-export function AffinityHostedLauncher({
-  workflow = "prescription_composer",
-}: {
-  workflow?: HostedWorkflow;
-}) {
+export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: HostedWorkflow }) {
   const providerSetup = workflow === "provider_verification";
   const popup = useRef<Window | null>(null);
   const [phase, setPhase] = useState<LaunchPhase>("idle");
@@ -152,6 +150,16 @@ export function AffinityHostedLauncher({
           </div>
         </li>
       </ol>
+
+      <DemoCode title="View the Hosted SDK call">{`
+const session = await affinity.hostedSessions.create({
+  flow: "prescription_composer",
+  practiceId,
+  providerMappingId,
+  userId,
+});
+
+window.open(session.url);`}</DemoCode>
 
       <div className="affinity-hosted-action">
         <div aria-live="polite" role={phase === "error" ? "alert" : "status"}>

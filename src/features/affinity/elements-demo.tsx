@@ -3,6 +3,8 @@ import { AffinityProvider, PrescriptionComposer } from "@affinity-health/element
 import { AlertCircle, LoaderCircle, RotateCcw } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { DemoCode } from "./demo-code";
+
 type ComponentSession = {
   clientSecret: string;
   connectUrl: string;
@@ -25,7 +27,7 @@ const affinityAppearance: AffinityAppearance = {
   },
 };
 
-export function AffinityPrescriptionComposer() {
+export function ElementsDemo() {
   const [attempt, setAttempt] = useState(0);
   const [phase, setPhase] = useState<"connected" | "error" | "loading">("loading");
   const [status, setStatus] = useState("Creating a secure Affinity session…");
@@ -63,6 +65,13 @@ export function AffinityPrescriptionComposer() {
 
   return (
     <div>
+      <DemoCode title="View the Elements integration">{`
+<AffinityProvider fetchClientSecret={fetchClientSecret}>
+  <PrescriptionComposer
+    onReady={() => console.log("Affinity is ready")}
+    onOrderSubmitted={({ orderId }) => saveOrderId(orderId)}
+  />
+</AffinityProvider>`}</DemoCode>
       <p
         className={`affinity-status${phase === "error" ? " affinity-status-error" : ""}`}
         role={phase === "error" ? "alert" : "status"}

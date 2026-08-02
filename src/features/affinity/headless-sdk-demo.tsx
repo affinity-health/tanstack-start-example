@@ -1,6 +1,8 @@
 import { ArrowRight, CheckCircle2, ExternalLink, LoaderCircle, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
+import { DemoCode } from "./demo-code";
+
 type HeadlessOptions = {
   medications: Array<{
     dosageForm: string;
@@ -25,7 +27,7 @@ type HeadlessOrder = {
   };
 };
 
-export function AffinityHeadlessOrder() {
+export function HeadlessSdkDemo() {
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [options, setOptions] = useState<HeadlessOptions>();
@@ -147,6 +149,20 @@ export function AffinityHeadlessOrder() {
       </div>
 
       <div className="headless-demo-body">
+        <DemoCode title="View the server-side SDK call">{`
+const order = await affinity.orders.create({
+  patientId,
+  practiceId,
+  providerMappingId,
+  prescriptions,
+});
+
+const signing = await affinity.orderSigningSessions.create({
+  orderId: order.id,
+  practiceId,
+  providerMappingId,
+  userId,
+});`}</DemoCode>
         <ol className="headless-flow" aria-label="Headless SDK workflow">
           <li>
             <strong>1</strong>

@@ -11,11 +11,13 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import { AffinityHostedLauncher } from "../../components/affinity-hosted-launcher";
-import { AffinityHeadlessOrder } from "../../components/affinity-headless-order";
-import { AffinityPrescriptionComposer } from "../../components/affinity-prescription-composer";
 import { EmrShell } from "../../components/emr-shell";
-import { PracticePaymentSetup } from "../../components/practice-payment-setup";
+import {
+  ElementsDemo,
+  HeadlessSdkDemo,
+  HostedDemo,
+  PracticeBillingDemo,
+} from "../../features/affinity";
 import { requireSession } from "../../lib/require-session";
 
 export const Route = createFileRoute("/(workspace)/medication-orders")({
@@ -178,16 +180,16 @@ function MedicationOrders() {
               </div>
               <span className="affinity-mode-badge">Test mode</span>
             </div>
-            <AffinityPrescriptionComposer />
+            <ElementsDemo />
           </section>
         ) : feature === "headless" ? (
-          <AffinityHeadlessOrder />
+          <HeadlessSdkDemo />
         ) : feature === "hosted" ? (
-          <AffinityHostedLauncher />
+          <HostedDemo />
         ) : feature === "provider" ? (
-          <AffinityHostedLauncher workflow="provider_verification" />
+          <HostedDemo workflow="provider_verification" />
         ) : (
-          <PracticePaymentSetup />
+          <PracticeBillingDemo />
         )}
       </div>
     </EmrShell>

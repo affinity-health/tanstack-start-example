@@ -411,37 +411,11 @@ export const api = new Elysia({
   .post(
     "/affinity/component-session",
     async ({ request, status }) => {
-      const session = await createAuth(request).api.getSession({
-        headers: request.headers,
-      });
-      if (!session) return status(401, { error: "Sign in before opening Affinity." });
-
-      const providerMappingId = env.AFFINITY_PROVIDER_MAPPING_ID.trim();
-      if (!providerMappingId) {
-        return status(503, {
-          error: "Set AFFINITY_PROVIDER_MAPPING_ID to a verified test provider mapping.",
-        });
-      }
-
-      const affinity = new Affinity(env.AFFINITY_API_KEY, {
-        apiVersion: affinityApiVersion,
-        baseUrl: env.AFFINITY_API_URL,
-      });
       try {
-        const access = await affinity.account.retrieveAccess();
-        if (access.livemode) {
-          return status(409, {
-            error: "Use an Affinity test-mode API key for this demo.",
-          });
-        }
-
-        const mapping = await affinity.providerMappings.retrieve(providerMappingId);
-        if (mapping.status !== "verified") {
-          return status(409, {
-            error: "Complete Affinity provider verification before opening the composer.",
-          });
-        }
-
+        const { affinity, mapping } = await requireTestPractice(
+          request,
+          "opening Affinity Elements",
+        );
         const componentSession = await affinity.componentSessions.create(
           {
             allowedOrigin: requestOrigin(request, env.APP_URL),
@@ -477,6 +451,9 @@ export const api = new Elysia({
           expiresAt: componentSession.expiresAt.toISOString(),
         };
       } catch (error) {
+        if (error instanceof DemoRequestError) {
+          return status(error.statusCode, { error: error.message });
+        }
         return status(502, {
           error: `Affinity could not create the component session (${await affinityErrorCode(error)}).`,
         });
@@ -503,37 +480,8 @@ export const api = new Elysia({
   .post(
     "/affinity/hosted-session",
     async ({ body, request, status }) => {
-      const session = await createAuth(request).api.getSession({
-        headers: request.headers,
-      });
-      if (!session) return status(401, { error: "Sign in before opening Affinity." });
-
-      const providerMappingId = env.AFFINITY_PROVIDER_MAPPING_ID.trim();
-      if (!providerMappingId) {
-        return status(503, {
-          error: "Set AFFINITY_PROVIDER_MAPPING_ID to a verified test provider mapping.",
-        });
-      }
-
-      const affinity = new Affinity(env.AFFINITY_API_KEY, {
-        apiVersion: affinityApiVersion,
-        baseUrl: env.AFFINITY_API_URL,
-      });
       try {
-        const access = await affinity.account.retrieveAccess();
-        if (access.livemode) {
-          return status(409, {
-            error: "Use an Affinity test-mode API key for this demo.",
-          });
-        }
-
-        const mapping = await affinity.providerMappings.retrieve(providerMappingId);
-        if (mapping.status !== "verified") {
-          return status(409, {
-            error: "Complete Affinity provider verification before opening the composer.",
-          });
-        }
-
+        const { affinity, mapping } = await requireTestPractice(request, "opening Affinity Hosted");
         const hostedSession = await affinity.hostedSessions.create(
           {
             consent: {
@@ -556,6 +504,9 @@ export const api = new Elysia({
           url: hostedSession.url,
         };
       } catch (error) {
+        if (error instanceof DemoRequestError) {
+          return status(error.statusCode, { error: error.message });
+        }
         return status(502, {
           error: `Affinity could not create the hosted session (${await affinityErrorCode(error)}).`,
         });

@@ -2,6 +2,8 @@ import { loadStripe, type Stripe, type StripeElements } from "@stripe/stripe-js"
 import { CheckCircle2, CreditCard, LoaderCircle, ShieldCheck } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
+import { DemoCode } from "./demo-code";
+
 type PaymentProfile = {
   environment: "sandbox";
   paymentMethod: { brand: string; last4: string; type: "card" } | null;
@@ -14,7 +16,7 @@ type PaymentSetup = {
   publishableKey: string;
 };
 
-export function PracticePaymentSetup() {
+export function PracticeBillingDemo() {
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState<string>();
   const [editing, setEditing] = useState(false);
@@ -154,6 +156,15 @@ export function PracticePaymentSetup() {
         </div>
         <span className="affinity-mode-badge">Test mode</span>
       </div>
+
+      <DemoCode title="View the billing setup call">{`
+const setup = await affinity.billing.createPaymentSetup(
+  practiceId,
+  { consentAccepted: true },
+);
+
+// Stripe.js collects the card. Your server never sees card data.
+const stripe = await loadStripe(setup.publishableKey);`}</DemoCode>
 
       {loading ? (
         <div className="practice-billing-state" role="status">

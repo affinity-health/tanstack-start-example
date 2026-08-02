@@ -1,6 +1,30 @@
 # Affinity platform example
 
-A deliberately small example of the Affinity platform integration model:
+A small, working partner application for demonstrating Affinity on a screen share. It deliberately
+keeps each integration in one component and each trusted SDK call in one API route.
+
+## Five-minute walkthrough
+
+1. Open **Medication orders**.
+2. Show **Elements** first. Open “View the Elements integration,” then use the real embedded
+   prescription composer.
+3. Open **Headless SDK**. Show the server-side call, fill the Northstar-owned form, and open the
+   returned Affinity signing session.
+4. Open **Hosted** and **Provider setup** to show the two single-use popup workflows.
+5. Open **Practice billing** to show that Stripe collects the practice card without exposing card
+   data to the platform.
+
+The smallest useful code tour is:
+
+| File                                              | What it proves                                                               |
+| ------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `src/features/affinity/elements-demo.tsx`         | The browser mounts the official React Element with a one-time client secret. |
+| `src/features/affinity/headless-sdk-demo.tsx`     | The platform owns the prescription form and opens Affinity only for signing. |
+| `src/features/affinity/hosted-demo.tsx`           | A click opens a secure Hosted session without exposing the API key.          |
+| `src/features/affinity/practice-billing-demo.tsx` | Stripe.js collects and replaces the practice-owned Test card.                |
+| `src/server/api.ts`                               | Every trusted `@affinity-health/sdk` call stays on the server.               |
+
+The example includes:
 
 - TanStack Start for routing, SSR, and server functions
 - Elysia for the HTTP API

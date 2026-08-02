@@ -1013,6 +1013,65 @@ a:focus-visible {
   border-bottom: 1px solid var(--emr-border);
 }
 
+.demo-code {
+  margin: 14px 18px 0;
+  overflow: hidden;
+  color: #d7e3df;
+  background: #17211d;
+  border: 1px solid #2f4039;
+  border-radius: 9px;
+}
+
+.demo-code summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: #d7e3df;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+
+.demo-code summary::-webkit-details-marker {
+  display: none;
+}
+
+.demo-code summary::after {
+  margin-left: auto;
+  color: #7ad7c4;
+  content: "+";
+  font-family: var(--mono);
+  font-size: 15px;
+}
+
+.demo-code[open] summary::after {
+  content: "−";
+}
+
+.demo-code pre {
+  margin: 0;
+  padding: 14px;
+  overflow-x: auto;
+  color: #e8f0ed;
+  background: #101713;
+  border-top: 1px solid #2f4039;
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.headless-demo-body > .demo-code {
+  margin: 0 0 18px;
+}
+
+.affinity-hosted > .demo-code {
+  align-self: end;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 .practice-billing-heading > div {
   min-width: 0;
 }
