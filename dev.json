@@ -1,0 +1,26 @@
+{
+  "$schema": "https://dev.dawson.gg/schemas/dev.v1.json",
+  "slug": "affinity-example",
+  "name": "Affinity TanStack Start example",
+  "services": ["web"],
+  "servicePorts": {
+    "web": 3001
+  },
+  "session": {
+    "windows": [
+      {
+        "name": "app",
+        "panes": [
+          {
+            "name": "web",
+            "command": "bun run dev -- --stage dev_cli",
+            "env": {
+              "APP_URL": "https://api.dawson.gg"
+            },
+            "services": ["web"]
+          }
+        ]
+      }
+    ]
+  }
+}

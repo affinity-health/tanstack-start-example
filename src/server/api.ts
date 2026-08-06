@@ -338,7 +338,7 @@ export const api = new Elysia({
             consent: {
               authorizedProviderAccess: true,
               minimumNecessaryPhi: true,
-              recordedAt: new Date(),
+              recordedAt: new Date().toISOString(),
             },
             orderId: order.id,
             practiceId: mapping.practiceId,
@@ -353,7 +353,7 @@ export const api = new Elysia({
           orderId: order.id,
           prescriptionIds: order.prescriptions.map((prescription) => prescription.id),
           signingSession: {
-            expiresAt: signingSession.expiresAt.toISOString(),
+            expiresAt: signingSession.expiresAt,
             url: signingSession.url,
           },
         };
@@ -438,7 +438,7 @@ export const api = new Elysia({
             consent: {
               authorizedProviderAccess: true,
               minimumNecessaryPhi: true,
-              recordedAt: new Date(),
+              recordedAt: new Date().toISOString(),
             },
             context: {
               patientSelection: "search",
@@ -453,7 +453,7 @@ export const api = new Elysia({
         return {
           clientSecret: componentSession.clientSecret,
           connectUrl: env.AFFINITY_CONNECT_URL,
-          expiresAt: componentSession.expiresAt.toISOString(),
+          expiresAt: componentSession.expiresAt,
         };
       } catch (error) {
         if (error instanceof DemoRequestError) {
@@ -492,7 +492,7 @@ export const api = new Elysia({
             consent: {
               authorizedProviderAccess: true,
               minimumNecessaryPhi: true,
-              recordedAt: new Date(),
+              recordedAt: new Date().toISOString(),
             },
             flow: body?.flow ?? "prescription_composer",
             practiceId: mapping.practiceId,
@@ -504,7 +504,7 @@ export const api = new Elysia({
         );
 
         return {
-          expiresAt: hostedSession.expiresAt.toISOString(),
+          expiresAt: hostedSession.expiresAt,
           id: hostedSession.id,
           url: hostedSession.url,
         };

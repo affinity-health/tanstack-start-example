@@ -86,16 +86,19 @@ Affinity's Test allowlist accepts HTTPS origins. When developing locally, browse
 existing `https://api.dawson.gg` tunnel to `localhost:3001`; do not replace that tunnel with the
 deployed Worker.
 
-Then start the app:
+Then start the app through the local development workspace:
 
 ```bash
 bun install
-bun run dev
+dev up --cwd .
 ```
 
-Alchemy authenticates with Cloudflare on first use, provisions the D1 database, applies SQL
-migrations, and starts the app at `http://localhost:3001`. Local development uses the real managed
-D1 binding.
+The `dev` CLI starts Alchemy on `http://127.0.0.1:3001`, the fixed target of this example's existing
+protected `https://api.dawson.gg` development tunnel. Use that HTTPS URL when testing Affinity
+Elements because component sessions are origin-bound. Alchemy provisions the `dev_cli` stage's D1
+database and applies SQL migrations. Keeping the CLI workspace on its own stage prevents stale
+direct-development state from breaking startup. Local development uses the real managed D1
+binding. `bun run dev` remains available when you need to run Alchemy directly.
 
 The public TypeScript SDK is `@affinity-health/sdk`. It owns the dated API types, provider-mapping
 and component-session resources, exhaustive webhook event union, and raw-body HMAC verifier. The

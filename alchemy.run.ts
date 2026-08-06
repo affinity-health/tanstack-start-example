@@ -3,6 +3,8 @@ import * as Cloudflare from "alchemy/Cloudflare";
 import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 
+const developmentPort = Number.parseInt(process.env.DEV_SERVICE_PORT ?? "3001", 10);
+
 export const Database = Cloudflare.D1.Database("Database", {
   migrationsDir: "./migrations",
   primaryLocationHint: "enam",
@@ -36,7 +38,7 @@ export const Website = Cloudflare.Website.Vite("Website", {
     flags: ["nodejs_compat"],
   },
   dev: {
-    port: 3001,
+    port: developmentPort,
   },
   env: WebsiteBindings,
 });
