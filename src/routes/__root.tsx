@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { PublicHeader } from "../features/landing/public-header";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -18,20 +19,31 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Affinity Agent-Native Telehealth",
+        title: "Affinity agent ready telehealth",
       },
       {
         name: "description",
         content:
-          "A WebMCP-enabled clinician workspace for safe, visible collaboration between people and browser agents.",
+          "Agent ready telehealth prescribing with unsigned Test drafts and a required clinician confirmation gate.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "Affinity agent ready telehealth" },
+      {
+        property: "og:description",
+        content: "Let browser agents prepare prescription work without becoming the prescriber.",
+      },
+      {
+        property: "og:image",
+        content: "https://demo-platform.joinaffinityai.com/images/affinity-prescribing-hero.png",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       {
         rel: "icon",
-        href: "https://cdn.joinaffinityai.com/logos/affinity/mark-white-on-violet.v1.webp",
-        type: "image/webp",
+        href: "/favicon.svg",
+        type: "image/svg+xml",
       },
     ],
   }),
@@ -57,29 +69,27 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body className={isWorkspace ? "emr-body" : undefined}>
-        {isWorkspace ? null : (
-          <header className="site-header">
-            <Link className="wordmark" to="/">
-              <span className="wordmark-dot" />
-              <span>
-                <strong>Northstar Health</strong>
-                <small>Affinity agent-assisted prescribing</small>
-              </span>
-            </Link>
-            <nav aria-label="Primary navigation">
-              <a href="/api/openapi">API</a>
-              <Link to="/dashboard">Patient workspace</Link>
-              <Link className="nav-cta" to="/login">
-                Sign in
-              </Link>
-            </nav>
-          </header>
-        )}
-        <Outlet />
+        <a className="skip-link" href="#main-content">
+          Skip to content
+        </a>
+        {isWorkspace ? null : <PublicHeader />}
+        <div id="main-content" tabIndex={-1}>
+          <Outlet />
+        </div>
         {isWorkspace ? null : (
           <footer className="site-footer">
-            <p>Northstar Health · Agent-assisted medication operations</p>
-            <p>Affinity Test · synthetic data · never Live</p>
+            <Link className="landing-wordmark" to="/">
+              <span className="landing-mark" aria-hidden>
+                <span />
+              </span>
+              <span>Affinity</span>
+            </Link>
+            <p>Agent ready prescribing with a human clinical boundary.</p>
+            <nav aria-label="Legal">
+              <Link to="/privacy">Privacy</Link>
+              <Link to="/terms">Terms</Link>
+              <a href="/api/openapi">API</a>
+            </nav>
           </footer>
         )}
         <Scripts />

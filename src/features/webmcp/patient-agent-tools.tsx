@@ -1,4 +1,4 @@
-import { Bot, CircleAlert, CircleCheck, CircleDashed } from "lucide-react";
+import { Circle, CheckCircle, Robot, WarningCircle } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 
 import type { PatientFilter } from "../../lib/patient-workflow";
@@ -45,15 +45,15 @@ export function PatientAgentTools({
   }, [onAnnouncement, tools]);
 
   const StatusIcon =
-    status === "active" ? CircleCheck : status === "error" ? CircleAlert : CircleDashed;
+    status === "active" ? CheckCircle : status === "error" ? WarningCircle : Circle;
 
   return (
     <aside className={`agent-tools-status is-${status}`} aria-label="Browser agent tools">
       <span className="agent-tools-mark">
-        <Bot aria-hidden size={17} />
+        <Robot aria-hidden size={18} weight="duotone" />
       </span>
       <span>
-        <strong>Agent-ready patient workflow</strong>
+        <strong>Agent ready patient workflow</strong>
         <small>
           Search, inspect, and prepare a review. Clinical decisions stay with the clinician.
         </small>

@@ -1,4 +1,4 @@
-import { Bot, CircleAlert, CircleCheck, CircleDashed } from "lucide-react";
+import { Circle, CheckCircle, Robot, WarningCircle } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 
 import type {
@@ -41,15 +41,15 @@ export function PrescribingTools({ medications, onPrepare, patients }: Prescribi
   }, [tools]);
 
   const StatusIcon =
-    status === "active" ? CircleCheck : status === "error" ? CircleAlert : CircleDashed;
+    status === "active" ? CheckCircle : status === "error" ? WarningCircle : Circle;
 
   return (
     <aside className={`agent-tools-status is-${status}`} aria-label="Browser prescribing tools">
       <span className="agent-tools-mark">
-        <Bot aria-hidden size={17} />
+        <Robot aria-hidden size={18} weight="duotone" />
       </span>
       <span>
-        <strong>Agent-ready Test draft</strong>
+        <strong>Agent ready Test draft</strong>
         <small>An agent may fill the form. Only the clinician can confirm order creation.</small>
       </span>
       <span className="agent-tools-state" role="status">
@@ -90,7 +90,7 @@ export function createPrescribingTools({
       name: "prepare_test_prescription_draft",
       title: "Prepare an Affinity Test prescription draft",
       description:
-        "Copies clinician-supplied prescription details into the visible Affinity Test form. It cannot confirm, create, sign, or transmit an order.",
+        "Copies clinician supplied prescription details into the visible Affinity Test form. It cannot confirm, create, sign, or transmit an order.",
       inputSchema: {
         type: "object",
         properties: {

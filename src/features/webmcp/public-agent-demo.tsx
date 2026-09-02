@@ -1,5 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Check, CheckCircle2, Clock3, MapPin, Search, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  CheckCircle,
+  Clock,
+  MapPin,
+  MagnifyingGlass,
+  ShieldCheck,
+} from "@phosphor-icons/react";
 import { useCallback, useMemo, useState } from "react";
 
 import { demoPatients } from "../../lib/demo-data";
@@ -67,7 +75,7 @@ export function PublicAgentDemo() {
           <h2 id="demo-title">Medication review · {selected.name}</h2>
         </div>
         <span className="workflow-updated">
-          <Clock3 aria-hidden size={15} /> Updated 09:42
+          <Clock aria-hidden size={16} /> Updated 09:42
         </span>
       </div>
 
@@ -108,7 +116,7 @@ export function PublicAgentDemo() {
           <div className="public-agent-controls">
             <label>
               <span className="sr-only">Search synthetic patients</span>
-              <Search aria-hidden size={16} />
+              <MagnifyingGlass aria-hidden size={16} />
               <input
                 type="search"
                 placeholder="Search name, state, or care plan"
@@ -170,7 +178,7 @@ export function PublicAgentDemo() {
               <strong>{selected.name}</strong>
             </div>
             <p>
-              <MapPin aria-hidden size={15} /> {selected.state} · {selected.age} years
+              <MapPin aria-hidden size={16} /> {selected.state} · {selected.age} years
             </p>
           </div>
 
@@ -178,7 +186,7 @@ export function PublicAgentDemo() {
             <div>
               <dt>Encounter</dt>
               <dd>
-                <CheckCircle2 aria-hidden size={15} /> Completed
+                <CheckCircle aria-hidden size={16} weight="fill" /> Completed
               </dd>
             </div>
             <div>

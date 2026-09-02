@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import { useState, type FormEvent } from "react";
 
 import { authClient } from "../../lib/auth-client";
@@ -61,7 +61,7 @@ function Login() {
           </h1>
           <p>
             Sign in as a platform user to compare embedded, hosted, and headless prescribing with
-            practice-owned Test billing.
+            practice owned Test billing.
           </p>
         </div>
         <p className="auth-footnote">Test mode / Synthetic patient data only</p>
@@ -117,8 +117,7 @@ function Login() {
           </p>
 
           <button className="button button-dark submit-button" disabled={pending} type="submit">
-            {pending ? <LoaderCircle aria-hidden="true" className="spin" size={18} /> : null}
-            {mode === "sign-in" ? "Sign in" : "Create account"}
+            {pending ? "Working" : mode === "sign-in" ? "Sign in" : "Create account"}
           </button>
 
           <button

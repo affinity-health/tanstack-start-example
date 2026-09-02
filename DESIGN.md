@@ -1,148 +1,123 @@
 ---
-name: Affinity Agent-Native Telehealth
-description: Calm medication operations with an explicit human confirmation boundary.
+name: Affinity agent ready telehealth
+description: A conversion focused landing page that leads directly into a working synthetic prescribing demo.
 colors:
-  canvas: "#f5f8f7"
+  canvas: "#f4f7f6"
   surface: "#ffffff"
-  surface-subtle: "#edf2f0"
-  text-strong: "#15201c"
-  text-body: "#273832"
-  text-muted: "#4b5d56"
-  border-default: "#cbd6d2"
-  border-strong: "#9eaea8"
-  clinical-accent: "#176b5f"
-  clinical-accent-hover: "#10554b"
-  clinical-accent-soft: "#e2efeb"
-  clinical-accent-border: "#b9d3cb"
-  success: "#216e4e"
-  danger: "#a33a2b"
+  surface-subtle: "#eef3f1"
+  text: "#10221e"
+  text-muted: "#52655f"
+  border: "#d5dfdc"
+  accent: "#0d6b5f"
+  accent-hover: "#09554c"
+  accent-soft: "#e2efeb"
+  dark: "#131209"
 typography:
-  heading:
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
-    fontSize: "2.625rem"
-    fontWeight: 680
-    lineHeight: 1.12
-    letterSpacing: "-0.035em"
-  title:
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
-    fontSize: "1.125rem"
-    fontWeight: 680
-    lineHeight: 1.3
-  body:
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
-    fontSize: "1rem"
-    fontWeight: 400
-    lineHeight: 1.6
-  label:
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
-    fontSize: "0.75rem"
-    fontWeight: 650
-    lineHeight: 1.4
-rounded:
-  compact: "4px"
-  control: "6px"
-  panel: "10px"
-  round: "999px"
+  family: '"Manrope", sans-serif'
+  hero: "48px / 1"
+  hero-mobile: "36px / 40px"
+  section: "36px / 40px"
+  section-mobile: "30px / 36px"
+  body-large: "18px / 28px"
+  body: "16px / 24px"
+  small: "14px / 20px"
+  detail: "12px / 16px"
 spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "12px"
-  lg: "16px"
-  xl: "24px"
-  xxl: "32px"
-components:
-  button-primary:
-    backgroundColor: "{colors.clinical-accent}"
-    textColor: "{colors.surface}"
-    rounded: "{rounded.control}"
-    padding: "14px 16px"
-  field:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.text-strong}"
-    rounded: "{rounded.control}"
-    height: "44px"
-  selected-row:
-    backgroundColor: "{colors.clinical-accent-soft}"
-    textColor: "{colors.text-strong}"
+  0: "0"
+  25: "2px"
+  50: "4px"
+  75: "8px"
+  100: "12px"
+  200: "16px"
+  300: "24px"
+  400: "32px"
+  500: "40px"
+  600: "48px"
+  700: "64px"
+  800: "80px"
+  900: "96px"
+radius:
+  sm: "4px"
+  md: "6px"
+  lg: "8px"
+  xl: "12px"
+  2xl: "16px"
+  3xl: "24px"
+  full: "999px"
+motion:
+  duration: "700ms"
+  reveal-duration: "800ms"
+  easing: "cubic-bezier(0.32, 0.72, 0, 1)"
 ---
 
-# Design System: Affinity Agent-Native Telehealth
+# Design system: Affinity agent ready telehealth
 
-## Overview
+## Conversion goal
 
-**Creative North Star: "The Medication Operations Desk"**
+The page has one offer, one audience, and one primary action. Affinity makes telehealth prescribing
+agent ready without letting an agent become the prescriber. WebMCP Challenge judges and telehealth
+platform builders should enter the live synthetic workspace and run the suggested prompt.
 
-A clinician sits at a laptop in daylight, scans a completed visit, reviews an unsigned proposal,
-and decides whether to hand it to Affinity for provider review. The interface is calm and precise:
-fixed type sizes, cool neutral surfaces, compact workflow state, and no theatrical presentation.
-Agent activity is ordinary operational evidence, not decoration.
+The page uses layout A: a classic hero, supporting sections, a repeated call to action, then the
+working clinical workspace. The generated hero frame supports the story. It never replaces the real
+product surface.
 
-**Key Characteristics:** one sans-serif family, a restrained clinical-teal accent, flat divided
-workspaces, sharp content regions, 6px control corners, strong text contrast, and visible human
-confirmation.
+## Section order
 
-## Colors
+1. Hero with the safety promise, primary action, proof line, and generated product frame
+2. Three outcome focused benefits
+3. The mandatory word by word tagline reveal
+4. Three step workflow explanation
+5. Safety proof beside the claims it supports
+6. Six plain language questions and answers
+7. Final call to action with the suggested agent prompt
+8. Live synthetic patient and unsigned proposal workspace
 
-Cool neutrals carry almost the entire interface. Clinical teal stays below ten percent of each
-surface and identifies primary actions, current selections, focus, and verified workflow state.
+## Type
 
-**The One Accent Rule.** Do not introduce warm neutral backgrounds, orange, lime, gradients, or a
-second brand accent. Semantic red and green appear only for errors and confirmed success.
+Manrope is the only interface family. Use regular through bold weights and never use italics or weight 900. Every size and paired line height follows the Tailwind scale recorded above. Headings use
+balanced wrapping. Body copy uses pretty wrapping. Hero copy stays within 680px and breaks only where
+the thought changes.
 
-**The Safety Legibility Rule.** Test, synthetic, and never-Live language uses readable body color;
-it is never faded into low-contrast metadata.
+Visible copy uses sentence case and active voice. Do not use hyphens, exclamation marks, vague
+transformation language, or generic claims. The terms Elevate, Seamless, and Unleash are prohibited.
 
-## Typography
+## Color and surfaces
 
-**UI Font:** the native system sans-serif stack, using regular, medium, and semibold weights.
+Backgrounds are flat. The pale green gray canvas supports white product surfaces, dark body text, and
+one restrained clinical teal. The proof section uses the approved dark background. The hero heading
+uses the Elaya light theme text treatment from black to gray. No other gradient is allowed.
 
-The type system is fixed and operational. The page heading is 2.625rem on desktop and 2rem on
-mobile; section titles are 1.125rem or 1rem; body copy is 1rem with a 65–75ch measure; labels and
-table metadata are 0.75–0.875rem. Heading tracking never passes -0.035em. Do not use display serif,
-fluid type, uppercase eyebrows, or monospaced type as decoration.
+Cards receive a complete border or no border. Never use a border on only one side of a card. Nested
+corners follow the outer radius minus the inset gap when the result exceeds 2px.
 
-## Layout
+## Spacing and shape
 
-Use a 1240px application shell with 24px desktop gutters and 15px mobile gutters. The public route
-opens directly into the medication task: compact context, a five-step progress rail, agent status,
-then a divided patient/proposal workspace. The clinical medication route uses the same sequence and
-surface treatment. On narrow screens, the progress rail scrolls horizontally and the workspace
-stacks in reading order without causing page-level horizontal overflow.
+All padding, margin, and gap values resolve to the spacing table in the frontmatter. Primary buttons
+use 8px vertical and 12px horizontal padding. Landing cards use 16px corners, the generated hero frame
+uses 24px, and controls use 8px or 12px. The floating navigation and status dots use the full radius.
 
-Spacing follows a 4px base scale. Related controls use 8–12px gaps; task groups use 16–24px; major
-page transitions use 32–64px.
+## Icons
 
-## Elevation & Depth
+Use Phosphor icons only on the landing page and medication proposal workflow. Icons clarify a named
+action or state. They do not decorate headings.
 
-The product is flat. Canvas, white work surfaces, and one-pixel dividers establish hierarchy. Do not
-use decorative shadows, blur, glass, taped notes, rotations, or texture. Focus rings are the only
-intentional outer halo.
+## Motion
 
-## Shapes
+Interactive motion uses `cubic-bezier(0.32, 0.72, 0, 1)` and never a browser default easing. Hero
+content enters once. Later sections use IntersectionObserver for a heavy fade and rise. The tagline
+reveal activates individual words in reading order. Reduced motion removes transforms, blur, delay,
+and animation while keeping every state visible.
 
-Content regions and workflow containers remain square. Inputs, buttons, compact icons, and status
-controls use 6px corners. Circular geometry is reserved for progress markers, avatars, and status
-dots. Pills are exceptional, not the default label shape.
+## Product and safety states
 
-## Components
+The live workspace must retain hover, active, focus, loading, empty, and specific inline error states.
+Browser tools may search, open, inspect, and prepare visible state. They may not confirm, create, sign,
+or transmit a prescription. Affinity Test, synthetic patients, unsigned proposal, and never Live stay
+visible near the conversion path.
 
-The workflow progress rail shows complete, current, and locked stages without animation delay.
-Patient rows use dividers and one quiet selected fill. Agent status is a standard toolbar row with a
-capability statement and live registration state. The activity list records meaningful tool changes
-with time and plain-language results. The unsigned proposal names the patient, eligibility, order
-state, and next human action. In the clinical form, editing any field clears confirmation; only the
-clinician control enables Test order creation.
+## Ship requirements
 
-Interactive transitions run for 160ms with `cubic-bezier(0.16, 1, 0.3, 1)` and affect only color,
-border, opacity, or a one-pixel press transform. Reduced-motion mode makes them effectively instant.
-
-## Do's and Don'ts
-
-- Do make the active task, current stage, and next human action clear within two seconds.
-- Do keep agent actions visible in the same state used by the clinician.
-- Do preserve 44px touch targets, keyboard focus, live regions, and readable placeholders.
-- Do show Affinity Test, synthetic data, and never-Live language near the workflow.
-- Don't turn the public route into a marketing hero or code showcase.
-- Don't use nested cards, badge piles, decorative metrics, or repeated icon tiles.
-- Don't animate progress while the clinician is waiting to work.
-- Don't use color where spacing, type weight, or a divider communicates the hierarchy.
+Keep the skip link, branded favicon, title, description, social metadata, generated social image,
+semantic landmarks, image alt text, legal links, custom not found experience, and a route back from
+every public page. The landing page is evergreen and should remain indexable.

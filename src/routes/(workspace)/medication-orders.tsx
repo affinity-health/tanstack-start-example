@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Bot, Braces, ClipboardList, ShieldCheck, Wifi } from "lucide-react";
+import { Code, ClipboardText, Robot, ShieldCheck, WifiHigh } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { EmrShell } from "../../components/emr-shell";
@@ -73,7 +73,7 @@ function MedicationOrders() {
     <EmrShell
       actions={
         <a className="emr-button emr-button-secondary" href="/api/openapi">
-          <Braces aria-hidden size={16} />
+          <Code aria-hidden size={16} />
           API reference
         </a>
       }
@@ -86,7 +86,7 @@ function MedicationOrders() {
       {preparedPatient ? (
         <section className="agent-review-handoff" aria-label="Agent-prepared review">
           <span className="agent-tools-mark">
-            <Bot aria-hidden size={17} />
+            <Robot aria-hidden size={18} weight="duotone" />
           </span>
           <span>
             <strong>Review prepared for {preparedPatient.name}</strong>
@@ -101,7 +101,7 @@ function MedicationOrders() {
       <section className="emr-integration-strip" aria-label="Integration status">
         <div>
           <span className="emr-status-icon is-success">
-            <Wifi aria-hidden size={16} />
+            <WifiHigh aria-hidden size={16} />
           </span>
           <span>
             <small>Integration</small>
@@ -120,7 +120,7 @@ function MedicationOrders() {
         </div>
         <div>
           <span className="emr-status-icon">
-            <ClipboardList aria-hidden size={16} />
+            <ClipboardText aria-hidden size={16} />
           </span>
           <span>
             <small>Environment</small>
