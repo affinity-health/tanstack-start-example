@@ -61,11 +61,14 @@ function RootDocument() {
           <header className="site-header">
             <Link className="wordmark" to="/">
               <span className="wordmark-dot" />
-              Affinity agent-native
+              <span>
+                <strong>Northstar Health</strong>
+                <small>Affinity agent-assisted prescribing</small>
+              </span>
             </Link>
             <nav aria-label="Primary navigation">
-              <a href="/api/openapi">API docs</a>
-              <Link to="/dashboard">Dashboard</Link>
+              <a href="/api/openapi">API</a>
+              <Link to="/dashboard">Patient workspace</Link>
               <Link className="nav-cta" to="/login">
                 Sign in
               </Link>
@@ -75,8 +78,8 @@ function RootDocument() {
         <Outlet />
         {isWorkspace ? null : (
           <footer className="site-footer">
-            <p>WebMCP / Affinity Test / Alchemy v2</p>
-            <p>Test mode. Synthetic data only.</p>
+            <p>Northstar Health · Agent-assisted medication operations</p>
+            <p>Affinity Test · synthetic data · never Live</p>
           </footer>
         )}
         <Scripts />

@@ -1,15 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Bot,
-  Braces,
-  ClipboardList,
-  CreditCard,
-  ExternalLink,
-  PanelsTopLeft,
-  ShieldCheck,
-  UserCheck,
-  Wifi,
-} from "lucide-react";
+import { Bot, Braces, ClipboardList, ShieldCheck, Wifi } from "lucide-react";
 import { useState } from "react";
 
 import { EmrShell } from "../../components/emr-shell";
@@ -43,43 +33,31 @@ export const Route = createFileRoute("/(workspace)/medication-orders")({
 
 const features = [
   {
-    description: "Mount Affinity's secure prescribing interface inside your product.",
-    icon: PanelsTopLeft,
     id: "elements",
-    label: "Elements",
-    meta: "Embedded UI",
+    label: "Embedded composer",
+    meta: "Elements",
   },
   {
-    description: "Own the interface and create unsigned orders with the TypeScript SDK.",
-    icon: Braces,
     id: "headless",
-    label: "Headless SDK",
-    meta: "Server API",
+    label: "Unsigned proposal",
+    meta: "Headless SDK",
   },
   {
-    description: "Launch the complete Affinity workflow in a focused, single-use window.",
-    icon: ExternalLink,
     id: "hosted",
-    label: "Hosted",
-    meta: "Fastest launch",
+    label: "Hosted prescribing",
+    meta: "Hosted",
   },
   {
-    description: "Verify the prescriber and let them create their private signing PIN.",
-    icon: UserCheck,
     id: "provider",
-    label: "Provider setup",
+    label: "Provider verification",
     meta: "Identity",
   },
   {
-    description: "Let the practice securely add or replace its Stripe Test payment method.",
-    icon: CreditCard,
     id: "billing",
     label: "Practice billing",
     meta: "Payments",
   },
 ] as const satisfies ReadonlyArray<{
-  description: string;
-  icon: typeof PanelsTopLeft;
   id: ShowcaseFeature;
   label: string;
   meta: string;
@@ -100,8 +78,8 @@ function MedicationOrders() {
         </a>
       }
       current="prescriptions"
-      description="Five production integration patterns, running against Affinity Test data."
-      eyebrow="Integration showcase"
+      description="Review the unsigned proposal, confirm it, then hand off to Affinity for signing."
+      eyebrow="Medication operations"
       session={session}
       title="Affinity prescribing"
     >
@@ -154,16 +132,13 @@ function MedicationOrders() {
       <section className="showcase-picker" aria-label="Affinity features">
         <header>
           <div>
-            <span>Choose an integration</span>
-            <h2>See the contract, not a mockup.</h2>
+            <span>Workflow mode</span>
+            <h2>Choose how Northstar hands work to Affinity</h2>
           </div>
-          <p>
-            Every view below uses the real Affinity Test API. The platform key stays on this server,
-            and clinical signing stays inside Affinity.
-          </p>
+          <p>Test data only. Clinical signing and the provider PIN stay inside Affinity.</p>
         </header>
         <div className="showcase-picker-grid" role="tablist" aria-label="Affinity feature">
-          {features.map(({ description, icon: Icon, id, label, meta }) => (
+          {features.map(({ id, label, meta }) => (
             <button
               aria-controls={`showcase-panel-${id}`}
               aria-selected={feature === id}
@@ -174,13 +149,9 @@ function MedicationOrders() {
               type="button"
               onClick={() => setFeature(id)}
             >
-              <span className="showcase-picker-icon">
-                <Icon aria-hidden size={18} />
-              </span>
               <span>
                 <small>{meta}</small>
                 <strong>{label}</strong>
-                <span>{description}</span>
               </span>
             </button>
           ))}

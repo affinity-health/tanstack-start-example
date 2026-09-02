@@ -1,116 +1,148 @@
 ---
 name: Affinity Agent-Native Telehealth
-description: Editorial warmth outside, precise clinical utility inside.
+description: Calm medication operations with an explicit human confirmation boundary.
 colors:
-  ink: "#151512"
-  paper: "#f3efe5"
-  paper-deep: "#e6dfd0"
-  line: "#c9c0af"
-  muted: "#6f695f"
-  signal-orange: "#f05a28"
-  signal-acid: "#d8ff3e"
-  clinical-teal: "#0b665f"
-  clinical-surface: "#f7faf8"
+  canvas: "#f5f8f7"
+  surface: "#ffffff"
+  surface-subtle: "#edf2f0"
+  text-strong: "#15201c"
+  text-body: "#273832"
+  text-muted: "#4b5d56"
+  border-default: "#cbd6d2"
+  border-strong: "#9eaea8"
+  clinical-accent: "#176b5f"
+  clinical-accent-hover: "#10554b"
+  clinical-accent-soft: "#e2efeb"
+  clinical-accent-border: "#b9d3cb"
+  success: "#216e4e"
+  danger: "#a33a2b"
 typography:
-  display:
-    fontFamily: '"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif'
-    fontSize: "clamp(64px, 8.5vw, 118px)"
-    fontWeight: 400
-    lineHeight: 0.84
-    letterSpacing: "-0.04em"
+  heading:
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+    fontSize: "2.625rem"
+    fontWeight: 680
+    lineHeight: 1.12
+    letterSpacing: "-0.035em"
+  title:
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+    fontSize: "1.125rem"
+    fontWeight: 680
+    lineHeight: 1.3
   body:
-    fontFamily: '"Avenir Next", Avenir, "Century Gothic", sans-serif'
-    fontSize: "16px"
-    fontWeight: 500
-    lineHeight: 1.55
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+    fontSize: "1rem"
+    fontWeight: 400
+    lineHeight: 1.6
   label:
-    fontFamily: '"SFMono-Regular", Consolas, "Liberation Mono", monospace'
-    fontSize: "11px"
-    fontWeight: 700
-    letterSpacing: "0.04em"
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+    fontSize: "0.75rem"
+    fontWeight: 650
+    lineHeight: 1.4
 rounded:
-  control: "8px"
+  compact: "4px"
+  control: "6px"
   panel: "10px"
+  round: "999px"
 spacing:
-  xs: "6px"
-  sm: "10px"
-  md: "18px"
-  lg: "24px"
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "24px"
+  xxl: "32px"
 components:
-  public-button:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.paper}"
-    padding: "12px 18px"
-  clinical-panel:
-    backgroundColor: "{colors.clinical-surface}"
-    rounded: "{rounded.panel}"
-    padding: "18px"
+  button-primary:
+    backgroundColor: "{colors.clinical-accent}"
+    textColor: "{colors.surface}"
+    rounded: "{rounded.control}"
+    padding: "14px 16px"
+  field:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.text-strong}"
+    rounded: "{rounded.control}"
+    height: "44px"
+  selected-row:
+    backgroundColor: "{colors.clinical-accent-soft}"
+    textColor: "{colors.text-strong}"
 ---
 
 # Design System: Affinity Agent-Native Telehealth
 
 ## Overview
 
-**Creative North Star: "The Clinical Field Guide"**
+**Creative North Star: "The Medication Operations Desk"**
 
-The public experience pairs the warmth and confidence of an editorial field guide with a compact,
-trustworthy clinical workspace. Large serif headlines introduce the product; the authenticated UI
-switches to denser sans-serif controls, restrained teal status color, and explicit Test-mode labels.
-Safety information is visible, never decorative or hidden behind motion.
+A clinician sits at a laptop in daylight, scans a completed visit, reviews an unsigned proposal,
+and decides whether to hand it to Affinity for provider review. The interface is calm and precise:
+fixed type sizes, cool neutral surfaces, compact workflow state, and no theatrical presentation.
+Agent activity is ordinary operational evidence, not decoration.
 
-**Key Characteristics:** warm paper, black ink, rare signal orange, precise clinical teal, strong
-type contrast, flat bordered surfaces, and human-readable state changes.
+**Key Characteristics:** one sans-serif family, a restrained clinical-teal accent, flat divided
+workspaces, sharp content regions, 6px control corners, strong text contrast, and visible human
+confirmation.
 
 ## Colors
 
-The public palette is paper-and-ink with sparing high-energy signals; clinical screens use cooler
-neutral surfaces and teal for verified, safe state.
+Cool neutrals carry almost the entire interface. Clinical teal stays below ten percent of each
+surface and identifies primary actions, current selections, focus, and verified workflow state.
 
-**The Signal Rarity Rule.** Orange and acid are reserved for emphasis and interaction, not large
-background fields. Red is reserved for errors. Affinity Test and synthetic-data labels must remain
-plainly visible wherever clinical context appears.
+**The One Accent Rule.** Do not introduce warm neutral backgrounds, orange, lime, gradients, or a
+second brand accent. Semantic red and green appear only for errors and confirmed success.
+
+**The Safety Legibility Rule.** Test, synthetic, and never-Live language uses readable body color;
+it is never faded into low-contrast metadata.
 
 ## Typography
 
-**Display Font:** Iowan Old Style with Palatino and Georgia fallbacks  
-**Body Font:** Avenir Next with Avenir and Century Gothic fallbacks  
-**Label/Mono Font:** SFMono-Regular with Consolas and Liberation Mono fallbacks
+**UI Font:** the native system sans-serif stack, using regular, medium, and semibold weights.
 
-Editorial serif display type gives the public page a human voice. Sans-serif body type keeps product
-copy direct; monospaced labels identify technical evidence without becoming visual wallpaper.
+The type system is fixed and operational. The page heading is 2.625rem on desktop and 2rem on
+mobile; section titles are 1.125rem or 1rem; body copy is 1rem with a 65–75ch measure; labels and
+table metadata are 0.75–0.875rem. Heading tracking never passes -0.035em. Do not use display serif,
+fluid type, uppercase eyebrows, or monospaced type as decoration.
 
 ## Layout
 
-Public content uses an 1180px maximum shell with 24px minimum side gutters, asymmetric hero columns,
-and generous vertical separation. The demo becomes a two-column directory/detail workspace on wide
-screens and a single reading-order column on mobile. Clinical screens favor compact panels and
-four-column form grids that collapse at existing breakpoints. Keep the safety context inside the
-first mobile viewport.
+Use a 1240px application shell with 24px desktop gutters and 15px mobile gutters. The public route
+opens directly into the medication task: compact context, a five-step progress rail, agent status,
+then a divided patient/proposal workspace. The clinical medication route uses the same sequence and
+surface treatment. On narrow screens, the progress rail scrolls horizontally and the workspace
+stacks in reading order without causing page-level horizontal overflow.
+
+Spacing follows a 4px base scale. Related controls use 8–12px gaps; task groups use 16–24px; major
+page transitions use 32–64px.
 
 ## Elevation & Depth
 
-The system is flat by default. One-pixel borders, small tonal shifts, and nested paper colors express
-hierarchy; shadows are exceptional interaction feedback, not persistent decoration.
+The product is flat. Canvas, white work surfaces, and one-pixel dividers establish hierarchy. Do not
+use decorative shadows, blur, glass, taped notes, rotations, or texture. Focus rings are the only
+intentional outer halo.
 
 ## Shapes
 
-Public calls to action are firm and mostly square. Clinical controls use 8px corners and contained
-panels use 10px corners. Pills are reserved for terse status labels. Avoid rounding every section
-into a floating card.
+Content regions and workflow containers remain square. Inputs, buttons, compact icons, and status
+controls use 6px corners. Circular geometry is reserved for progress markers, avatars, and status
+dots. Pills are exceptional, not the default label shape.
 
 ## Components
 
-Buttons are direct and high-contrast, with obvious hover and keyboard-focus treatment. Patient rows
-act as a sequence leading to one detail panel, not a grid of equal feature cards. Agent status bars
-combine an icon, a plain-language capability statement, and current registration state. The
-prescribing form places its explicit clinician-confirmation control immediately before the create
-button; changing any draft field clears confirmation.
+The workflow progress rail shows complete, current, and locked stages without animation delay.
+Patient rows use dividers and one quiet selected fill. Agent status is a standard toolbar row with a
+capability statement and live registration state. The activity list records meaningful tool changes
+with time and plain-language results. The unsigned proposal names the patient, eligibility, order
+state, and next human action. In the clinical form, editing any field clears confirmation; only the
+clinician control enables Test order creation.
+
+Interactive transitions run for 160ms with `cubic-bezier(0.16, 1, 0.3, 1)` and affect only color,
+border, opacity, or a one-pixel press transform. Reduced-motion mode makes them effectively instant.
 
 ## Do's and Don'ts
 
-- Do show agent-triggered changes in the same UI the clinician uses.
-- Do pair Test mode with synthetic-data language when confusion could create risk.
-- Do maintain keyboard focus rings and live-region announcements.
-- Don't use eyebrow labels as generic decoration.
-- Don't let agent status text fall below 11px.
-- Don't animate consequential clinical state or hide it in transient feedback.
+- Do make the active task, current stage, and next human action clear within two seconds.
+- Do keep agent actions visible in the same state used by the clinician.
+- Do preserve 44px touch targets, keyboard focus, live regions, and readable placeholders.
+- Do show Affinity Test, synthetic data, and never-Live language near the workflow.
+- Don't turn the public route into a marketing hero or code showcase.
+- Don't use nested cards, badge piles, decorative metrics, or repeated icon tiles.
+- Don't animate progress while the clinician is waiting to work.
+- Don't use color where spacing, type weight, or a divider communicates the hierarchy.

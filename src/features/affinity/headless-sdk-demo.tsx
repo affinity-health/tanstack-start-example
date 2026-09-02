@@ -8,7 +8,6 @@ import {
   type HostedOrder,
   type HostedWorkflowOptions,
 } from "../../lib/patient-workflow";
-import { DemoCode } from "./demo-code";
 
 export function HeadlessSdkDemo({ preferredPatientName }: { preferredPatientName?: string }) {
   const [error, setError] = useState<string>();
@@ -145,33 +144,19 @@ export function HeadlessSdkDemo({ preferredPatientName }: { preferredPatientName
       <div className="affinity-demo-heading">
         <div>
           <div className="affinity-demo-label">
-            <span>Headless SDK</span>
-            <span>Northstar-owned UI</span>
+            <span>Unsigned proposal</span>
+            <span>Affinity Test</span>
           </div>
-          <h2 id="headless-demo-title">Create with your interface. Sign with Affinity.</h2>
+          <h2 id="headless-demo-title">Confirm the draft before provider review</h2>
           <p>
-            Northstar collects the prescription details. Its backend creates the unsigned Test order
-            with the Affinity TypeScript SDK, then sends the provider to Affinity to sign.
+            The agent may fill the form. A clinician must review every field before Northstar
+            creates the unsigned Test order.
           </p>
         </div>
         <span className="affinity-mode-badge">Test mode</span>
       </div>
 
       <div className="headless-demo-body">
-        <DemoCode title="View the server-side SDK call">{`
-const order = await affinity.orders.create({
-  patientId,
-  practiceId,
-  providerMappingId,
-  prescriptions,
-});
-
-const signing = await affinity.orderSigningSessions.create({
-  orderId: order.id,
-  practiceId,
-  providerMappingId,
-  userId,
-});`}</DemoCode>
         <ol className="headless-flow" aria-label="Headless SDK workflow">
           <li>
             <strong>1</strong>
@@ -183,14 +168,14 @@ const signing = await affinity.orderSigningSessions.create({
           <li>
             <strong>2</strong>
             <span>
-              <b>Affinity SDK</b>Unsigned order on your server
+              <b>Human confirm</b>Unsigned Test order
             </span>
           </li>
           <ArrowRight aria-hidden size={15} />
           <li>
             <strong>3</strong>
             <span>
-              <b>Provider signs</b>PIN stays inside Affinity
+              <b>Provider review</b>PIN stays inside Affinity
             </span>
           </li>
         </ol>
@@ -408,5 +393,5 @@ function prepareSigningWindow(signingWindow: Window) {
   signingWindow.opener = null;
   signingWindow.document.title = "Opening Affinity";
   signingWindow.document.body.innerHTML =
-    '<main style="font:14px system-ui;display:grid;min-height:100vh;place-content:center;text-align:center;color:#17211d"><strong>Opening Affinity signing…</strong><p style="color:#66736d">Creating a secure, single-use session.</p></main>';
+    '<main style="font:14px system-ui;display:grid;min-height:100vh;place-content:center;text-align:center;color:#15201c"><strong>Opening Affinity signing…</strong><p style="color:#4b5d56">Creating a secure, single-use session.</p></main>';
 }
