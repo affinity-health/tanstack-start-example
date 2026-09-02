@@ -56,7 +56,7 @@ Branch `webmcp-challenge` adds all challenge work in commits dated after August 
 
 ## Test evidence
 
-- `bun run check`: 22 tests passing; lint, formatting, and TypeScript passing.
+- `bun run check`: 23 tests passing; lint, formatting, and TypeScript passing.
 - `bun run build`: client and SSR production builds passing.
 - Native Chrome WebMCP smoke: three public tools discovered; search execution returned two eligible
   California patients and updated the visible query to `CA`.

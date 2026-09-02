@@ -19,7 +19,7 @@
 
 ## Verification
 
-- [x] `bun install --frozen-lockfile`, `bun run check`, and `bun run build` pass locally.
+- [x] `bun install --frozen-lockfile`, `bun run check` (23 tests), and `bun run build` pass locally.
 - [x] Native Chrome WebMCP smoke executes registered tools against the built app.
 - [x] Desktop and mobile screenshots pass Impeccable visual review.
 - [ ] Non-production Alchemy v2 `webmcp-challenge` URL passes `/api/health` and browser checks.

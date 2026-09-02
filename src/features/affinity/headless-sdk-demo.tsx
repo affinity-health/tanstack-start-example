@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 
 import { PrescribingTools } from "../webmcp/prescribing-tools";
 import {
+  canCreateTestOrder,
   createHostedAffinityTestAdapter,
   type HostedOrder,
   type HostedWorkflowOptions,
@@ -365,10 +366,12 @@ const signing = await affinity.orderSigningSessions.create({
               <button
                 className="emr-button emr-button-primary"
                 disabled={
-                  !humanConfirmed ||
-                  pending ||
-                  options.patients.length === 0 ||
-                  options.medications.length === 0
+                  !canCreateTestOrder({
+                    humanConfirmed,
+                    medicationCount: options.medications.length,
+                    patientCount: options.patients.length,
+                    pending,
+                  })
                 }
                 type="submit"
               >

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  canCreateTestOrder,
   createHostedAffinityTestAdapter,
   createSyntheticDemoAdapter,
   findPatient,
@@ -39,6 +40,15 @@ describe("patient workflow", () => {
 });
 
 describe("prescribing workflow adapters", () => {
+  test("requires an independent human confirmation before Test order creation", () => {
+    const ready = { medicationCount: 1, patientCount: 1, pending: false };
+
+    expect(canCreateTestOrder({ ...ready, humanConfirmed: false })).toBe(false);
+    expect(canCreateTestOrder({ ...ready, humanConfirmed: true })).toBe(true);
+    expect(canCreateTestOrder({ ...ready, humanConfirmed: true, pending: true })).toBe(false);
+    expect(canCreateTestOrder({ ...ready, humanConfirmed: true, medicationCount: 0 })).toBe(false);
+  });
+
   test("normalizes synthetic demo patients behind the workflow seam", async () => {
     const options = await createSyntheticDemoAdapter().loadOptions();
 

@@ -60,6 +60,20 @@ export type PrescribingWorkflowAdapter = {
   createOrder?(draft: PrescriptionDraft, signal?: AbortSignal): Promise<HostedOrder>;
 };
 
+export function canCreateTestOrder({
+  humanConfirmed,
+  medicationCount,
+  patientCount,
+  pending,
+}: {
+  humanConfirmed: boolean;
+  medicationCount: number;
+  patientCount: number;
+  pending: boolean;
+}) {
+  return humanConfirmed && !pending && patientCount > 0 && medicationCount > 0;
+}
+
 export function createSyntheticDemoAdapter(
   patients: readonly DemoPatient[] = demoPatients,
 ): PrescribingWorkflowAdapter {
