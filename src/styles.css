@@ -1666,6 +1666,39 @@ a:focus-visible {
   padding: 18px;
 }
 
+.headless-form > .agent-tools-status {
+  border-width: 0 0 1px;
+  border-radius: 0;
+}
+
+.headless-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 18px;
+  color: #46564f;
+  background: #f3f8f6;
+  border-top: 1px solid var(--emr-border);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.headless-confirmation input {
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: var(--emr-accent);
+}
+
+.headless-confirmation span {
+  display: grid;
+  gap: 2px;
+}
+
+.headless-confirmation strong {
+  color: var(--emr-ink);
+}
+
 .headless-field {
   display: grid;
   min-width: 0;

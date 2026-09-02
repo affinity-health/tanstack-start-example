@@ -2,7 +2,7 @@
 
 An agent-native clinician workspace built for the WebMCP Challenge. A browser agent can search
 synthetic patients, open the same patient record the clinician sees, and prepare an Affinity Test
-medication review. It cannot diagnose, choose clinical details, create an order, or sign a
+medication draft from clinician-supplied details. It cannot diagnose, confirm an order, or sign a
 prescription.
 
 The public implementation calls `document.modelContext.registerTool` directly and degrades to the
@@ -10,19 +10,26 @@ complete human interface when the experimental browser API is unavailable.
 
 ## WebMCP tools
 
-Open the landing page or **Patients** in a browser with WebMCP enabled. Both register the same three
+Open the landing page or **Patients** in a browser with WebMCP enabled for the three public discovery
 tools. The landing page is a public synthetic-data demo; the signed-in route carries prepared context
-into the existing Affinity Test workflow.
+into the Affinity Test workflow, where two more tools inspect hosted options and fill the visible
+draft.
 
-| Tool                        | Visible effect                                      | Safety boundary                                 |
-| --------------------------- | --------------------------------------------------- | ----------------------------------------------- |
-| `search_synthetic_patients` | Applies query and eligibility filters               | Returns only local synthetic directory fields   |
-| `open_synthetic_patient`    | Selects the matching patient record                 | Requires an exact synthetic name or ID          |
-| `prepare_medication_review` | Opens the existing headless Affinity Test review UI | Never creates, signs, or submits a prescription |
+| Tool                              | Visible effect                                               | Safety boundary                                 |
+| --------------------------------- | ------------------------------------------------------------ | ----------------------------------------------- |
+| `search_synthetic_patients`       | Applies query and eligibility filters                        | Returns only local synthetic directory fields   |
+| `open_synthetic_patient`          | Selects the matching patient record                          | Requires an exact synthetic name or ID          |
+| `prepare_medication_review`       | Opens the existing headless Affinity Test review UI          | Never creates, signs, or submits a prescription |
+| `inspect_affinity_test_options`   | Lists options already visible in the authenticated Test form | Omits hosted resource IDs from its result       |
+| `prepare_test_prescription_draft` | Fills the visible form from clinician-supplied details       | Cannot satisfy the clinician confirmation gate  |
 
-The tools and React screen share `src/lib/patient-workflow.ts`. Agent-triggered changes appear in
-the workspace and are announced through an ARIA live region. See [SAFETY.md](SAFETY.md) for the
-enforced contract and [CHALLENGE.md](CHALLENGE.md) for the MVP boundary.
+The tools and React screen share the small prescribing workflow seam in
+`src/lib/patient-workflow.ts`: one adapter normalizes the public synthetic records and one owns the
+authenticated Affinity Test requests, identifiers, actor-scoped server results, and errors.
+Agent-triggered changes appear in the workspace and are announced through an ARIA live region. A
+clinician must check the confirmation control before the app can create an unsigned Test order. See
+[SAFETY.md](SAFETY.md) for the enforced contract and [CHALLENGE.md](CHALLENGE.md) for the MVP
+boundary.
 
 ## Challenge provenance
 
@@ -30,9 +37,9 @@ Commit `f55eedef7c8833f15dad335c23ba8f29bb521835`, dated August 5, 2026, is the 
 baseline. It already contained the partner workspace, authentication, Affinity SDK and Elements
 examples, webhook verification, and Alchemy v2 infrastructure.
 
-Challenge work begins with commit `79a1024`, dated September 2, 2026, on branch
-`webmcp-challenge`. Those commits add the WebMCP workflow, safety rules, tests, license, deployment
-evidence, and submission material.
+Challenge work begins with commit `cc63826`, dated September 2, 2026, on branch
+`webmcp-challenge`. Its diff from the baseline isolates the WebMCP workflow, safety rules, tests,
+license, and submission material added after the challenge opened.
 
 ## Verify the challenge build
 

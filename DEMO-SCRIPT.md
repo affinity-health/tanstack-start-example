@@ -4,10 +4,10 @@ Target length: 2 minutes 35 seconds. Hard stop: 2 minutes 50 seconds.
 
 ## 0:00 to 0:20
 
-Show the Northstar Patients screen and the "3 browser tools ready" status.
+Show the public Northstar patient demo and the "3 browser tools ready" status.
 
-Say: "This is Affinity Agent-Native Telehealth. The clinician UI exposes three WebMCP tools directly
-from the page. They use synthetic data and share the same workflow code as the visible app."
+Say: "This is Affinity Agent-Native Telehealth. The public page exposes three WebMCP tools directly.
+They use synthetic data and share the same workflow code as the visible app."
 
 ## 0:20 to 0:55
 
@@ -25,12 +25,15 @@ Ask: "Prepare Ada's medication review."
 Show the medication orders route, the agent-prepared handoff, the Headless SDK tab, and Ada selected
 when the hosted Test records match.
 
-Say: "Preparation is deliberately reversible. The tool passes patient context, but it cannot accept
-a medication, dose, quantity, diagnosis, or signing PIN. No order has been created."
+Ask the agent to inspect the Test options, then fill a draft using details you state aloud. Show the
+two additional tools and the unchecked clinician confirmation.
+
+Say: "The agent copied my supplied details into the visible form. It cannot check this confirmation,
+create the order, or access the signing PIN. No order has been created."
 
 ## 1:30 to 1:55
 
-Return to Patients and ask the agent to prepare Denise Kuhn, whose status is Review.
+Return to the public demo and ask the agent to prepare Denise Kuhn, whose status is Review.
 
 Show the rejection.
 
@@ -39,12 +42,11 @@ around that check."
 
 ## 1:55 to 2:20
 
-Show `src/lib/webmcp.ts`, the three tool names in `src/features/webmcp/patient-tools.ts`, and the
-tests.
+Show `src/lib/webmcp.ts`, the five tools across `src/features/webmcp/`, and the adapter tests.
 
 Say: "The public source uses `document.modelContext.registerTool`, JSON Schema, an AbortSignal for
-cleanup, and a no-op fallback for browsers without WebMCP. Seventeen tests cover the workflow and the
-existing Affinity integration boundaries."
+cleanup, and a no-op fallback for browsers without WebMCP. The same module drives a synthetic adapter
+and a hosted Affinity Test adapter, with a separate human confirmation gate."
 
 ## 2:20 to 2:35
 

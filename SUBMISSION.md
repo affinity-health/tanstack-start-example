@@ -16,16 +16,17 @@ patients, open the same record shown to the clinician, and prepare an eligible p
 Test medication review. Each action updates the visible React interface. The same tools also appear
 on the authenticated Patients route, where prepared context continues into the existing workflow.
 
-The last tool stops at preparation. It passes no medication, dose, quantity, refill, diagnosis, or
-signing data. The clinician reviews the existing Northstar form, decides what to enter, submits it,
-and completes the signing step inside Affinity.
+The authenticated Test form exposes two additional tools: one reports options already on screen and
+one fills a draft from clinician-supplied details. The agent cannot check the confirmation gate or
+call order creation. The clinician reviews the form, explicitly confirms it, and completes signing
+inside Affinity.
 
 ## How we built it
 
 - TanStack Start and React power the existing clinician workspace.
-- `document.modelContext.registerTool` exposes three imperative WebMCP tools with JSON Schema.
-- One small patient workflow module handles matching, eligibility, and the reversible review path
-  for both the tools and the visible UI.
+- `document.modelContext.registerTool` exposes five imperative WebMCP tools with JSON Schema.
+- One small prescribing workflow module provides two adapters: local synthetic demo records and the
+  authenticated Affinity Test routes.
 - The existing authenticated server routes use `@affinity-health/sdk` with production-hosted Test
   credentials.
 - Alchemy v2 deploys the isolated `webmcp-challenge` stage to Cloudflare Workers and D1.
@@ -35,9 +36,9 @@ and completes the signing step inside Affinity.
 ## Why the safety boundary matters
 
 Healthcare agents should make routine navigation easier without silently becoming clinicians. This
-demo makes the boundary executable. The browser tools cannot accept clinical order fields, and an
-ineligible patient cannot enter the prepared prescribing flow. Every agent action is visible and
-reversible. Affinity still owns provider authorization and signing.
+demo makes the boundary executable. An ineligible patient cannot enter the prescribing flow; an
+agent-prepared clinical draft cannot pass the separate human confirmation gate. Every agent action
+is visible and reversible. Affinity still owns provider authorization and signing.
 
 ## What is new for the challenge
 
@@ -55,21 +56,22 @@ Branch `webmcp-challenge` adds all challenge work in commits dated after August 
 
 ## Test evidence
 
-- `bun run check`: 17 tests passing, lint passing, formatting passing, TypeScript passing.
+- `bun run check`: 22 tests passing; lint, formatting, and TypeScript passing.
 - `bun run build`: client and SSR production builds passing.
-- Browser checks: pending live-stage verification.
+- Native Chrome WebMCP smoke: three public tools discovered; search execution returned two eligible
+  California patients and updated the visible query to `CA`.
 
 ## Links
 
 - Live demo: `PENDING_ALCHEMY_V2_DEPLOY`
-- Source: `PENDING_PUBLIC_BRANCH_URL`
+- Source: https://github.com/affinity-health/tanstack-start-example/tree/webmcp-challenge
 - Video: `PENDING_YOUTUBE_URL`
 
 ## Submission checklist
 
-- [ ] License published on the public GitHub branch and detected by GitHub
-- [ ] Public repository includes `document.modelContext.registerTool`
-- [ ] Dated challenge commits visible after August 25, 2026
+- [x] MIT license published on the public GitHub branch
+- [x] Public repository includes `document.modelContext.registerTool`
+- [x] Dated challenge commit visible after August 25, 2026
 - [ ] Alchemy v2 non-production live URL verified
 - [ ] Public YouTube demo is under three minutes
 - [ ] Devpost fields contain the final repository, live demo, and video URLs

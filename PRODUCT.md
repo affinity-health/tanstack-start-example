@@ -41,8 +41,9 @@ Hosted workflows, and Alchemy v2 deployment remain in place.
 ## Capabilities and constraints
 
 - WebMCP uses the current imperative browser API at `document.modelContext.registerTool`.
-- Tools may search synthetic patients, select a patient, and prepare a visible review workflow.
-- Tools must not create, sign, submit, or transmit a prescription.
+- Tools may search synthetic patients, select a patient, prepare a visible review workflow, inspect
+  hosted Test options, and fill a draft from clinician-supplied details.
+- Tools must not confirm, create, sign, submit, or transmit a prescription.
 - The clinician must perform any consequential clinical action through the existing interface.
 - The demo never uses Affinity Live or production patient data.
 - The target deployment is an Alchemy v2 non-production release stage.
