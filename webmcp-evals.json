@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Find eligible California patients",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Find the eligible synthetic patients in California."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "search_synthetic_patients",
+        "arguments": {
+          "query": "CA",
+          "status": "eligible"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Open a synthetic patient record",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open Ada Zieme's synthetic patient record."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "open_synthetic_patient",
+        "arguments": {
+          "patient": "Ada Zieme"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Prepare a safe medication review",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Prepare Ada Zieme's medication review, but do not create a prescription."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "prepare_medication_review",
+        "arguments": {
+          "patient": "Ada Zieme"
+        }
+      }
+    ]
+  }
+]

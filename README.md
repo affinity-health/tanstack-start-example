@@ -1,7 +1,73 @@
-# Affinity platform example
+# Affinity Agent-Native Telehealth
 
-A small, working partner application for demonstrating Affinity on a screen share. It deliberately
-keeps each integration in one component and each trusted SDK call in one API route.
+An agent-native clinician workspace built for the WebMCP Challenge. A browser agent can search
+synthetic patients, open the same patient record the clinician sees, and prepare an Affinity Test
+medication review. It cannot diagnose, choose clinical details, create an order, or sign a
+prescription.
+
+The public implementation calls `document.modelContext.registerTool` directly and degrades to the
+complete human interface when the experimental browser API is unavailable.
+
+## WebMCP tools
+
+Open the landing page or **Patients** in a browser with WebMCP enabled. Both register the same three
+tools. The landing page is a public synthetic-data demo; the signed-in route carries prepared context
+into the existing Affinity Test workflow.
+
+| Tool                        | Visible effect                                      | Safety boundary                                 |
+| --------------------------- | --------------------------------------------------- | ----------------------------------------------- |
+| `search_synthetic_patients` | Applies query and eligibility filters               | Returns only local synthetic directory fields   |
+| `open_synthetic_patient`    | Selects the matching patient record                 | Requires an exact synthetic name or ID          |
+| `prepare_medication_review` | Opens the existing headless Affinity Test review UI | Never creates, signs, or submits a prescription |
+
+The tools and React screen share `src/lib/patient-workflow.ts`. Agent-triggered changes appear in
+the workspace and are announced through an ARIA live region. See [SAFETY.md](SAFETY.md) for the
+enforced contract and [CHALLENGE.md](CHALLENGE.md) for the MVP boundary.
+
+## Challenge provenance
+
+Commit `f55eedef7c8833f15dad335c23ba8f29bb521835`, dated August 5, 2026, is the pre-challenge
+baseline. It already contained the partner workspace, authentication, Affinity SDK and Elements
+examples, webhook verification, and Alchemy v2 infrastructure.
+
+Challenge work begins with commit `79a1024`, dated September 2, 2026, on branch
+`webmcp-challenge`. Those commits add the WebMCP workflow, safety rules, tests, license, deployment
+evidence, and submission material.
+
+## Verify the challenge build
+
+```bash
+bun install --frozen-lockfile
+bun run check
+bun run build
+```
+
+The repository also includes `webmcp-evals.json` for Chrome's experimental WebMCP evaluator. With
+the app running on port 3001, execute the deterministic smoke suite without an LLM key:
+
+```bash
+npx webmcp-evals smoke -u http://localhost:3001 -e webmcp-evals.json -v
+```
+
+Deploy only the isolated challenge stage. Supply Affinity production-hosted Test credentials in the
+calling shell. Never use an Affinity Live key.
+
+```bash
+APP_URL=https://your-challenge-worker.workers.dev \
+AFFINITY_API_KEY=sk_test_... \
+AFFINITY_WEBHOOK_SECRET=whsec_... \
+AFFINITY_PROVIDER_MAPPING_ID=pmap_... \
+bun run deploy:challenge
+```
+
+The deployment uses Alchemy v2 and the `webmcp-challenge` stage. The generated Worker URL becomes
+`APP_URL` for the final deployment so authentication callbacks stay on that origin.
+
+## Original Affinity integration example
+
+This repository began as a small, working partner application for demonstrating Affinity on a
+screen share. It deliberately keeps each integration in one component and each trusted SDK call in
+one API route.
 
 ## Five-minute walkthrough
 

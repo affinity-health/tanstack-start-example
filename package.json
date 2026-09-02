@@ -7,6 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "alchemy deploy",
+    "deploy:challenge": "alchemy deploy --env-file .alchemy-deploy.env --stage webmcp-challenge",
     "deploy:hosted": "alchemy deploy --env-file .alchemy-deploy.env --stage release",
     "destroy": "alchemy destroy",
     "check": "bun test && oxlint && oxfmt --check && tsc --noEmit",

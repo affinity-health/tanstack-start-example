@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  Bot,
   Braces,
   ClipboardList,
   CreditCard,
@@ -19,16 +20,26 @@ import {
   PracticeBillingDemo,
 } from "../../features/affinity";
 import { requireSession } from "../../lib/require-session";
+import { demoPatients } from "../../lib/demo-data";
+
+type ShowcaseFeature = "billing" | "elements" | "headless" | "hosted" | "provider";
+
+type MedicationOrdersSearch = {
+  feature?: ShowcaseFeature;
+  patientId?: string;
+};
 
 export const Route = createFileRoute("/(workspace)/medication-orders")({
   beforeLoad: requireSession,
   head: () => ({
     meta: [{ title: "Medication orders | Northstar Health" }],
   }),
+  validateSearch: (search: Record<string, unknown>): MedicationOrdersSearch => ({
+    feature: isShowcaseFeature(search.feature) ? search.feature : undefined,
+    patientId: typeof search.patientId === "string" ? search.patientId : undefined,
+  }),
   component: MedicationOrders,
 });
-
-type ShowcaseFeature = "billing" | "elements" | "headless" | "hosted" | "provider";
 
 const features = [
   {
@@ -76,7 +87,9 @@ const features = [
 
 function MedicationOrders() {
   const { session } = Route.useRouteContext();
-  const [feature, setFeature] = useState<ShowcaseFeature>("elements");
+  const search = Route.useSearch();
+  const preparedPatient = demoPatients.find((patient) => patient.id === search.patientId);
+  const [feature, setFeature] = useState<ShowcaseFeature>(search.feature ?? "elements");
 
   return (
     <EmrShell
@@ -92,6 +105,21 @@ function MedicationOrders() {
       session={session}
       title="Affinity prescribing"
     >
+      {preparedPatient ? (
+        <section className="agent-review-handoff" aria-label="Agent-prepared review">
+          <span className="agent-tools-mark">
+            <Bot aria-hidden size={17} />
+          </span>
+          <span>
+            <strong>Review prepared for {preparedPatient.name}</strong>
+            <small>
+              The agent opened this Test workflow. No prescription was created, and all clinical
+              fields still require clinician review.
+            </small>
+          </span>
+          <span className="agent-review-tag">Synthetic data</span>
+        </section>
+      ) : null}
       <section className="emr-integration-strip" aria-label="Integration status">
         <div>
           <span className="emr-status-icon is-success">
@@ -183,7 +211,7 @@ function MedicationOrders() {
             <ElementsDemo />
           </section>
         ) : feature === "headless" ? (
-          <HeadlessSdkDemo />
+          <HeadlessSdkDemo preferredPatientName={preparedPatient?.name} />
         ) : feature === "hosted" ? (
           <HostedDemo />
         ) : feature === "provider" ? (
@@ -194,4 +222,8 @@ function MedicationOrders() {
       </div>
     </EmrShell>
   );
+}
+
+function isShowcaseFeature(value: unknown): value is ShowcaseFeature {
+  return ["billing", "elements", "headless", "hosted", "provider"].includes(String(value));
 }

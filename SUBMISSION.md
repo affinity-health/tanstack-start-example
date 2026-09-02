@@ -1,0 +1,75 @@
+# Devpost submission draft
+
+## Project
+
+Affinity Agent-Native Telehealth
+
+## One-line summary
+
+A WebMCP-enabled clinician workspace where browser agents can prepare a synthetic patient workflow
+without crossing the line into clinical decision-making or prescription signing.
+
+## What it does
+
+The public Northstar Health demo exposes three browser-native tools. An agent can search synthetic
+patients, open the same record shown to the clinician, and prepare an eligible patient's Affinity
+Test medication review. Each action updates the visible React interface. The same tools also appear
+on the authenticated Patients route, where prepared context continues into the existing workflow.
+
+The last tool stops at preparation. It passes no medication, dose, quantity, refill, diagnosis, or
+signing data. The clinician reviews the existing Northstar form, decides what to enter, submits it,
+and completes the signing step inside Affinity.
+
+## How we built it
+
+- TanStack Start and React power the existing clinician workspace.
+- `document.modelContext.registerTool` exposes three imperative WebMCP tools with JSON Schema.
+- One small patient workflow module handles matching, eligibility, and the reversible review path
+  for both the tools and the visible UI.
+- The existing authenticated server routes use `@affinity-health/sdk` with production-hosted Test
+  credentials.
+- Alchemy v2 deploys the isolated `webmcp-challenge` stage to Cloudflare Workers and D1.
+- Bun tests cover patient matching, eligibility rejection, tool side effects, tool registration,
+  unsupported browsers, request origins, and webhook verification.
+
+## Why the safety boundary matters
+
+Healthcare agents should make routine navigation easier without silently becoming clinicians. This
+demo makes the boundary executable. The browser tools cannot accept clinical order fields, and an
+ineligible patient cannot enter the prepared prescribing flow. Every agent action is visible and
+reversible. Affinity still owns provider authorization and signing.
+
+## What is new for the challenge
+
+Baseline `f55eedef7c8833f15dad335c23ba8f29bb521835` is dated August 5, 2026. It contains the
+pre-existing workspace and Affinity integrations.
+
+Branch `webmcp-challenge` adds all challenge work in commits dated after August 25, 2026:
+
+- direct WebMCP registration and lifecycle cleanup;
+- patient search, selection, and safe review preparation tools;
+- shared workflow logic and focused tests;
+- visible agent status, handoff state, and accessible announcements;
+- safety, architecture, deployment, and submission documentation;
+- a root MIT license.
+
+## Test evidence
+
+- `bun run check`: 17 tests passing, lint passing, formatting passing, TypeScript passing.
+- `bun run build`: client and SSR production builds passing.
+- Browser checks: pending live-stage verification.
+
+## Links
+
+- Live demo: `PENDING_ALCHEMY_V2_DEPLOY`
+- Source: `PENDING_PUBLIC_BRANCH_URL`
+- Video: `PENDING_YOUTUBE_URL`
+
+## Submission checklist
+
+- [ ] License published on the public GitHub branch and detected by GitHub
+- [ ] Public repository includes `document.modelContext.registerTool`
+- [ ] Dated challenge commits visible after August 25, 2026
+- [ ] Alchemy v2 non-production live URL verified
+- [ ] Public YouTube demo is under three minutes
+- [ ] Devpost fields contain the final repository, live demo, and video URLs

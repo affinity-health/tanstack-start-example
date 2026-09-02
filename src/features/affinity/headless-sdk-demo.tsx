@@ -28,7 +28,7 @@ type HeadlessOrder = {
   };
 };
 
-export function HeadlessSdkDemo() {
+export function HeadlessSdkDemo({ preferredPatientName }: { preferredPatientName?: string }) {
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [options, setOptions] = useState<HeadlessOptions>();
@@ -36,6 +36,7 @@ export function HeadlessSdkDemo() {
   const [result, setResult] = useState<HeadlessOrder>();
   const [reasonCategory, setReasonCategory] = useState("");
   const [selectedMedicationId, setSelectedMedicationId] = useState("");
+  const [selectedPatientId, setSelectedPatientId] = useState("");
 
   useEffect(() => {
     void loadOptions();
@@ -57,6 +58,13 @@ export function HeadlessSdkDemo() {
       }
       setOptions(body);
       setSelectedMedicationId((current) => current || body.medications[0]?.id || "");
+      setSelectedPatientId((current) => {
+        if (current) return current;
+        const preferredPatient = body.patients.find(
+          (patient) => patient.name === preferredPatientName,
+        );
+        return preferredPatient?.id ?? body.recommendedPatientId ?? body.patients[0]?.id ?? "";
+      });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Test data is unavailable.");
     } finally {
@@ -209,9 +217,10 @@ const signing = await affinity.orderSigningSessions.create({
               <label className="headless-field headless-field-wide">
                 Patient
                 <select
-                  defaultValue={options.recommendedPatientId ?? options.patients[0]?.id}
                   name="patientId"
+                  onChange={(event) => setSelectedPatientId(event.currentTarget.value)}
                   required
+                  value={selectedPatientId}
                 >
                   {options.patients.map((patient) => (
                     <option key={patient.id} value={patient.id}>

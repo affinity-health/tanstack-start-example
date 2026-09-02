@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarDays, Mail, MapPin, Phone, Search, ShieldCheck, UserRound } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { EmrSectionHeading, EmrShell, EmrStatus } from "../../components/emr-shell";
+import { PatientAgentTools } from "../../features/webmcp/patient-agent-tools";
 import { demoPatients } from "../../lib/demo-data";
+import type { PatientFilter } from "../../lib/patient-workflow";
 import { requireSession } from "../../lib/require-session";
 
 export const Route = createFileRoute("/(workspace)/patients")({
@@ -19,6 +21,28 @@ function Patients() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"All" | "Eligible" | "Review">("All");
   const [selectedId, setSelectedId] = useState("pat_ada_zieme");
+  const [agentAnnouncement, setAgentAnnouncement] = useState("");
+
+  const handleAgentSearch = useCallback(
+    (nextQuery: string, nextStatus: PatientFilter, message: string) => {
+      setQuery(nextQuery);
+      setStatus(
+        nextStatus === "eligible" ? "Eligible" : nextStatus === "review" ? "Review" : "All",
+      );
+      setAgentAnnouncement(message);
+    },
+    [],
+  );
+  const handleAgentOpen = useCallback((patientId: string, message: string) => {
+    setQuery("");
+    setStatus("All");
+    setSelectedId(patientId);
+    setAgentAnnouncement(message);
+  }, []);
+  const handleAgentPrepare = useCallback((path: string, message: string) => {
+    setAgentAnnouncement(message);
+    window.setTimeout(() => window.location.assign(path), 150);
+  }, []);
 
   const filteredPatients = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -45,6 +69,15 @@ function Patients() {
       session={session}
       title="Patients"
     >
+      <PatientAgentTools
+        onAnnouncement={setAgentAnnouncement}
+        onOpen={handleAgentOpen}
+        onPrepare={handleAgentPrepare}
+        onSearch={handleAgentSearch}
+      />
+      <p className="sr-only" aria-live="polite">
+        {agentAnnouncement}
+      </p>
       <div className="emr-patient-layout">
         <section className="emr-panel">
           <EmrSectionHeading

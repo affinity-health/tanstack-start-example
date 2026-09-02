@@ -18,11 +18,12 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Affinity platform example",
+        title: "Affinity Agent-Native Telehealth",
       },
       {
         name: "description",
-        content: "A working showcase of Affinity integration patterns in a partner application.",
+        content:
+          "A WebMCP-enabled clinician workspace for safe, visible collaboration between people and browser agents.",
       },
     ],
     links: [
@@ -60,7 +61,7 @@ function RootDocument() {
           <header className="site-header">
             <Link className="wordmark" to="/">
               <span className="wordmark-dot" />
-              Affinity example
+              Affinity agent-native
             </Link>
             <nav aria-label="Primary navigation">
               <a href="/api/openapi">API docs</a>
@@ -74,7 +75,7 @@ function RootDocument() {
         <Outlet />
         {isWorkspace ? null : (
           <footer className="site-footer">
-            <p>Affinity Elements / SDK / Hosted</p>
+            <p>WebMCP / Affinity Test / Alchemy v2</p>
             <p>Test mode. Synthetic data only.</p>
           </footer>
         )}
