@@ -1,29 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Bot,
-  CheckCircle2,
-  Clock3,
-  ClipboardCheck,
-  FilePlus2,
-  Pill,
-  ShieldCheck,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import { Bot, CheckCircle2, ChevronRight, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-import { EmrSectionHeading, EmrShell, EmrStatus } from "../../components/emr-shell";
+import { EmrShell, EmrStatus } from "../../components/emr-shell";
 import { HeadlessSdkDemo } from "../../features/affinity";
 import { demoOrders, demoPatients } from "../../lib/demo-data";
 import { requireSession } from "../../lib/require-session";
 
-type MedicationOrdersSearch = {
-  patientId?: string;
-};
+type MedicationOrdersSearch = { patientId?: string };
+type OrderStatus = "All" | "Draft" | "Submitted" | "Accepted";
 
 export const Route = createFileRoute("/(workspace)/medication-orders")({
   beforeLoad: requireSession,
-  head: () => ({
-    meta: [{ title: "Medication orders | Northstar Health" }],
-  }),
+  head: () => ({ meta: [{ title: "Orders | Northstar Health" }] }),
   validateSearch: (search: Record<string, unknown>): MedicationOrdersSearch => ({
     patientId: typeof search.patientId === "string" ? search.patientId : undefined,
   }),
@@ -35,197 +24,201 @@ function MedicationOrders() {
   const search = Route.useSearch();
   const preparedPatient = demoPatients.find((patient) => patient.id === search.patientId);
   const preparedOrder = demoOrders.find((order) => order.patient === preparedPatient?.name);
-  const [selectedId, setSelectedId] = useState<string>(preparedOrder?.id ?? demoOrders[0]!.id);
-  const selectedOrder = useMemo(
-    () => demoOrders.find((order) => order.id === selectedId) ?? demoOrders[0]!,
-    [selectedId],
-  );
-  const [reviewPatientName, setReviewPatientName] = useState<string | undefined>(
-    preparedPatient?.name ?? (selectedOrder.status === "Draft" ? selectedOrder.patient : undefined),
-  );
-
-  function selectOrder(orderId: string) {
-    const order = demoOrders.find((item) => item.id === orderId);
-    setSelectedId(orderId);
-    setReviewPatientName(order?.status === "Draft" ? order.patient : undefined);
-  }
+  const [selectedId, setSelectedId] = useState<string | null>(preparedOrder?.id ?? null);
+  const [status, setStatus] = useState<OrderStatus>("All");
+  const [query, setQuery] = useState("");
+  const selectedOrder = demoOrders.find((order) => order.id === selectedId);
+  const visibleOrders = useMemo(() => {
+    const value = query.trim().toLowerCase();
+    return demoOrders.filter(
+      (order) =>
+        (status === "All" || order.status === status) &&
+        (!value ||
+          [order.id, order.patient, order.medication].join(" ").toLowerCase().includes(value)),
+    );
+  }, [query, status]);
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedId(null);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, []);
 
   return (
     <EmrShell
-      actions={
-        <button
-          className="emr-button emr-button-primary"
-          type="button"
-          onClick={() => {
-            setSelectedId(demoOrders[0]!.id);
-            setReviewPatientName(demoOrders[0]!.patient);
-          }}
-        >
-          <FilePlus2 aria-hidden size={16} />
-          New order
-        </button>
-      }
       current="prescriptions"
-      description="Review drafts and track medication orders for your patients."
-      eyebrow="Clinical workspace"
+      description={`${demoOrders.length} synthetic orders · Affinity Test`}
       session={session}
-      title="Medication orders"
+      title="Orders"
     >
       {preparedPatient ? (
-        <section className="agent-review-handoff" aria-label="Prepared medication review">
-          <span className="agent-tools-mark">
-            <Bot aria-hidden size={18} />
-          </span>
+        <div className="emr-agent-handoff" role="status">
+          <Bot aria-hidden size={16} />
           <span>
-            <strong>Unsigned review prepared for {preparedPatient.name}</strong>
-            <small>
-              WebMCP opened the patient context. No order was created. A clinician must review and
-              confirm every field.
-            </small>
+            WebMCP opened {preparedPatient.name} for review. No clinical action was taken.
           </span>
-          <span className="agent-review-tag">Synthetic patient</span>
-        </section>
+        </div>
       ) : null}
-
-      <section className="emr-order-summary" aria-label="Order summary">
-        <div>
-          <span className="emr-status-icon">
-            <Pill aria-hidden size={16} />
-          </span>
-          <span>
-            <small>Open drafts</small>
-            <strong>1</strong>
-          </span>
+      <section className="emr-list-panel">
+        <div className="emr-status-tabs" role="tablist" aria-label="Order status">
+          {(["All", "Draft", "Submitted", "Accepted"] as const).map((option) => {
+            const count =
+              option === "All"
+                ? demoOrders.length
+                : demoOrders.filter((order) => order.status === option).length;
+            return (
+              <button
+                aria-selected={status === option}
+                className={status === option ? "is-active" : undefined}
+                key={option}
+                onClick={() => setStatus(option)}
+                role="tab"
+                type="button"
+              >
+                {option}
+                <span>{count}</span>
+              </button>
+            );
+          })}
         </div>
-        <div>
-          <span className="emr-status-icon is-success">
-            <CheckCircle2 aria-hidden size={16} />
-          </span>
-          <span>
-            <small>Sent today</small>
-            <strong>1</strong>
-          </span>
+        <div className="emr-list-toolbar">
+          <label className="emr-search">
+            <Search aria-hidden size={16} />
+            <span className="sr-only">Search orders</span>
+            <input
+              placeholder="Search patient, medication, or order ID"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
         </div>
-        <div>
-          <span className="emr-status-icon">
-            <Clock3 aria-hidden size={16} />
-          </span>
-          <span>
-            <small>Awaiting pharmacy</small>
-            <strong>1</strong>
-          </span>
-        </div>
-        <div>
-          <span className="emr-status-icon">
-            <ShieldCheck aria-hidden size={16} />
-          </span>
-          <span>
-            <small>Environment</small>
-            <strong>Affinity Test</strong>
-          </span>
-        </div>
+        {visibleOrders.length ? (
+          <div className="emr-order-groups">
+            {visibleOrders.map((order) => (
+              <section key={order.id} className="emr-order-group">
+                <header>
+                  <span className="emr-person-avatar" aria-hidden>
+                    {initials(order.patient)}
+                  </span>
+                  <strong>{order.patient}</strong>
+                  <small>1 order</small>
+                </header>
+                <button
+                  className={selectedId === order.id ? "is-selected" : undefined}
+                  onClick={() => setSelectedId(order.id)}
+                  type="button"
+                >
+                  <span>
+                    <strong>{order.medication}</strong>
+                    <small>{order.id}</small>
+                  </span>
+                  <span>
+                    <strong>{order.dose}</strong>
+                    <small>{order.pharmacy}</small>
+                  </span>
+                  <EmrStatus tone={order.status === "Draft" ? "attention" : "success"}>
+                    {order.status}
+                  </EmrStatus>
+                  <span className="emr-order-updated">{order.updated}</span>
+                  <ChevronRight aria-hidden size={16} />
+                </button>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="emr-empty">
+            <Search aria-hidden size={22} />
+            <strong>No matching orders</strong>
+            <span>Try another search or status.</span>
+            <button
+              className="emr-button emr-button-secondary"
+              onClick={() => {
+                setQuery("");
+                setStatus("All");
+              }}
+              type="button"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
       </section>
 
-      <div className="emr-orders-layout">
-        <section className="emr-panel">
-          <EmrSectionHeading
-            description={`${demoOrders.length} synthetic orders`}
-            title="Order queue"
+      {selectedOrder ? (
+        <>
+          <button
+            aria-label="Close order details"
+            className="emr-sheet-backdrop"
+            onClick={() => setSelectedId(null)}
+            type="button"
           />
-          <div className="emr-table-wrap">
-            <table className="emr-table emr-orders-table">
-              <thead>
-                <tr>
-                  <th>Patient</th>
-                  <th>Medication</th>
-                  <th>Status</th>
-                  <th>Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {demoOrders.map((order) => (
-                  <tr
-                    className={selectedOrder.id === order.id ? "is-selected" : undefined}
-                    key={order.id}
-                  >
-                    <td>
-                      <button
-                        className="emr-order-select"
-                        type="button"
-                        onClick={() => selectOrder(order.id)}
-                      >
-                        <strong>{order.patient}</strong>
-                        <small>{order.id}</small>
-                      </button>
-                    </td>
-                    <td>
-                      <strong>{order.medication}</strong>
-                      <small>{order.dose}</small>
-                    </td>
-                    <td>
-                      <EmrStatus tone={order.status === "Draft" ? "attention" : "success"}>
-                        {order.status}
-                      </EmrStatus>
-                    </td>
-                    <td>{order.updated}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <aside className="emr-panel emr-order-detail" aria-labelledby="order-detail-title">
-          <header>
-            <div>
-              <span>Order detail</span>
-              <h2 id="order-detail-title">{selectedOrder.medication}</h2>
-              <p>{selectedOrder.patient}</p>
-            </div>
-            <EmrStatus tone={selectedOrder.status === "Draft" ? "attention" : "success"}>
-              {selectedOrder.status}
-            </EmrStatus>
-          </header>
-          <dl>
-            <div>
-              <dt>Dose</dt>
-              <dd>{selectedOrder.dose}</dd>
-            </div>
-            <div>
-              <dt>Directions</dt>
-              <dd>{selectedOrder.directions}</dd>
-            </div>
-            <div>
-              <dt>Pharmacy</dt>
-              <dd>{selectedOrder.pharmacy}</dd>
-            </div>
-            <div>
-              <dt>Prescriber</dt>
-              <dd>{selectedOrder.prescriber}</dd>
-            </div>
-            <div>
-              <dt>Started</dt>
-              <dd>{selectedOrder.written}</dd>
-            </div>
-          </dl>
-          {selectedOrder.status === "Draft" ? (
-            <button
-              className="emr-button emr-button-primary emr-button-full"
-              type="button"
-              onClick={() => setReviewPatientName(selectedOrder.patient)}
-            >
-              <ClipboardCheck aria-hidden size={16} />
-              Review unsigned draft
-            </button>
-          ) : (
-            <p className="emr-order-note">
-              This synthetic order is read only in the demo workspace.
-            </p>
-          )}
-        </aside>
-      </div>
-
-      {reviewPatientName ? <HeadlessSdkDemo preferredPatientName={reviewPatientName} /> : null}
+          <aside
+            aria-label={`${selectedOrder.patient} order details`}
+            className="emr-detail-sheet emr-order-sheet"
+          >
+            <header className="emr-sheet-header">
+              <div>
+                <h2>{selectedOrder.medication}</h2>
+                <p>
+                  {selectedOrder.patient} · {selectedOrder.id}
+                </p>
+              </div>
+              <EmrStatus tone={selectedOrder.status === "Draft" ? "attention" : "success"}>
+                {selectedOrder.status}
+              </EmrStatus>
+              <button aria-label="Close details" onClick={() => setSelectedId(null)} type="button">
+                <X aria-hidden size={18} />
+              </button>
+            </header>
+            {selectedOrder.status === "Draft" ? (
+              <div className="emr-order-review">
+                <HeadlessSdkDemo preferredPatientName={selectedOrder.patient} />
+              </div>
+            ) : (
+              <div className="emr-sheet-body">
+                <div className="emr-order-complete">
+                  <CheckCircle2 aria-hidden size={20} />
+                  <div>
+                    <strong>{selectedOrder.status}</strong>
+                    <p>This synthetic order is read only.</p>
+                  </div>
+                </div>
+                <dl className="emr-detail-list">
+                  <div>
+                    <dt>Dose</dt>
+                    <dd>{selectedOrder.dose}</dd>
+                  </div>
+                  <div>
+                    <dt>Directions</dt>
+                    <dd>{selectedOrder.directions}</dd>
+                  </div>
+                  <div>
+                    <dt>Pharmacy</dt>
+                    <dd>{selectedOrder.pharmacy}</dd>
+                  </div>
+                  <div>
+                    <dt>Prescriber</dt>
+                    <dd>{selectedOrder.prescriber}</dd>
+                  </div>
+                  <div>
+                    <dt>Started</dt>
+                    <dd>{selectedOrder.written}</dd>
+                  </div>
+                </dl>
+              </div>
+            )}
+          </aside>
+        </>
+      ) : null}
     </EmrShell>
   );
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("");
 }

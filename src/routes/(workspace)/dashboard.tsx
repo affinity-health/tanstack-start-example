@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { CalendarDays, Clock3, FileWarning, MessageSquare, Pill, Users, Video } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Pill, UserRound } from "lucide-react";
 
 import { EmrSectionHeading, EmrShell, EmrStatus } from "../../components/emr-shell";
 import { demoOrders, demoSchedule } from "../../lib/demo-data";
@@ -7,136 +7,101 @@ import { requireSession } from "../../lib/require-session";
 
 export const Route = createFileRoute("/(workspace)/dashboard")({
   beforeLoad: requireSession,
-  head: () => ({
-    meta: [{ title: "Overview | Northstar Health" }],
-  }),
+  head: () => ({ meta: [{ title: "Home | Northstar Health" }] }),
   component: Dashboard,
 });
 
-const overviewStats = [
-  { detail: "4 remaining today", icon: CalendarDays, label: "Appointments", value: "12" },
-  { detail: "2 need review", icon: Users, label: "Active patients", value: "86" },
-  { detail: "1 draft", icon: Pill, label: "Medication orders", value: "7" },
-  { detail: "2 unread", icon: MessageSquare, label: "Messages", value: "3" },
-] as const;
-
 function Dashboard() {
   const { session } = Route.useRouteContext();
-  const firstName = session.user.name.split(/\s+/u)[0] || "Clinician";
-  const appointments = demoSchedule["Jul 29"].slice(0, 3);
+  const appointments = demoSchedule["Jul 29"];
 
   return (
-    <EmrShell
-      actions={
-        <Link className="emr-button emr-button-primary" to="/medication-orders">
-          <Pill aria-hidden size={16} />
-          New prescription
-        </Link>
-      }
-      current="overview"
-      description="Your schedule, patients, and clinical work in one place."
-      session={session}
-      title={`Good evening, ${firstName}`}
-    >
-      <section className="emr-stat-strip" aria-label="Workspace summary">
-        {overviewStats.map(({ detail, icon: Icon, label, value }) => (
-          <div key={label}>
-            <span className="emr-stat-icon">
-              <Icon aria-hidden size={17} />
-            </span>
-            <span>
-              <small>{label}</small>
-              <strong>{value}</strong>
-              <small>{detail}</small>
-            </span>
-          </div>
-        ))}
+    <EmrShell current="overview" description="Wednesday, July 29" session={session} title="Home">
+      <section className="emr-metric-strip" aria-label="Clinic summary">
+        <div>
+          <strong>4</strong>
+          <span>Visits today</span>
+        </div>
+        <div>
+          <strong>3</strong>
+          <span>Need attention</span>
+        </div>
+        <div>
+          <strong>1</strong>
+          <span>Unsigned draft</span>
+        </div>
       </section>
 
-      <div className="emr-overview-grid">
-        <section className="emr-panel">
-          <EmrSectionHeading
-            action={
-              <Link className="emr-text-link" to="/schedule">
-                View schedule
-              </Link>
-            }
-            description="Wednesday, July 29"
-            title="Next appointments"
-          />
-          <div className="emr-agenda-list">
-            {appointments.map((appointment) => (
-              <article className="emr-agenda-row" key={appointment.id}>
-                <div className="emr-agenda-time">
+      <div className="emr-home-grid">
+        <section className="emr-list-panel">
+          <EmrSectionHeading title="Needs attention" description="3 items" />
+          <div className="emr-work-queue">
+            <Link to="/medication-orders" search={{ patientId: "pat_ada_zieme" }}>
+              <span className="emr-row-icon is-attention">
+                <ClipboardCheck aria-hidden size={17} />
+              </span>
+              <span>
+                <strong>Review Ada Zieme’s unsigned draft</strong>
+                <small>Semaglutide + B12 · 8 min ago</small>
+              </span>
+              <EmrStatus tone="attention">Draft</EmrStatus>
+              <ArrowRight aria-hidden size={15} />
+            </Link>
+            <Link to="/patients" search={{ patientId: "pat_denise_kuhn" }}>
+              <span className="emr-row-icon">
+                <UserRound aria-hidden size={17} />
+              </span>
+              <span>
+                <strong>Review Denise Kuhn’s chart</strong>
+                <small>New lab panel received this morning</small>
+              </span>
+              <EmrStatus>Review</EmrStatus>
+              <ArrowRight aria-hidden size={15} />
+            </Link>
+            <Link to="/patients" search={{ patientId: "pat_matthew_kihn" }}>
+              <span className="emr-row-icon">
+                <Pill aria-hidden size={17} />
+              </span>
+              <span>
+                <strong>Reconcile Matthew Kihn’s medications</strong>
+                <small>Outside medication list needs review</small>
+              </span>
+              <EmrStatus>Patient</EmrStatus>
+              <ArrowRight aria-hidden size={15} />
+            </Link>
+          </div>
+        </section>
+
+        <section className="emr-list-panel">
+          <EmrSectionHeading title="Today" description="Next visits" />
+          <div className="emr-compact-schedule">
+            {appointments.slice(0, 4).map((appointment) => (
+              <div key={appointment.id}>
+                <span>
                   <strong>{appointment.time}</strong>
-                  <span>{appointment.duration}</span>
-                </div>
-                <div className="emr-agenda-person">
+                  <small>{appointment.duration}</small>
+                </span>
+                <span>
                   <strong>{appointment.patient}</strong>
-                  <span>{appointment.type}</span>
-                </div>
-                <span className="emr-agenda-mode">
-                  {appointment.mode === "Telehealth" ? (
-                    <Video aria-hidden size={14} />
-                  ) : (
-                    <Users aria-hidden size={14} />
-                  )}
-                  {appointment.mode}
+                  <small>{appointment.type}</small>
                 </span>
                 <EmrStatus tone={appointment.status === "Needs intake" ? "attention" : "success"}>
                   {appointment.status}
                 </EmrStatus>
-              </article>
+              </div>
             ))}
-          </div>
-        </section>
-
-        <section className="emr-panel">
-          <EmrSectionHeading description="Items that need a decision" title="Needs attention" />
-          <div className="emr-task-list">
-            <Link to="/documents">
-              <span className="emr-task-icon">
-                <FileWarning aria-hidden size={16} />
-              </span>
-              <span>
-                <strong>Review Denise Kuhn’s lab results</strong>
-                <small>Received this morning</small>
-              </span>
-              <span>Review</span>
-            </Link>
-            <Link to="/medication-orders">
-              <span className="emr-task-icon">
-                <Pill aria-hidden size={16} />
-              </span>
-              <span>
-                <strong>Complete Ada Zieme’s prescription</strong>
-                <small>Draft saved 8 minutes ago</small>
-              </span>
-              <span>Continue</span>
-            </Link>
-            <Link to="/messages">
-              <span className="emr-task-icon">
-                <MessageSquare aria-hidden size={16} />
-              </span>
-              <span>
-                <strong>Reply to 2 patient messages</strong>
-                <small>Oldest received at 9:16 AM</small>
-              </span>
-              <span>Open</span>
-            </Link>
           </div>
         </section>
       </div>
 
-      <section className="emr-panel">
+      <section className="emr-list-panel">
         <EmrSectionHeading
           action={
             <Link className="emr-text-link" to="/medication-orders">
-              Open prescribing
+              View orders
             </Link>
           }
-          description="Medication activity in this Test workspace"
-          title="Recent medication orders"
+          title="Recent orders"
         />
         <div className="emr-table-wrap">
           <table className="emr-table">
@@ -144,7 +109,6 @@ function Dashboard() {
               <tr>
                 <th>Patient</th>
                 <th>Medication</th>
-                <th>Pharmacy</th>
                 <th>Status</th>
                 <th>Updated</th>
               </tr>
@@ -157,18 +121,12 @@ function Dashboard() {
                     <small>{order.id}</small>
                   </td>
                   <td>{order.medication}</td>
-                  <td>{order.pharmacy}</td>
                   <td>
-                    <EmrStatus tone={order.status === "Accepted" ? "success" : "neutral"}>
+                    <EmrStatus tone={order.status === "Draft" ? "attention" : "success"}>
                       {order.status}
                     </EmrStatus>
                   </td>
-                  <td>
-                    <span className="emr-inline-meta">
-                      <Clock3 aria-hidden size={13} />
-                      {order.updated}
-                    </span>
-                  </td>
+                  <td>{order.updated}</td>
                 </tr>
               ))}
             </tbody>
