@@ -20,17 +20,17 @@ export function PublicHeader() {
           <span className="landing-mark" aria-hidden>
             <span />
           </span>
-          <span>Affinity</span>
+          <span>Northstar demo</span>
         </Link>
 
         <div className="desktop-nav">
           <a href="/#benefits">Benefits</a>
           <a href="/#workflow">How it works</a>
-          <a href="/#proof">Safety</a>
+          <a href="/#proof">Roles</a>
         </div>
 
         <a className="header-demo-link" href="/#agent-demo">
-          Try the demo
+          Open clinic
         </a>
 
         <button
@@ -55,10 +55,10 @@ export function PublicHeader() {
             How it works
           </a>
           <a href="/#proof" onClick={close}>
-            Safety
+            Roles
           </a>
           <a href="/#agent-demo" onClick={close}>
-            Try the synthetic demo
+            Open the clinic workspace
           </a>
         </nav>
       </div>

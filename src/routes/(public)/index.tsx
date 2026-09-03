@@ -3,9 +3,7 @@ import {
   ArrowDown,
   ArrowRight,
   ClipboardText,
-  CursorClick,
   FileText,
-  LockKey,
   Robot,
   ShieldCheck,
   UserCircleCheck,
@@ -18,11 +16,11 @@ import { PublicAgentDemo } from "../../features/webmcp/public-agent-demo";
 export const Route = createFileRoute("/(public)/")({
   head: () => ({
     meta: [
-      { title: "Affinity agent ready prescribing for telehealth" },
+      { title: "Northstar, a demo telehealth platform" },
       {
         name: "description",
         content:
-          "Try a synthetic telehealth prescribing workflow where browser agents prepare an unsigned draft and clinicians keep every prescribing decision.",
+          "Fork a small example telehealth clinic with synthetic patients, an Affinity Test prescribing integration, and optional WebMCP access.",
       },
     ],
   }),
@@ -31,19 +29,19 @@ export const Route = createFileRoute("/(public)/")({
 
 const benefits = [
   {
+    icon: FileText,
+    title: "Fork a working clinic",
+    copy: "Northstar includes an EHR style workspace, synthetic patients, visit context, and a medication review flow. Start from code you can run.",
+  },
+  {
     icon: Robot,
-    title: "Give agents useful work",
-    copy: "Five WebMCP tools let an agent find a synthetic patient, prepare the draft, and update the same interface a clinician sees.",
+    title: "Use WebMCP if you want it",
+    copy: "Five WebMCP tools are already installed. Keep them, change them, or remove them without changing the clinic workflow.",
   },
   {
-    icon: LockKey,
-    title: "Hold the clinical boundary",
-    copy: "The browser agent can prepare an unsigned proposal. It cannot confirm the draft or become the prescriber.",
-  },
-  {
-    icon: CursorClick,
-    title: "Show every state change",
-    copy: "Searches, patient selection, preparation, and handoff appear in the live workspace instead of disappearing into a hidden agent trace.",
+    icon: ShieldCheck,
+    title: "Keep prescribing human",
+    copy: "An agent may prepare an unsigned Test draft. A clinician still reviews the form and confirms every prescribing decision.",
   },
 ];
 
@@ -51,53 +49,53 @@ const steps = [
   {
     icon: FileText,
     number: "01",
-    title: "Start with a completed encounter",
-    copy: "The signed visit note provides the patient and care plan context for the medication workflow.",
+    title: "Copy the example",
+    copy: "Fork Northstar and run the same small telehealth clinic shown on this page.",
   },
   {
     icon: Robot,
     number: "02",
-    title: "Let the agent prepare the proposal",
-    copy: "WebMCP tools match the synthetic patient and prepare an unsigned Test draft in the visible interface.",
+    title: "Run the clinic workspace",
+    copy: "Open synthetic patients, review a completed encounter, and move the visit into Affinity Test.",
   },
   {
     icon: UserCircleCheck,
     number: "03",
-    title: "Require a clinician to continue",
-    copy: "A human reviews every field, confirms the draft, and hands it to the provider for the prescribing decision.",
+    title: "Add the agent when useful",
+    copy: "Optionally ask a WebMCP enabled browser agent to prepare the unsigned draft. The clinician confirms it.",
   },
 ];
 
 const questions = [
   {
-    question: "Can the browser agent create a prescription?",
+    question: "What is Northstar?",
     answer:
-      "No. It can prepare an unsigned proposal. A clinician must review and confirm the draft before an order can move to provider review.",
+      "Northstar is a small example telehealth platform you can fork. It includes an EHR style clinic workspace, synthetic patient data, and a medication review flow.",
   },
   {
-    question: "Does the demo use real patient data?",
+    question: "What is Affinity in this example?",
     answer:
-      "No. Every record is synthetic and every prescribing operation is restricted to Affinity Test. The demo never connects to Live patient data.",
+      "Affinity Test is the prescribing backend behind Northstar. This example prepares unsigned Test drafts only and never connects to Live.",
   },
   {
-    question: "What can the five WebMCP tools do?",
+    question: "Do I need WebMCP to use the clinic?",
     answer:
-      "Three tools search, open, and prepare patient context. Two more tools expose Test catalog options and prepare the visible prescription form.",
+      "No. The clinic works through its normal human interface. WebMCP is an optional integration that is already wired into the example.",
   },
   {
-    question: "Where does the clinician stay in control?",
+    question: "Can a browser agent prescribe?",
     answer:
-      "The confirmation control sits immediately before order creation. Editing the draft clears confirmation, so the clinician must review the current values.",
+      "No. An agent can prepare an unsigned proposal, but it cannot confirm or create an order. The clinician confirmation gate stops it first.",
   },
   {
-    question: "Is this a simulated interface?",
+    question: "Does the example use real patient data?",
     answer:
-      "The workspace below is the working product surface. Agent actions and human actions update the same React state and the same clinical form.",
+      "No. Every patient is synthetic and every prescribing operation stays in Affinity Test. Northstar never connects to Live patient data.",
   },
   {
     question: "What should I try first?",
     answer:
-      "Open this page in a WebMCP enabled browser and ask the agent to prepare Ada Zieme's medication review without creating an order.",
+      "Open the clinic workspace and review the synthetic visit yourself. To try the optional agent path, ask it to prepare Ada Zieme's medication review without creating an order.",
   },
 ];
 
@@ -108,24 +106,24 @@ function Home() {
       <section className="landing-hero section-shell" aria-labelledby="page-title">
         <div className="hero-copy">
           <p className="hero-kicker">
-            <span aria-hidden /> Agent ready telehealth prescribing
+            <span aria-hidden /> Example telehealth platform
           </p>
           <h1 id="page-title">
-            Let agents prepare prescriptions.
-            <br /> Never let them prescribe.
+            A demo telehealth clinic
+            <br /> you can copy.
           </h1>
           <p className="hero-summary">
-            Affinity gives telehealth platforms five WebMCP tools to prepare an unsigned Test draft,
-            while a clinician controls confirmation and provider handoff.
+            Northstar is a small example EHR for telehealth. Fork it. WebMCP is already wired if you
+            want a browser agent to prepare an unsigned Test draft. A clinician still confirms every
+            prescribing decision.
           </p>
           <div className="hero-actions">
             <a className="landing-button landing-button-primary" href="#agent-demo">
-              Try the synthetic demo <ArrowDown aria-hidden weight="bold" />
+              Open the clinic workspace <ArrowDown aria-hidden weight="bold" />
             </a>
           </div>
           <p className="hero-proof">
-            <ShieldCheck aria-hidden weight="fill" /> Synthetic patients · Affinity Test · never
-            Live
+            <ShieldCheck aria-hidden weight="fill" /> Synthetic patients. Affinity Test. Never Live.
           </p>
         </div>
 
@@ -139,8 +137,8 @@ function Home() {
         data-landing-reveal
       >
         <header className="section-heading">
-          <p>Built for the clinical boundary</p>
-          <h2 id="benefits-title">Useful agent access without prescribing authority</h2>
+          <p>A clinic example, not a vendor pitch</p>
+          <h2 id="benefits-title">Fork the clinic and choose the integrations</h2>
         </header>
         <div className="benefit-grid">
           {benefits.map(({ icon: Icon, title, copy }) => (
@@ -165,7 +163,7 @@ function Home() {
       >
         <header className="section-heading">
           <p>How it works</p>
-          <h2 id="workflow-title">One visible path from visit to provider review</h2>
+          <h2 id="workflow-title">Run Northstar first. Add agent access when you want it.</h2>
         </header>
         <ol className="how-grid">
           {steps.map(({ icon: Icon, number, title, copy }) => (
@@ -184,29 +182,31 @@ function Home() {
       <section className="proof-section" id="proof" aria-labelledby="proof-title">
         <div className="section-shell proof-layout" data-landing-reveal>
           <div>
-            <p className="proof-kicker">The safety contract is visible</p>
-            <h2 id="proof-title">The agent stops where clinical judgment starts.</h2>
+            <p className="proof-kicker">What belongs where</p>
+            <h2 id="proof-title">
+              Northstar is the clinic. Affinity Test is the prescribing backend.
+            </h2>
             <p>
-              Every automated step is reversible. Every consequential step is gated by a person.
-              Every record in this demo is synthetic.
+              WebMCP gives a browser agent optional access to prepare visible work. The agent stops
+              at Northstar's clinician confirmation gate.
             </p>
           </div>
           <dl className="proof-list">
             <div>
-              <dt>Five</dt>
-              <dd>WebMCP tools across patient context and draft preparation</dd>
+              <dt>Northstar</dt>
+              <dd>Copyable clinic and EHR style workspace</dd>
             </div>
             <div>
-              <dt>Unsigned</dt>
-              <dd>The only prescription state an agent can prepare</dd>
+              <dt>Affinity Test</dt>
+              <dd>Prescribing backend for unsigned demo drafts</dd>
             </div>
             <div>
-              <dt>Human</dt>
-              <dd>Confirmation required before provider review handoff</dd>
+              <dt>WebMCP</dt>
+              <dd>Optional browser agent access that is already wired</dd>
             </div>
             <div>
-              <dt>Test</dt>
-              <dd>Synthetic patients only, with no Live connection</dd>
+              <dt>Clinician</dt>
+              <dd>Confirms every prescribing decision</dd>
             </div>
           </dl>
         </div>
@@ -218,8 +218,8 @@ function Home() {
         data-landing-reveal
       >
         <header className="section-heading">
-          <p>Questions before you try it</p>
-          <h2 id="faq-title">Designed to make the limit obvious</h2>
+          <p>Questions before you copy it</p>
+          <h2 id="faq-title">Know what is included</h2>
         </header>
         <div className="faq-list">
           {questions.map(({ question, answer }) => (
@@ -238,12 +238,15 @@ function Home() {
       >
         <div>
           <ClipboardText aria-hidden weight="duotone" />
-          <p>Ready to test the boundary?</p>
-          <h2 id="final-cta-title">Ask the browser agent to prepare the draft.</h2>
-          <p>Suggested prompt: Prepare Ada Zieme's medication review. Do not create an order.</p>
+          <p>The clinic is ready to run</p>
+          <h2 id="final-cta-title">Open Northstar and review the synthetic visit.</h2>
+          <p>
+            Use the interface yourself. To try the agent path, ask it to prepare Ada Zieme's
+            medication review without creating an order.
+          </p>
         </div>
         <a className="landing-button landing-button-light" href="#agent-demo">
-          Open the live workspace <ArrowRight aria-hidden weight="bold" />
+          Open the clinic workspace <ArrowRight aria-hidden weight="bold" />
         </a>
       </section>
 
@@ -252,11 +255,11 @@ function Home() {
         aria-labelledby="live-demo-title"
         data-landing-reveal
       >
-        <p>Live product surface</p>
-        <h2 id="live-demo-title">Run the unsigned proposal workflow</h2>
+        <p>Northstar clinic workspace</p>
+        <h2 id="live-demo-title">Review the unsigned proposal</h2>
         <p>
-          Use the patient list yourself or ask a WebMCP enabled browser agent to run the suggested
-          prompt. The activity log shows what changed.
+          This is the working example, not a screenshot. Select a synthetic patient, inspect the
+          completed encounter, and prepare an Affinity Test draft.
         </p>
       </section>
       <PublicAgentDemo />

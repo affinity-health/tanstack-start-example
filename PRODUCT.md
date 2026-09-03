@@ -1,4 +1,4 @@
-# Affinity Agent-Native Telehealth
+# Northstar demo telehealth platform
 
 <!-- impeccable:product-schema 1 -->
 
@@ -8,18 +8,19 @@ web
 
 ## Users
 
-The primary user is a clinician working in Northstar Health's telehealth workspace. The clinician
-needs to find a synthetic Test patient, review the patient's care context, and move into the
-appropriate Affinity prescribing workflow.
+The primary user is someone evaluating or copying Northstar, a small example telehealth clinic. In
+the working demo, a clinician finds a synthetic patient, reviews the care context, and opens a
+medication workflow backed by Affinity Test.
 
-Browser agents are a second user. They need explicit, typed tools tied to the same visible state and
-actions as the clinician, not a separate hidden workflow.
+WebMCP is optional. When a copier keeps it enabled, browser agents receive explicit, typed tools tied
+to the same visible state and actions as the clinician, not a separate hidden workflow.
 
 ## Product purpose
 
-This challenge build demonstrates an agent-native telehealth workflow with WebMCP. A browser agent
-can search and open synthetic patient records and prepare a prescribing review while the clinician
-retains control of every clinical and signing decision.
+Northstar demonstrates a compact telehealth workspace that people can fork and adapt. It includes
+synthetic patients, basic EHR views, and an unsigned medication proposal workflow. Affinity Test is
+the prescribing backend inside the example. WebMCP provides optional agent access to prepare work
+while the clinician retains every clinical and signing decision.
 
 Success means the public repository contains `document.modelContext.registerTool`, the live Test
 demo exposes useful tools to a compatible browser agent, and the human can see and continue every
@@ -27,14 +28,14 @@ agent-started workflow in the Northstar interface.
 
 ## Positioning
 
-The same application state powers the clinician UI and the WebMCP tools. Agent actions update the
-visible workspace, and prescribing still crosses the existing Affinity authorization and signing
-boundaries.
+Northstar works as a normal human interface. When WebMCP is available, the same application state
+powers the clinician UI and the optional browser tools. Agent actions update the visible workspace,
+and prescribing still crosses the Affinity Test authorization and signing boundaries.
 
 ## Operating context
 
 The build extends the existing Northstar Health demonstration workspace. It uses synthetic patients,
-Affinity's production-hosted Test environment, Stripe Test, and an internal Test pharmacy. The
+Affinity Test, Stripe Test, and an internal Test pharmacy. The
 existing TanStack Start application, Better Auth session, Affinity SDK routes, Elements integration,
 Hosted workflows, and Alchemy v2 deployment remain in place.
 
@@ -50,10 +51,12 @@ Hosted workflows, and Alchemy v2 deployment remain in place.
 - Work stays on branch `webmcp-challenge`; it does not merge to `master`.
 - The root license is prepared locally. Publication remains incomplete until explicitly flagged.
 
-## Brand commitments
+## Product model
 
-The application is named Affinity Agent-Native Telehealth. Northstar Health remains the fictional
-partner workspace. Copy is direct, clinical, and explicit about Test mode and synthetic data.
+Northstar is the product on this site: a demo telehealth platform and example clinic EHR that people
+can copy. Affinity Test is an integration inside Northstar for unsigned Test drafts. It is never the
+site's offer, and the example never connects to Live. WebMCP is optional agent wiring already included
+in the repository. Copy is direct, clinical, and explicit about Test mode and synthetic data.
 
 ## Evidence on hand
 

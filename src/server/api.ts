@@ -209,10 +209,10 @@ export const api = new Elysia({
       },
       documentation: {
         info: {
-          title: "Affinity Platform Example API",
+          title: "Northstar demo clinic API",
           version: "1.0.0",
           description:
-            "A minimal partner backend that authenticates its own user, creates scoped Affinity component sessions, and verifies Affinity webhooks.",
+            "The Northstar example clinic API, including scoped Affinity Test sessions and verified integration webhooks.",
         },
         servers: [
           {
@@ -225,12 +225,12 @@ export const api = new Elysia({
           },
         ],
         externalDocs: {
-          description: "Open the Affinity platform example",
+          description: "Open the Northstar demo clinic",
           url: productionOrigin,
         },
         tags: [
           { name: "System", description: "Operational endpoints" },
-          { name: "Affinity", description: "Delegated sessions and signed events" },
+          { name: "Affinity Test", description: "Test sessions and signed integration events" },
           { name: "Webhooks", description: "Verified inbound event delivery" },
         ],
       },
@@ -276,7 +276,7 @@ export const api = new Elysia({
           return status(error.statusCode, { error: error.message });
         }
         return status(502, {
-          error: `Affinity could not load the headless demo (${await affinityErrorCode(error)}).`,
+          error: `Affinity Test could not load the medication options (${await affinityErrorCode(error)}).`,
         });
       }
     },
@@ -286,7 +286,7 @@ export const api = new Elysia({
           "Returns the Test patients and orderable formulations available to the authenticated provider for the native headless SDK demo.",
         operationId: "getAffinityHeadlessOptions",
         summary: "List headless demo options",
-        tags: ["Affinity"],
+        tags: ["Affinity Test"],
       },
       response: {
         200: headlessOptionsResponse,
@@ -362,7 +362,7 @@ export const api = new Elysia({
           return status(error.statusCode, { error: error.message });
         }
         return status(502, {
-          error: `Affinity could not create the patient order (${await affinityErrorCode(error)}).`,
+          error: `Affinity Test could not create the patient order (${await affinityErrorCode(error)}).`,
         });
       }
     },
@@ -377,7 +377,7 @@ export const api = new Elysia({
           "Creates one Test patient order with one or more prescriptions, then returns a single-use provider signing URL. The backend supplies actor attribution and never receives the provider PIN.",
         operationId: "createAffinityHeadlessOrder",
         summary: "Create a headless patient order",
-        tags: ["Affinity"],
+        tags: ["Affinity Test"],
       },
       headers: t.Object(
         {
@@ -419,7 +419,7 @@ export const api = new Elysia({
       try {
         const { affinity, mapping } = await requireTestPractice(
           request,
-          "opening Affinity Elements",
+          "opening Affinity Test Elements",
         );
         const componentSession = await affinity.componentSessions.create(
           {
@@ -460,17 +460,17 @@ export const api = new Elysia({
           return status(error.statusCode, { error: error.message });
         }
         return status(502, {
-          error: `Affinity could not create the component session (${await affinityErrorCode(error)}).`,
+          error: `Affinity Test could not create the component session (${await affinityErrorCode(error)}).`,
         });
       }
     },
     {
       detail: {
         description:
-          "Authenticates the partner user, resolves its verified Affinity provider mapping, and creates a one-time origin-bound prescription composer session.",
+          "Authenticates the Northstar user, resolves its verified Affinity Test provider mapping, and creates a one-time origin-bound prescription composer session.",
         operationId: "createAffinityComponentSession",
-        summary: "Create an Affinity component session",
-        tags: ["Affinity"],
+        summary: "Create an Affinity Test component session",
+        tags: ["Affinity Test"],
       },
       response: {
         200: componentSessionResponse,
@@ -486,7 +486,10 @@ export const api = new Elysia({
     "/affinity/hosted-session",
     async ({ body, request, status }) => {
       try {
-        const { affinity, mapping } = await requireTestPractice(request, "opening Affinity Hosted");
+        const { affinity, mapping } = await requireTestPractice(
+          request,
+          "opening Affinity Test Hosted",
+        );
         const hostedSession = await affinity.hostedSessions.create(
           {
             consent: {
@@ -513,17 +516,17 @@ export const api = new Elysia({
           return status(error.statusCode, { error: error.message });
         }
         return status(502, {
-          error: `Affinity could not create the hosted session (${await affinityErrorCode(error)}).`,
+          error: `Affinity Test could not create the hosted session (${await affinityErrorCode(error)}).`,
         });
       }
     },
     {
       detail: {
         description:
-          "Authenticates the partner user and creates a single-use Affinity Hosted prescribing or provider-verification URL for a popup, new tab, or redirect.",
+          "Authenticates the Northstar user and creates a single-use Affinity Test prescribing or provider-verification URL for a popup, new tab, or redirect.",
         operationId: "createAffinityHostedSession",
-        summary: "Create an Affinity Hosted session",
-        tags: ["Affinity"],
+        summary: "Create an Affinity Test Hosted session",
+        tags: ["Affinity Test"],
       },
       body: t.Optional(
         t.Object({
@@ -555,7 +558,7 @@ export const api = new Elysia({
           return status(error.statusCode, { error: error.message });
         }
         return status(502, {
-          error: `Affinity could not retrieve the payment profile (${await affinityErrorCode(error)}).`,
+          error: `Affinity Test could not retrieve the payment profile (${await affinityErrorCode(error)}).`,
         });
       }
     },
@@ -565,7 +568,7 @@ export const api = new Elysia({
           "Returns the configured Test practice's safe payment status and card display summary to an authenticated practice user.",
         operationId: "getAffinityPaymentProfile",
         summary: "Get the practice payment profile",
-        tags: ["Affinity"],
+        tags: ["Affinity Test"],
       },
       response: {
         200: paymentProfileResponse,
@@ -591,7 +594,7 @@ export const api = new Elysia({
           return status(error.statusCode, { error: error.message });
         }
         return status(502, {
-          error: `Affinity could not start payment setup (${await affinityErrorCode(error)}).`,
+          error: `Affinity Test could not start payment setup (${await affinityErrorCode(error)}).`,
         });
       }
     },
@@ -602,7 +605,7 @@ export const api = new Elysia({
           "Records the authenticated practice user's consent and returns a one-time Stripe Test SetupIntent secret for Stripe.js.",
         operationId: "createAffinityPaymentSetup",
         summary: "Start practice payment setup",
-        tags: ["Affinity"],
+        tags: ["Affinity Test"],
       },
       response: {
         200: paymentSetupResponse,
@@ -632,7 +635,7 @@ export const api = new Elysia({
           return status(error.statusCode, { error: error.message });
         }
         return status(502, {
-          error: `Affinity could not complete payment setup (${await affinityErrorCode(error)}).`,
+          error: `Affinity Test could not complete payment setup (${await affinityErrorCode(error)}).`,
         });
       }
     },
@@ -643,7 +646,7 @@ export const api = new Elysia({
           "Completes the Test practice payment profile after Stripe.js confirms the SetupIntent; no card data reaches this API.",
         operationId: "completeAffinityPaymentSetup",
         summary: "Complete practice payment setup",
-        tags: ["Affinity"],
+        tags: ["Affinity Test"],
       },
       response: {
         200: paymentProfileResponse,
@@ -658,7 +661,7 @@ export const api = new Elysia({
     "/affinity/webhook",
     async ({ body, request, status }) => {
       if (!(body instanceof ArrayBuffer)) {
-        return status(400, { error: "Affinity webhook body is unavailable." });
+        return status(400, { error: "Affinity Test webhook body is unavailable." });
       }
       const rawBody = new Uint8Array(body);
       let event;
@@ -706,7 +709,7 @@ export const api = new Elysia({
           "Verifies the Affinity HMAC signature against the exact request bytes and stores the event idempotently in D1.",
         operationId: "acceptAffinityWebhook",
         summary: "Accept an Affinity webhook",
-        tags: ["Affinity", "Webhooks"],
+        tags: ["Affinity Test", "Webhooks"],
       },
       parse: "arrayBuffer",
       response: {
@@ -744,12 +747,15 @@ async function requireTestPractice(request: Request, action = "managing practice
   });
   const access = await affinity.account.retrieveAccess();
   if (access.livemode) {
-    throw new DemoRequestError(409, "Use an Affinity test-mode API key for this demo.");
+    throw new DemoRequestError(409, "Use an Affinity Test API key for this demo.");
   }
 
   const mapping = await affinity.providerMappings.retrieve(providerMappingId);
   if (mapping.status !== "verified") {
-    throw new DemoRequestError(409, `Complete Affinity provider verification before ${action}.`);
+    throw new DemoRequestError(
+      409,
+      `Complete Affinity Test provider verification before ${action}.`,
+    );
   }
 
   return { affinity, mapping, practiceId: mapping.practiceId, session };

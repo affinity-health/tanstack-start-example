@@ -19,18 +19,19 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Affinity agent ready telehealth",
+        title: "Northstar, a demo telehealth platform",
       },
       {
         name: "description",
         content:
-          "Agent ready telehealth prescribing with unsigned Test drafts and a required clinician confirmation gate.",
+          "Fork a small example telehealth clinic with synthetic patients, Affinity Test prescribing, and optional WebMCP access.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "Affinity agent ready telehealth" },
+      { property: "og:title", content: "Northstar, a demo telehealth platform" },
       {
         property: "og:description",
-        content: "Let browser agents prepare prescription work without becoming the prescriber.",
+        content:
+          "A copyable example EHR for telehealth with synthetic patients and optional WebMCP access.",
       },
       {
         property: "og:image",
@@ -82,9 +83,9 @@ function RootDocument() {
               <span className="landing-mark" aria-hidden>
                 <span />
               </span>
-              <span>Affinity</span>
+              <span>Northstar demo</span>
             </Link>
-            <p>Agent ready prescribing with a human clinical boundary.</p>
+            <p>A copyable telehealth clinic with synthetic data.</p>
             <nav aria-label="Legal">
               <Link to="/privacy">Privacy</Link>
               <Link to="/terms">Terms</Link>

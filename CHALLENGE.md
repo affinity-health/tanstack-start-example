@@ -1,17 +1,20 @@
 # WebMCP challenge scope
 
+Northstar is the copyable example telehealth platform. Affinity Test is its prescribing backend, and
+WebMCP is an optional integration that lets a browser agent prepare visible work without prescribing.
+
 ## MVP
 
 The MVP is one complete clinician workflow on the Patients page:
 
 1. A browser agent searches the synthetic patient directory.
 2. The agent opens one matching patient in the visible UI.
-3. The agent prepares a medication review by navigating to the existing Affinity integration
-   showcase with the selected patient context.
+3. The agent prepares a medication review by navigating to Northstar's medication workspace with the
+   selected patient context.
 4. In the authenticated workflow, the agent can inspect the hosted Affinity Test options and fill a
    draft from clinician-supplied details.
 5. The clinician reviews the entire draft and must independently confirm before an unsigned Test
-   order can be created. Signing remains inside Affinity.
+   order can be created. Signing remains inside Affinity Test.
 
 The public implementation must call `document.modelContext.registerTool` directly. Each tool uses
 JSON Schema, reuses the page's existing state transitions, and returns a concise result that names

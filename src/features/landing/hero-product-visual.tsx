@@ -16,7 +16,7 @@ export function HeroProductVisual() {
         <img
           ref={imageRef}
           src="/images/affinity-prescribing-hero.png"
-          alt="A clinical medication operations workspace on a laptop in daylight"
+          alt="The Northstar clinic medication workspace on a laptop in daylight"
           width="1600"
           height="900"
           decoding="async"
@@ -28,7 +28,7 @@ export function HeroProductVisual() {
           <div className="hero-product-fallback" role="img" aria-label="Unsigned proposal workflow">
             <div className="fallback-topbar">
               <span />
-              <span>Medication review</span>
+              <span>Northstar clinic</span>
               <small>Affinity Test</small>
             </div>
             <div className="fallback-progress">

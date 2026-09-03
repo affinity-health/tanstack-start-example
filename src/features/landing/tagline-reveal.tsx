@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 const tagline =
-  "Let an agent prepare the work. Keep every prescribing decision with the clinician.";
+  "Start with a working telehealth clinic. WebMCP stays optional, and prescribing stays human.";
 
 export function LandingReveal() {
   useEffect(() => {

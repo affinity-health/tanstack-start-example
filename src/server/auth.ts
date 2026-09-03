@@ -17,7 +17,7 @@ export function createAuth(request: Request) {
   }
 
   return betterAuth({
-    appName: "Affinity Platform Example",
+    appName: "Northstar demo clinic",
     baseURL: requestOrigin(request, env.APP_URL),
     database: env.DB,
     emailAndPassword: {

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(public)/privacy")({
-  head: () => ({ meta: [{ title: "Privacy | Affinity agent ready telehealth" }] }),
+  head: () => ({ meta: [{ title: "Privacy | Northstar demo" }] }),
   component: Privacy,
 });
 

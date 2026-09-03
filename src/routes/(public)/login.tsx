@@ -55,13 +55,13 @@ function Login() {
         <div>
           <p className="eyebrow">Northstar demo workspace</p>
           <h1>
-            Test Affinity.
+            Open Northstar.
             <br />
-            End to end.
+            Explore the clinic.
           </h1>
           <p>
-            Sign in as a platform user to compare embedded, hosted, and headless prescribing with
-            practice owned Test billing.
+            Sign in to the example clinic to review patients, visits, medication workflows, and the
+            Affinity Test integration.
           </p>
         </div>
         <p className="auth-footnote">Test mode / Synthetic patient data only</p>

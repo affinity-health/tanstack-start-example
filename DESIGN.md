@@ -1,6 +1,6 @@
 ---
-name: Affinity agent ready telehealth
-description: A conversion focused landing page that leads directly into a working synthetic prescribing demo.
+name: Northstar demo telehealth platform
+description: A copyable example telehealth clinic that leads directly into a working synthetic prescribing workflow.
 colors:
   canvas: "#f4f7f6"
   surface: "#ffffff"
@@ -50,27 +50,28 @@ motion:
   easing: "cubic-bezier(0.32, 0.72, 0, 1)"
 ---
 
-# Design system: Affinity agent ready telehealth
+# Design system: Northstar demo telehealth platform
 
 ## Conversion goal
 
-The page has one offer, one audience, and one primary action. Affinity makes telehealth prescribing
-agent ready without letting an agent become the prescriber. WebMCP Challenge judges and telehealth
-platform builders should enter the live synthetic workspace and run the suggested prompt.
+The page presents one product: Northstar, a small example telehealth clinic that people can fork.
+WebMCP Challenge judges and telehealth platform builders should open the live workspace and run the
+same clinic shown in the repository. Affinity Test is the prescribing backend inside Northstar.
+WebMCP is an optional integration that is already wired into the example.
 
 The page uses layout A: a classic hero, supporting sections, a repeated call to action, then the
 working clinical workspace. The generated hero frame supports the story. It never replaces the real
-product surface.
+clinic workspace.
 
 ## Section order
 
-1. Hero with the safety promise, primary action, proof line, and generated product frame
-2. Three outcome focused benefits
+1. Hero with the copyable clinic promise, primary action, trust line, and generated product frame
+2. Three benefits covering the clinic, optional WebMCP access, and the clinical boundary
 3. The mandatory word by word tagline reveal
 4. Three step workflow explanation
-5. Safety proof beside the claims it supports
+5. Clear roles for Northstar, Affinity Test, WebMCP, and the clinician
 6. Six plain language questions and answers
-7. Final call to action with the suggested agent prompt
+7. Final call to action for the clinic workspace, with the optional agent prompt
 8. Live synthetic patient and unsigned proposal workspace
 
 ## Type
@@ -112,9 +113,10 @@ and animation while keeping every state visible.
 ## Product and safety states
 
 The live workspace must retain hover, active, focus, loading, empty, and specific inline error states.
-Browser tools may search, open, inspect, and prepare visible state. They may not confirm, create, sign,
-or transmit a prescription. Affinity Test, synthetic patients, unsigned proposal, and never Live stay
-visible near the conversion path.
+Northstar is the example clinic and Affinity Test is its prescribing backend. Browser tools are
+optional. They may search, open, inspect, and prepare visible state, but they may not confirm, create,
+sign, or transmit a prescription. Affinity Test, synthetic patients, unsigned proposal, and never
+Live stay visible near the conversion path.
 
 ## Ship requirements
 

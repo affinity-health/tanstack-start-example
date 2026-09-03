@@ -1,12 +1,13 @@
-# Affinity Agent-Native Telehealth
+# Northstar demo telehealth platform
 
-An agent-native clinician workspace built for the WebMCP Challenge. A browser agent can search
-synthetic patients, open the same patient record the clinician sees, and prepare an Affinity Test
-medication draft from clinician-supplied details. It cannot diagnose, confirm an order, or sign a
-prescription.
+Northstar is a small example telehealth clinic you can copy. It includes an EHR style workspace,
+synthetic patients, and an Affinity Test prescribing integration for unsigned drafts. It never uses
+Affinity Live or real patient data.
 
-The public implementation calls `document.modelContext.registerTool` directly and degrades to the
-complete human interface when the experimental browser API is unavailable.
+Optional WebMCP wiring lets a compatible browser agent search synthetic patients, open the same
+record the clinician sees, and prepare a medication review from clinician supplied details. The
+agent cannot diagnose, confirm an order, or sign a prescription. The complete human interface works
+when WebMCP is unavailable or removed.
 
 ## WebMCP tools
 
@@ -34,7 +35,7 @@ boundary.
 ## Challenge provenance
 
 Commit `f55eedef7c8833f15dad335c23ba8f29bb521835`, dated August 5, 2026, is the pre-challenge
-baseline. It already contained the partner workspace, authentication, Affinity SDK and Elements
+baseline. It already contained the Northstar workspace, authentication, Affinity SDK and Elements
 examples, webhook verification, and Alchemy v2 infrastructure.
 
 Challenge work begins with commit `cc63826`, dated September 2, 2026, on branch
@@ -56,7 +57,7 @@ the app running on port 3001, execute the deterministic smoke suite without an L
 npx webmcp-evals smoke -u http://localhost:3001 -e webmcp-evals.json -v
 ```
 
-Deploy only the isolated challenge stage. Supply Affinity production-hosted Test credentials in the
+Deploy only the isolated challenge stage. Supply hosted Affinity Test credentials in the
 calling shell. Never use an Affinity Live key.
 
 ```bash
@@ -70,11 +71,10 @@ bun run deploy:challenge
 The deployment uses Alchemy v2 and the `webmcp-challenge` stage. The generated Worker URL becomes
 `APP_URL` for the final deployment so authentication callbacks stay on that origin.
 
-## Original Affinity integration example
+## Affinity Test integration
 
-This repository began as a small, working partner application for demonstrating Affinity on a
-screen share. It deliberately keeps each integration in one component and each trusted SDK call in
-one API route.
+Northstar includes a small, working Affinity Test integration. It keeps each integration in one
+component and each trusted SDK call in one API route so copiers can replace or adapt the backend.
 
 ## Five-minute walkthrough
 
@@ -82,20 +82,20 @@ one API route.
 2. Show **Elements** first. Open “View the Elements integration,” then use the real embedded
    prescription composer.
 3. Open **Headless SDK**. Show the server-side call, fill the Northstar-owned form, and open the
-   returned Affinity signing session.
+   returned Affinity Test signing session.
 4. Open **Hosted** and **Provider setup** to show the two single-use popup workflows.
 5. Open **Practice billing** to show that Stripe collects the practice card without exposing card
    data to the platform.
 
 The smallest useful code tour is:
 
-| File                                              | What it proves                                                               |
-| ------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `src/features/affinity/elements-demo.tsx`         | The browser mounts the official React Element with a one-time client secret. |
-| `src/features/affinity/headless-sdk-demo.tsx`     | The platform owns the prescription form and opens Affinity only for signing. |
-| `src/features/affinity/hosted-demo.tsx`           | A click opens a secure Hosted session without exposing the API key.          |
-| `src/features/affinity/practice-billing-demo.tsx` | Stripe.js collects and replaces the practice-owned Test card.                |
-| `src/server/api.ts`                               | Every trusted `@affinity-health/sdk` call stays on the server.               |
+| File                                              | What it proves                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `src/features/affinity/elements-demo.tsx`         | The browser mounts the official React Element with a one-time client secret.   |
+| `src/features/affinity/headless-sdk-demo.tsx`     | Northstar owns the prescription form and opens Affinity Test only for signing. |
+| `src/features/affinity/hosted-demo.tsx`           | A click opens a secure Hosted session without exposing the API key.            |
+| `src/features/affinity/practice-billing-demo.tsx` | Stripe.js collects and replaces the practice-owned Test card.                  |
+| `src/server/api.ts`                               | Every trusted `@affinity-health/sdk` call stays on the server.                 |
 
 The example includes:
 
@@ -116,8 +116,8 @@ The user signs in to this application. Its backend uses the Affinity service key
 short-lived component secret to the authenticated browser. The service key never reaches client
 code.
 
-Hosted Test demo: [tanstackstartexample-website-release-ksulwrzuogvlekqa.dawsson.workers.dev](https://tanstackstartexample-website-release-ksulwrzuogvlekqa.dawsson.workers.dev). It uses Affinity's
-Production-hosted Test environment, Stripe Test, synthetic patients, and the internal Test
+Hosted Test demo: [tanstackstartexample-website-release-ksulwrzuogvlekqa.dawsson.workers.dev](https://tanstackstartexample-website-release-ksulwrzuogvlekqa.dawsson.workers.dev). It uses the hosted
+Affinity Test environment, Stripe Test, synthetic patients, and the internal Test
 pharmacy; it cannot create a Live prescription or send one to a real pharmacy.
 
 ## Run it
@@ -200,11 +200,11 @@ Sign in and open **Medication orders**. Use the launch-mode control to select on
   be accepted.
 - **Embedded** renders the Affinity Elements iframe in the platform page.
 - **Headless SDK** renders a Northstar-owned prescription form, creates the unsigned order from the
-  platform backend, and opens Affinity only for provider signing.
+  Northstar backend, and opens Affinity Test only for provider signing.
 - **Popup window** opens the complete Affinity Hosted workflow in a focused window.
 - **Provider setup** opens a single-use verification session where the provider sets or resets the
-  six-digit signing PIN. The PIN is entered only inside Affinity and is never returned to the
-  platform.
+  six-digit signing PIN. The PIN is entered only inside Affinity Test and is never returned to
+  Northstar.
 
 The embedded component emits only the current `order.draft_created`, `order.signed`, and
 `order.submitted` browser events. Treat those events as UI hints and use
@@ -217,7 +217,7 @@ the hosted session without blocking the popup.
 
 Use this route when your platform owns the prescribing interface. Send one patient and the complete
 prescription list from your authenticated backend session. The example creates the unsigned order
-and returns one provider-bound signing URL. Affinity collects the signing PIN on that URL.
+and returns one provider-bound signing URL. Affinity Test collects the signing PIN on that URL.
 
 ```bash
 curl --request POST http://localhost:3001/api/affinity/headless-order \

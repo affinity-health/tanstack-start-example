@@ -78,10 +78,10 @@ function MedicationOrders() {
         </a>
       }
       current="prescriptions"
-      description="Review the unsigned proposal, confirm it, then hand off to Affinity for signing."
+      description="Review an unsigned proposal, confirm it, then continue to provider signing."
       eyebrow="Medication operations"
       session={session}
-      title="Affinity prescribing"
+      title="Medication review"
     >
       {preparedPatient ? (
         <section className="agent-review-handoff" aria-label="Agent-prepared review">
@@ -105,7 +105,7 @@ function MedicationOrders() {
           </span>
           <span>
             <small>Integration</small>
-            <strong>Affinity connected</strong>
+            <strong>Affinity Test connected</strong>
           </span>
           <span className="emr-live-status">Online</span>
         </div>
@@ -129,15 +129,17 @@ function MedicationOrders() {
         </div>
       </section>
 
-      <section className="showcase-picker" aria-label="Affinity features">
+      <section className="showcase-picker" aria-label="Medication workflows">
         <header>
           <div>
             <span>Workflow mode</span>
-            <h2>Choose how Northstar hands work to Affinity</h2>
+            <h2>Choose a medication workflow</h2>
           </div>
-          <p>Test data only. Clinical signing and the provider PIN stay inside Affinity.</p>
+          <p>
+            Northstar keeps review visible. Affinity Test handles prescribing and provider signing.
+          </p>
         </header>
-        <div className="showcase-picker-grid" role="tablist" aria-label="Affinity feature">
+        <div className="showcase-picker-grid" role="tablist" aria-label="Medication workflow">
           {features.map(({ id, label, meta }) => (
             <button
               aria-controls={`showcase-panel-${id}`}
@@ -168,13 +170,13 @@ function MedicationOrders() {
             <div className="affinity-demo-heading">
               <div>
                 <div className="affinity-demo-label">
-                  <span>Affinity Elements</span>
+                  <span>Affinity Test integration</span>
                   <span>Secure iframe</span>
                 </div>
                 <h2 id="affinity-demo-title">Prescription composer</h2>
                 <p>
-                  Northstar authenticates this user. Affinity independently scopes the provider,
-                  practice, patient access, and permitted actions.
+                  Northstar authenticates this user. Affinity Test independently scopes the
+                  provider, practice, patient access, and permitted actions.
                 </p>
               </div>
               <span className="affinity-mode-badge">Test mode</span>

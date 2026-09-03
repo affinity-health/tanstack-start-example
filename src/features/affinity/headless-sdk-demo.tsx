@@ -175,7 +175,7 @@ export function HeadlessSdkDemo({ preferredPatientName }: { preferredPatientName
           <li>
             <strong>3</strong>
             <span>
-              <b>Provider review</b>PIN stays inside Affinity
+              <b>Provider review</b>PIN stays inside Affinity Test
             </span>
           </li>
         </ol>
@@ -377,8 +377,8 @@ export function HeadlessSdkDemo({ preferredPatientName }: { preferredPatientName
               <div className="headless-success" role="status">
                 <CheckCircle2 aria-hidden size={18} />
                 <span>
-                  <strong>Unsigned order created</strong> {result.orderId} · Affinity signing opened
-                  securely.
+                  <strong>Unsigned order created</strong> {result.orderId} · Affinity Test signing
+                  opened securely.
                 </span>
               </div>
             ) : null}
@@ -391,7 +391,7 @@ export function HeadlessSdkDemo({ preferredPatientName }: { preferredPatientName
 
 function prepareSigningWindow(signingWindow: Window) {
   signingWindow.opener = null;
-  signingWindow.document.title = "Opening Affinity";
+  signingWindow.document.title = "Opening Affinity Test";
   signingWindow.document.body.innerHTML =
-    '<main style="font:14px system-ui;display:grid;min-height:100vh;place-content:center;text-align:center;color:#15201c"><strong>Opening Affinity signing…</strong><p style="color:#4b5d56">Creating a secure, single-use session.</p></main>';
+    '<main style="font:14px system-ui;display:grid;min-height:100vh;place-content:center;text-align:center;color:#15201c"><strong>Opening Affinity Test signing…</strong><p style="color:#4b5d56">Creating a secure, single-use session.</p></main>';
 }

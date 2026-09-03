@@ -1,7 +1,7 @@
 {
   "$schema": "https://dev.dawson.gg/schemas/dev.v1.json",
   "slug": "affinity-example",
-  "name": "Affinity TanStack Start example",
+  "name": "Northstar demo telehealth platform",
   "services": ["web"],
   "servicePorts": {
     "web": 3001

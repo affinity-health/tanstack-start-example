@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(public)/terms")({
-  head: () => ({ meta: [{ title: "Terms | Affinity agent ready telehealth" }] }),
+  head: () => ({ meta: [{ title: "Terms | Northstar demo" }] }),
   component: Terms,
 });
 

@@ -53,7 +53,7 @@ export function PatientAgentTools({
         <Robot aria-hidden size={18} weight="duotone" />
       </span>
       <span>
-        <strong>Agent ready patient workflow</strong>
+        <strong>Optional WebMCP tools</strong>
         <small>
           Search, inspect, and prepare a review. Clinical decisions stay with the clinician.
         </small>

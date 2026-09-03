@@ -49,7 +49,7 @@ export function PrescribingTools({ medications, onPrepare, patients }: Prescribi
         <Robot aria-hidden size={18} weight="duotone" />
       </span>
       <span>
-        <strong>Agent ready Test draft</strong>
+        <strong>Optional WebMCP draft tools</strong>
         <small>An agent may fill the form. Only the clinician can confirm order creation.</small>
       </span>
       <span className="agent-tools-state" role="status">

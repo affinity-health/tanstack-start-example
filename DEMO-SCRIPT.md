@@ -6,8 +6,8 @@ Target length: 2 minutes 35 seconds. Hard stop: 2 minutes 50 seconds.
 
 Show the public Northstar patient demo and the "3 browser tools ready" status.
 
-Say: "This is Affinity Agent-Native Telehealth. The public page exposes three WebMCP tools directly.
-They use synthetic data and share the same workflow code as the visible app."
+Say: "This is Northstar, a demo telehealth platform you can copy. It works as a normal clinic
+workspace, and its optional WebMCP integration exposes three browser tools using synthetic data."
 
 ## 0:20 to 0:55
 
@@ -15,8 +15,8 @@ Ask the browser agent: "Find eligible California patients."
 
 Show the filtered directory and the structured tool result. Then ask: "Open Ada Zieme."
 
-Say: "The tools do not scrape the screen. They call the page's registered functions, and every
-change is visible to the clinician."
+Say: "The tools do not scrape the screen. They call Northstar's registered functions, and every
+change is visible to the clinician. The clinic still works without them."
 
 ## 0:55 to 1:30
 
@@ -52,8 +52,9 @@ and a hosted Affinity Test adapter, with a separate human confirmation gate."
 
 Show the live URL and repository branch.
 
-Say: "Alchemy v2 deploys this isolated challenge stage to Cloudflare. It uses Affinity Test,
-synthetic patients, Stripe Test, and an internal Test pharmacy. It never uses Live."
+Say: "Northstar runs on an isolated Alchemy v2 challenge stage. Affinity Test is the prescribing
+backend. The example uses synthetic patients, Stripe Test, and an internal Test pharmacy. It never
+uses Live."
 
 ## Capture checklist
 

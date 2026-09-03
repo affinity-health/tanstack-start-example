@@ -26,8 +26,8 @@ WebMCP tools expose only reversible UI preparation. Draft fields are accepted on
 authenticated Test-page tool and copied into the visible form; that tool has no order-creation
 callback. Tool handlers validate names against the loaded adapter records and return errors for
 unknown or ineligible patients. The confirmation checkbox resets whenever a draft field changes.
-The existing authenticated Affinity route remains the only path to Test order creation, and the
-clinician must confirm the reviewed form and complete signing inside Affinity.
+The existing authenticated Affinity Test route remains the only path to Test order creation, and the
+clinician must confirm the reviewed form and complete signing inside Affinity Test.
 
 Every tool-triggered change is visible in the Northstar workspace and announced in an ARIA live
 region. A compatible browser agent is optional; the human interface remains complete without it.

@@ -233,12 +233,12 @@ function Patients() {
               <p>Last visit {selectedPatient.lastVisit}</p>
             </div>
             <div className="emr-detail-section">
-              <span>Affinity eligibility</span>
+              <span>Prescribing status</span>
               <strong className="emr-detail-success">
                 <ShieldCheck aria-hidden size={16} />
                 {selectedPatient.status === "Eligible" ? "Ready to prescribe" : "Review required"}
               </strong>
-              <p>The embedded component still verifies scope before showing clinical data.</p>
+              <p>Affinity Test verifies provider scope before showing prescribing data.</p>
             </div>
             <a
               className="emr-button emr-button-secondary emr-button-full"

@@ -34,7 +34,7 @@ function Dashboard() {
         </Link>
       }
       current="overview"
-      description="Your schedule, clinical work, and Affinity integration in one place."
+      description="Your schedule, patients, and clinical work in one place."
       session={session}
       title={`Good evening, ${firstName}`}
     >
@@ -135,7 +135,7 @@ function Dashboard() {
               Open prescribing
             </Link>
           }
-          description="Test-mode activity from the Affinity integration"
+          description="Medication activity in this Test workspace"
           title="Recent medication orders"
         />
         <div className="emr-table-wrap">

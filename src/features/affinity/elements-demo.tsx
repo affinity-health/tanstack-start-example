@@ -30,7 +30,7 @@ const affinityAppearance: AffinityAppearance = {
 export function ElementsDemo() {
   const [attempt, setAttempt] = useState(0);
   const [phase, setPhase] = useState<"connected" | "error" | "loading">("loading");
-  const [status, setStatus] = useState("Creating a secure Affinity session…");
+  const [status, setStatus] = useState("Creating a secure Affinity Test session…");
 
   const fetchClientSecret = useCallback(async () => {
     const response = await fetch("/api/affinity/component-session", {
@@ -44,22 +44,24 @@ export function ElementsDemo() {
     } catch {
       throw new Error(
         response.ok
-          ? "Affinity returned an invalid component session response."
-          : `Affinity session request failed (HTTP ${response.status}).`,
+          ? "Affinity Test returned an invalid component session response."
+          : `Affinity Test session request failed (HTTP ${response.status}).`,
       );
     }
     if (!response.ok || !isComponentSession(result)) {
-      throw new Error(isErrorResponse(result) ? result.error : "Affinity session creation failed.");
+      throw new Error(
+        isErrorResponse(result) ? result.error : "Affinity Test session creation failed.",
+      );
     }
     if (result.connectUrl !== affinityConnectUrl) {
-      throw new Error("Affinity returned an unexpected Connect URL.");
+      throw new Error("Affinity Test returned an unexpected Connect URL.");
     }
     return result.clientSecret;
   }, []);
 
   const retry = () => {
     setPhase("loading");
-    setStatus("Creating a secure Affinity session…");
+    setStatus("Creating a secure Affinity Test session…");
     setAttempt((value) => value + 1);
   };
 
@@ -111,13 +113,13 @@ export function ElementsDemo() {
             {phase === "loading" ? (
               <>
                 <LoaderCircle aria-hidden="true" className="spin" size={24} />
-                <strong>Opening Affinity securely</strong>
+                <strong>Opening Affinity Test securely</strong>
                 <span>Creating a short-lived session for this provider and practice.</span>
               </>
             ) : (
               <>
                 <AlertCircle aria-hidden="true" size={24} />
-                <strong>Affinity could not open</strong>
+                <strong>Affinity Test could not open</strong>
                 <span>{status}</span>
                 <button className="button button-dark affinity-retry" onClick={retry} type="button">
                   <RotateCcw aria-hidden="true" size={15} />
