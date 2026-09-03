@@ -8,6 +8,8 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { PublicHeader } from "../features/landing/public-header";
+import { ClinicCommerceProvider } from "../features/marketplace/clinic-commerce";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -18,19 +20,32 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Affinity platform example",
+        title: "Northstar, a demo telehealth platform",
       },
       {
         name: "description",
-        content: "A working showcase of Affinity integration patterns in a partner application.",
+        content:
+          "Fork a small example telehealth clinic with a synthetic medication marketplace, patient carts, Affinity Test, and optional WebMCP access.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "Northstar, a demo telehealth platform" },
+      {
+        property: "og:description",
+        content:
+          "A copyable telehealth clinic where people and agents search a synthetic marketplace and fill patient carts together.",
+      },
+      {
+        property: "og:image",
+        content: "https://demo-platform.joinaffinityai.com/images/affinity-prescribing-hero.png",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       {
         rel: "icon",
-        href: "https://cdn.joinaffinityai.com/logos/affinity/mark-white-on-violet.v1.webp",
-        type: "image/webp",
+        href: "/favicon.svg",
+        type: "image/svg+xml",
       },
     ],
   }),
@@ -42,6 +57,7 @@ function RootDocument() {
     select: (state) =>
       [
         "/dashboard",
+        "/cart",
         "/documents",
         "/medication-orders",
         "/messages",
@@ -56,26 +72,29 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body className={isWorkspace ? "emr-body" : undefined}>
-        {isWorkspace ? null : (
-          <header className="site-header">
-            <Link className="wordmark" to="/">
-              <span className="wordmark-dot" />
-              Affinity example
-            </Link>
-            <nav aria-label="Primary navigation">
-              <a href="/api/openapi">API docs</a>
-              <Link to="/dashboard">Dashboard</Link>
-              <Link className="nav-cta" to="/login">
-                Sign in
-              </Link>
-            </nav>
-          </header>
-        )}
-        <Outlet />
+        <a className="skip-link" href="#main-content">
+          Skip to content
+        </a>
+        {isWorkspace ? null : <PublicHeader />}
+        <ClinicCommerceProvider>
+          <div id="main-content" tabIndex={-1}>
+            <Outlet />
+          </div>
+        </ClinicCommerceProvider>
         {isWorkspace ? null : (
           <footer className="site-footer">
-            <p>Affinity Elements / SDK / Hosted</p>
-            <p>Test mode. Synthetic data only.</p>
+            <Link className="landing-wordmark" to="/">
+              <span className="landing-mark" aria-hidden>
+                <span />
+              </span>
+              <span>Northstar demo</span>
+            </Link>
+            <p>A copyable telehealth clinic with synthetic data.</p>
+            <nav aria-label="Legal">
+              <Link to="/privacy">Privacy</Link>
+              <Link to="/terms">Terms</Link>
+              <a href="/api/openapi">API</a>
+            </nav>
           </footer>
         )}
         <Scripts />

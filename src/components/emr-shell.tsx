@@ -1,97 +1,200 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
-  Activity,
-  ArrowUpRight,
-  CalendarDays,
-  FileText,
-  LayoutDashboard,
+  ClipboardList,
   LogOut,
-  MessageSquare,
-  Pill,
+  Search,
+  ShoppingCart,
   Stethoscope,
+  Store,
   Users,
+  X,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import type { WorkspaceSession } from "../lib/require-session";
+import { ClinicAgentTools } from "../features/webmcp/clinic-agent-tools";
+import { useClinicCommerce } from "../features/marketplace/clinic-commerce";
+import { demoCatalog, demoOrders, demoPatients } from "../lib/demo-data";
 import { authClient } from "../lib/auth-client";
+import type { WorkspaceSession } from "../lib/require-session";
 
 type WorkspacePage =
   | "documents"
   | "messages"
   | "overview"
+  | "cart"
   | "patients"
   | "prescriptions"
   | "schedule";
-
 type EmrShellProps = {
   actions?: ReactNode;
   children: ReactNode;
   current: WorkspacePage;
-  description: string;
+  description?: string;
   eyebrow?: string;
   session: WorkspaceSession;
   title: string;
 };
-
-const navigation = [
-  { icon: LayoutDashboard, id: "overview", label: "Overview", to: "/dashboard" },
-  { count: 12, icon: CalendarDays, id: "schedule", label: "Schedule", to: "/schedule" },
-  { icon: Users, id: "patients", label: "Patients", to: "/patients" },
-  {
-    icon: Pill,
-    id: "prescriptions",
-    label: "Medication orders",
-    to: "/medication-orders",
-  },
-  { icon: FileText, id: "documents", label: "Documents", to: "/documents" },
-  { count: 2, icon: MessageSquare, id: "messages", label: "Messages", to: "/messages" },
-] as const;
 
 export function EmrShell({
   actions,
   children,
   current,
   description,
-  eyebrow,
   session,
   title,
 }: EmrShellProps) {
   const navigate = useNavigate();
+  const commerce = useClinicCommerce();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const searchInput = useRef<HTMLInputElement>(null);
   const initials = session.user.name
     .split(/\s+/u)
     .slice(0, 2)
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+  const matches = useMemo(() => {
+    const value = query.trim().toLowerCase();
+    if (!value) return [];
+    const patients = demoPatients
+      .filter((patient) =>
+        [patient.name, patient.email, patient.phone, patient.carePlan]
+          .join(" ")
+          .toLowerCase()
+          .includes(value),
+      )
+      .slice(0, 4)
+      .map((patient) => ({
+        detail: `${patient.age} years · ${patient.state}`,
+        id: patient.id,
+        kind: "Patient" as const,
+        label: patient.name,
+        patientId: patient.id,
+        to: "/patients" as const,
+      }));
+    const products = demoCatalog
+      .filter((product) =>
+        [product.name, product.description, product.strength, product.category]
+          .join(" ")
+          .toLowerCase()
+          .includes(value),
+      )
+      .slice(0, 4)
+      .map((product) => ({
+        detail: `${product.strength} · ${product.category}`,
+        id: product.id,
+        kind: "Product" as const,
+        label: product.name,
+        productId: product.id,
+        to: "/dashboard" as const,
+      }));
+    const orders = demoOrders
+      .filter((order) =>
+        [order.id, order.patient, order.medication, order.status]
+          .join(" ")
+          .toLowerCase()
+          .includes(value),
+      )
+      .slice(0, 4)
+      .map((order) => ({
+        detail: `${order.medication} · ${order.status}`,
+        id: order.id,
+        kind: "Order" as const,
+        label: order.patient,
+        patientId: demoPatients.find((patient) => patient.name === order.patient)?.id,
+        to: "/medication-orders" as const,
+      }));
+    return [...products, ...patients, ...orders];
+  }, [query]);
+  const navigation = [
+    { icon: Store, id: "overview", label: "Marketplace", to: "/dashboard" },
+    { count: commerce.cartCount, icon: ShoppingCart, id: "cart", label: "Cart", to: "/cart" },
+    { icon: Users, id: "patients", label: "Patients", to: "/patients" },
+    { icon: ClipboardList, id: "prescriptions", label: "Orders", to: "/medication-orders" },
+  ] as const;
+
+  useEffect(() => {
+    const openSearch = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInput.current?.focus();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", openSearch);
+    return () => window.removeEventListener("keydown", openSearch);
+  }, []);
 
   return (
     <main className="emr-app">
       <header className="emr-topbar">
         <Link className="emr-brand" to="/dashboard">
           <span className="emr-brand-mark">
-            <Stethoscope aria-hidden size={18} />
+            <Stethoscope aria-hidden size={17} />
           </span>
-          <span>
-            <strong>Northstar Health</strong>
-            <small>Clinical workspace</small>
-          </span>
+          <strong>Northstar</strong>
         </Link>
 
+        <div className="emr-global-search">
+          <Search aria-hidden size={16} />
+          <input
+            aria-label="Search patients and orders"
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setSearchOpen(true);
+            }}
+            onFocus={() => setSearchOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setSearchOpen(false);
+            }}
+            placeholder="Search patients and orders"
+            ref={searchInput}
+            type="search"
+            value={query}
+          />
+          {query ? (
+            <button aria-label="Clear search" onClick={() => setQuery("")} type="button">
+              <X aria-hidden size={14} />
+            </button>
+          ) : (
+            <kbd>⌘ K</kbd>
+          )}
+          {searchOpen && query ? (
+            <div aria-label="Search results" className="emr-search-results">
+              {matches.length ? (
+                matches.map((match) => (
+                  <Link
+                    key={`${match.kind}-${match.id}`}
+                    onClick={() => {
+                      if ("productId" in match && match.productId)
+                        commerce.openProduct(match.productId);
+                      setSearchOpen(false);
+                      setQuery("");
+                    }}
+                    search={{ patientId: "patientId" in match ? match.patientId : undefined }}
+                    to={match.to}
+                  >
+                    <span>
+                      <strong>{match.label}</strong>
+                      <small>{match.detail}</small>
+                    </span>
+                    <small>{match.kind}</small>
+                  </Link>
+                ))
+              ) : (
+                <p>No patients or orders found</p>
+              )}
+            </div>
+          ) : null}
+        </div>
+
         <div className="emr-topbar-actions">
-          <span className="emr-environment">
-            <span aria-hidden />
-            Demo environment
+          <ClinicAgentTools />
+          <span className="emr-environment">Synthetic · Affinity Test</span>
+          <span className="emr-avatar" aria-label={session.user.name}>
+            {initials}
           </span>
-          <div className="emr-user">
-            <span className="emr-avatar" aria-hidden>
-              {initials}
-            </span>
-            <span className="emr-user-copy">
-              <strong>{session.user.name}</strong>
-              <small>{session.user.email}</small>
-            </span>
-          </div>
           <button
             aria-label="Sign out"
             className="emr-icon-button"
@@ -102,19 +205,18 @@ export function EmrShell({
               await navigate({ to: "/" });
             }}
           >
-            <LogOut aria-hidden size={17} />
+            <LogOut aria-hidden size={16} />
           </button>
         </div>
       </header>
 
       <div className="emr-layout">
         <aside className="emr-sidebar">
-          <nav aria-label="Clinical workspace">
-            <p>Workspace</p>
+          <nav aria-label="Clinic">
+            <p>Clinic</p>
             {navigation.map((item) => {
               const { icon: Icon, id, label, to } = item;
               const count = "count" in item ? item.count : undefined;
-
               return (
                 <Link
                   aria-current={current === id ? "page" : undefined}
@@ -129,32 +231,22 @@ export function EmrShell({
               );
             })}
           </nav>
-
-          <div className="emr-practice-card">
-            <span className="emr-practice-icon">
-              <Activity aria-hidden size={17} />
+          <div className="emr-sidebar-user">
+            <span className="emr-avatar" aria-hidden>
+              {initials}
             </span>
-            <div>
-              <small>Active practice</small>
-              <strong>Northstar Telehealth</strong>
-              <span>Test workspace</span>
-            </div>
+            <span>
+              <strong>{session.user.name}</strong>
+              <small>Demo clinician</small>
+            </span>
           </div>
-
-          <a className="emr-api-link" href="/api/openapi">
-            API reference <ArrowUpRight aria-hidden size={15} />
-          </a>
         </aside>
 
         <section className="emr-main">
-          <div className="emr-breadcrumb">
-            Northstar Telehealth <span>/</span> {title}
-          </div>
           <header className="emr-page-heading">
             <div>
-              {eyebrow ? <p>{eyebrow}</p> : null}
               <h1>{title}</h1>
-              <span>{description}</span>
+              {description ? <span>{description}</span> : null}
             </div>
             {actions ? <div className="emr-page-actions">{actions}</div> : null}
           </header>

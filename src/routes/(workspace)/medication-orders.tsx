@@ -1,197 +1,109 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Braces,
-  ClipboardList,
-  CreditCard,
-  ExternalLink,
-  PanelsTopLeft,
-  ShieldCheck,
-  UserCheck,
-  Wifi,
-} from "lucide-react";
-import { useState } from "react";
+import { Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import { EmrShell } from "../../components/emr-shell";
-import {
-  ElementsDemo,
-  HeadlessSdkDemo,
-  HostedDemo,
-  PracticeBillingDemo,
-} from "../../features/affinity";
+import { EmrShell, EmrStatus } from "../../components/emr-shell";
+import { useClinicCommerce } from "../../features/marketplace/clinic-commerce";
+import { demoCatalog, demoOrders, demoPatients } from "../../lib/demo-data";
 import { requireSession } from "../../lib/require-session";
 
 export const Route = createFileRoute("/(workspace)/medication-orders")({
   beforeLoad: requireSession,
-  head: () => ({
-    meta: [{ title: "Medication orders | Northstar Health" }],
+  head: () => ({ meta: [{ title: "Orders | Northstar Health" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    patientId: typeof search.patientId === "string" ? search.patientId : undefined,
   }),
-  component: MedicationOrders,
+  component: Orders,
 });
 
-type ShowcaseFeature = "billing" | "elements" | "headless" | "hosted" | "provider";
-
-const features = [
-  {
-    description: "Mount Affinity's secure prescribing interface inside your product.",
-    icon: PanelsTopLeft,
-    id: "elements",
-    label: "Elements",
-    meta: "Embedded UI",
-  },
-  {
-    description: "Own the interface and create unsigned orders with the TypeScript SDK.",
-    icon: Braces,
-    id: "headless",
-    label: "Headless SDK",
-    meta: "Server API",
-  },
-  {
-    description: "Launch the complete Affinity workflow in a focused, single-use window.",
-    icon: ExternalLink,
-    id: "hosted",
-    label: "Hosted",
-    meta: "Fastest launch",
-  },
-  {
-    description: "Verify the prescriber and let them create their private signing PIN.",
-    icon: UserCheck,
-    id: "provider",
-    label: "Provider setup",
-    meta: "Identity",
-  },
-  {
-    description: "Let the practice securely add or replace its Stripe Test payment method.",
-    icon: CreditCard,
-    id: "billing",
-    label: "Practice billing",
-    meta: "Payments",
-  },
-] as const satisfies ReadonlyArray<{
-  description: string;
-  icon: typeof PanelsTopLeft;
-  id: ShowcaseFeature;
-  label: string;
-  meta: string;
-}>;
-
-function MedicationOrders() {
+function Orders() {
   const { session } = Route.useRouteContext();
-  const [feature, setFeature] = useState<ShowcaseFeature>("elements");
+  const commerce = useClinicCommerce();
+  const [query, setQuery] = useState("");
+  const orders = useMemo(
+    () =>
+      [
+        ...commerce.orders.map((order) => ({
+          id: order.id,
+          patient:
+            demoPatients.find((patient) => patient.id === order.patientId)?.name ??
+            "Synthetic patient",
+          medication: order.productIds
+            .map((id) => demoCatalog.find((product) => product.id === id)?.name)
+            .filter(Boolean)
+            .join(", "),
+          status: order.status,
+          updated: order.submittedAt,
+        })),
+        ...demoOrders.filter((order) => order.status !== "Draft"),
+      ].filter(
+        (order) =>
+          !query.trim() ||
+          [order.id, order.patient, order.medication, order.status]
+            .join(" ")
+            .toLowerCase()
+            .includes(query.toLowerCase()),
+      ),
+    [commerce.orders, query],
+  );
 
   return (
     <EmrShell
-      actions={
-        <a className="emr-button emr-button-secondary" href="/api/openapi">
-          <Braces aria-hidden size={16} />
-          API reference
-        </a>
-      }
       current="prescriptions"
-      description="Five production integration patterns, running against Affinity Test data."
-      eyebrow="Integration showcase"
+      description="Orders confirmed by a clinician"
       session={session}
-      title="Affinity prescribing"
+      title="Orders"
     >
-      <section className="emr-integration-strip" aria-label="Integration status">
-        <div>
-          <span className="emr-status-icon is-success">
-            <Wifi aria-hidden size={16} />
-          </span>
-          <span>
-            <small>Integration</small>
-            <strong>Affinity connected</strong>
-          </span>
-          <span className="emr-live-status">Online</span>
+      <section className="emr-list-panel">
+        <div className="emr-list-toolbar">
+          <label className="emr-search">
+            <Search aria-hidden size={16} />
+            <span className="sr-only">Search orders</span>
+            <input
+              placeholder="Search patient, product, or order ID"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <span className="orders-count">{orders.length} orders</span>
         </div>
-        <div>
-          <span className="emr-status-icon">
-            <ShieldCheck aria-hidden size={16} />
-          </span>
-          <span>
-            <small>Access</small>
-            <strong>Provider verified</strong>
-          </span>
-        </div>
-        <div>
-          <span className="emr-status-icon">
-            <ClipboardList aria-hidden size={16} />
-          </span>
-          <span>
-            <small>Environment</small>
-            <strong>Test data only</strong>
-          </span>
-        </div>
-      </section>
-
-      <section className="showcase-picker" aria-label="Affinity features">
-        <header>
-          <div>
-            <span>Choose an integration</span>
-            <h2>See the contract, not a mockup.</h2>
+        {orders.length ? (
+          <div className="emr-table-wrap">
+            <table className="emr-table">
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Products</th>
+                  <th>Status</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order) => (
+                  <tr key={order.id}>
+                    <td>
+                      <strong>{order.patient}</strong>
+                      <small>{order.id}</small>
+                    </td>
+                    <td>{order.medication}</td>
+                    <td>
+                      <EmrStatus tone="success">{order.status}</EmrStatus>
+                    </td>
+                    <td>{order.updated}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <p>
-            Every view below uses the real Affinity Test API. The platform key stays on this server,
-            and clinical signing stays inside Affinity.
-          </p>
-        </header>
-        <div className="showcase-picker-grid" role="tablist" aria-label="Affinity feature">
-          {features.map(({ description, icon: Icon, id, label, meta }) => (
-            <button
-              aria-controls={`showcase-panel-${id}`}
-              aria-selected={feature === id}
-              className={feature === id ? "is-active" : undefined}
-              id={`showcase-tab-${id}`}
-              key={id}
-              role="tab"
-              type="button"
-              onClick={() => setFeature(id)}
-            >
-              <span className="showcase-picker-icon">
-                <Icon aria-hidden size={18} />
-              </span>
-              <span>
-                <small>{meta}</small>
-                <strong>{label}</strong>
-                <span>{description}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <div
-        aria-labelledby={`showcase-tab-${feature}`}
-        id={`showcase-panel-${feature}`}
-        role="tabpanel"
-      >
-        {feature === "elements" ? (
-          <section className="affinity-demo" aria-labelledby="affinity-demo-title">
-            <div className="affinity-demo-heading">
-              <div>
-                <div className="affinity-demo-label">
-                  <span>Affinity Elements</span>
-                  <span>Secure iframe</span>
-                </div>
-                <h2 id="affinity-demo-title">Prescription composer</h2>
-                <p>
-                  Northstar authenticates this user. Affinity independently scopes the provider,
-                  practice, patient access, and permitted actions.
-                </p>
-              </div>
-              <span className="affinity-mode-badge">Test mode</span>
-            </div>
-            <ElementsDemo />
-          </section>
-        ) : feature === "headless" ? (
-          <HeadlessSdkDemo />
-        ) : feature === "hosted" ? (
-          <HostedDemo />
-        ) : feature === "provider" ? (
-          <HostedDemo workflow="provider_verification" />
         ) : (
-          <PracticeBillingDemo />
+          <div className="emr-empty">
+            <Search aria-hidden size={22} />
+            <strong>No matching orders</strong>
+            <span>Try another patient, product, or order ID.</span>
+          </div>
         )}
-      </div>
+      </section>
     </EmrShell>
   );
 }

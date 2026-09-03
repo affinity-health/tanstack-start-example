@@ -1,180 +1,220 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { CalendarDays, Clock3, FileWarning, MessageSquare, Pill, Users, Video } from "lucide-react";
+import { Check, Search, ShoppingCart, SlidersHorizontal, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { EmrSectionHeading, EmrShell, EmrStatus } from "../../components/emr-shell";
-import { demoOrders, demoSchedule } from "../../lib/demo-data";
+import { EmrShell } from "../../components/emr-shell";
+import { useClinicCommerce } from "../../features/marketplace/clinic-commerce";
+import { demoCatalog, demoPatients, type DemoCatalogProduct } from "../../lib/demo-data";
 import { requireSession } from "../../lib/require-session";
 
 export const Route = createFileRoute("/(workspace)/dashboard")({
   beforeLoad: requireSession,
-  head: () => ({
-    meta: [{ title: "Overview | Northstar Health" }],
-  }),
-  component: Dashboard,
+  head: () => ({ meta: [{ title: "Marketplace | Northstar Health" }] }),
+  component: Marketplace,
 });
 
-const overviewStats = [
-  { detail: "4 remaining today", icon: CalendarDays, label: "Appointments", value: "12" },
-  { detail: "2 need review", icon: Users, label: "Active patients", value: "86" },
-  { detail: "1 draft", icon: Pill, label: "Medication orders", value: "7" },
-  { detail: "2 unread", icon: MessageSquare, label: "Messages", value: "3" },
-] as const;
-
-function Dashboard() {
+function Marketplace() {
   const { session } = Route.useRouteContext();
-  const firstName = session.user.name.split(/\s+/u)[0] || "Clinician";
-  const appointments = demoSchedule["Jul 29"].slice(0, 3);
+  const commerce = useClinicCommerce();
+  const product = demoCatalog.find((item) => item.id === commerce.openProductId);
+  const [patientId, setPatientId] = useState(commerce.selectedCartPatientId);
+  const [added, setAdded] = useState(false);
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") commerce.closeProduct();
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [commerce]);
+
+  function addProduct() {
+    if (!product) return;
+    commerce.addToCart(product.id, patientId);
+    commerce.setActivity(
+      `Added ${product.name} to ${demoPatients.find((patient) => patient.id === patientId)?.name}'s cart.`,
+    );
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 1600);
+  }
 
   return (
     <EmrShell
       actions={
-        <Link className="emr-button emr-button-primary" to="/medication-orders">
-          <Pill aria-hidden size={16} />
-          New prescription
+        <Link className="emr-button emr-button-secondary" to="/cart">
+          <ShoppingCart aria-hidden size={16} />
+          Cart{commerce.cartCount ? ` (${commerce.cartCount})` : ""}
         </Link>
       }
       current="overview"
-      description="Your schedule, clinical work, and Affinity integration in one place."
+      description="Synthetic products from Affinity Test"
       session={session}
-      title={`Good evening, ${firstName}`}
+      title="Medication marketplace"
     >
-      <section className="emr-stat-strip" aria-label="Workspace summary">
-        {overviewStats.map(({ detail, icon: Icon, label, value }) => (
-          <div key={label}>
-            <span className="emr-stat-icon">
-              <Icon aria-hidden size={17} />
-            </span>
-            <span>
-              <small>{label}</small>
-              <strong>{value}</strong>
-              <small>{detail}</small>
-            </span>
-          </div>
-        ))}
-      </section>
-
-      <div className="emr-overview-grid">
-        <section className="emr-panel">
-          <EmrSectionHeading
-            action={
-              <Link className="emr-text-link" to="/schedule">
-                View schedule
-              </Link>
-            }
-            description="Wednesday, July 29"
-            title="Next appointments"
+      <section className="marketplace-toolbar" aria-label="Marketplace filters">
+        <label className="emr-search marketplace-search">
+          <Search aria-hidden size={16} />
+          <span className="sr-only">Search marketplace</span>
+          <input
+            placeholder="Search medications, strengths, or dosage forms"
+            type="search"
+            value={commerce.query}
+            onChange={(event) => commerce.setQuery(event.target.value)}
           />
-          <div className="emr-agenda-list">
-            {appointments.map((appointment) => (
-              <article className="emr-agenda-row" key={appointment.id}>
-                <div className="emr-agenda-time">
-                  <strong>{appointment.time}</strong>
-                  <span>{appointment.duration}</span>
-                </div>
-                <div className="emr-agenda-person">
-                  <strong>{appointment.patient}</strong>
-                  <span>{appointment.type}</span>
-                </div>
-                <span className="emr-agenda-mode">
-                  {appointment.mode === "Telehealth" ? (
-                    <Video aria-hidden size={14} />
-                  ) : (
-                    <Users aria-hidden size={14} />
-                  )}
-                  {appointment.mode}
-                </span>
-                <EmrStatus tone={appointment.status === "Needs intake" ? "attention" : "success"}>
-                  {appointment.status}
-                </EmrStatus>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="emr-panel">
-          <EmrSectionHeading description="Items that need a decision" title="Needs attention" />
-          <div className="emr-task-list">
-            <Link to="/documents">
-              <span className="emr-task-icon">
-                <FileWarning aria-hidden size={16} />
-              </span>
-              <span>
-                <strong>Review Denise Kuhn’s lab results</strong>
-                <small>Received this morning</small>
-              </span>
-              <span>Review</span>
-            </Link>
-            <Link to="/medication-orders">
-              <span className="emr-task-icon">
-                <Pill aria-hidden size={16} />
-              </span>
-              <span>
-                <strong>Complete Ada Zieme’s prescription</strong>
-                <small>Draft saved 8 minutes ago</small>
-              </span>
-              <span>Continue</span>
-            </Link>
-            <Link to="/messages">
-              <span className="emr-task-icon">
-                <MessageSquare aria-hidden size={16} />
-              </span>
-              <span>
-                <strong>Reply to 2 patient messages</strong>
-                <small>Oldest received at 9:16 AM</small>
-              </span>
-              <span>Open</span>
-            </Link>
-          </div>
-        </section>
-      </div>
-
-      <section className="emr-panel">
-        <EmrSectionHeading
-          action={
-            <Link className="emr-text-link" to="/medication-orders">
-              Open prescribing
-            </Link>
-          }
-          description="Test-mode activity from the Affinity integration"
-          title="Recent medication orders"
-        />
-        <div className="emr-table-wrap">
-          <table className="emr-table">
-            <thead>
-              <tr>
-                <th>Patient</th>
-                <th>Medication</th>
-                <th>Pharmacy</th>
-                <th>Status</th>
-                <th>Updated</th>
-              </tr>
-            </thead>
-            <tbody>
-              {demoOrders.map((order) => (
-                <tr key={order.id}>
-                  <td>
-                    <strong>{order.patient}</strong>
-                    <small>{order.id}</small>
-                  </td>
-                  <td>{order.medication}</td>
-                  <td>{order.pharmacy}</td>
-                  <td>
-                    <EmrStatus tone={order.status === "Accepted" ? "success" : "neutral"}>
-                      {order.status}
-                    </EmrStatus>
-                  </td>
-                  <td>
-                    <span className="emr-inline-meta">
-                      <Clock3 aria-hidden size={13} />
-                      {order.updated}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        </label>
+        <div className="marketplace-categories" aria-label="Product category">
+          <SlidersHorizontal aria-hidden size={15} />
+          {commerce.categories.map((category) => (
+            <button
+              aria-pressed={commerce.category === category}
+              className={commerce.category === category ? "is-active" : undefined}
+              key={category}
+              onClick={() => commerce.setCategory(category)}
+              type="button"
+            >
+              {category}
+            </button>
+          ))}
         </div>
       </section>
+
+      <div className="marketplace-count">
+        <span>{commerce.products.length} products</span>
+        <span>Test catalog · No Live data</span>
+      </div>
+      {commerce.products.length ? (
+        <section className="marketplace-grid" aria-label="Medication products">
+          {commerce.products.map((item) => (
+            <ProductCard
+              key={item.id}
+              onOpen={() => {
+                commerce.openProduct(item.id);
+                setAdded(false);
+              }}
+              product={item}
+            />
+          ))}
+        </section>
+      ) : (
+        <section className="marketplace-empty">
+          <Search aria-hidden size={24} />
+          <h2>No products found</h2>
+          <p>Try another name, strength, or category.</p>
+          <button
+            className="emr-button emr-button-secondary"
+            onClick={() => {
+              commerce.setQuery("");
+              commerce.setCategory("All");
+            }}
+            type="button"
+          >
+            Clear filters
+          </button>
+        </section>
+      )}
+
+      {product ? (
+        <>
+          <button
+            aria-label="Close product details"
+            className="emr-sheet-backdrop"
+            onClick={commerce.closeProduct}
+            type="button"
+          />
+          <aside
+            aria-label={`${product.name} details`}
+            className="emr-detail-sheet product-detail-sheet"
+          >
+            <header className="emr-sheet-header">
+              <div>
+                <h2>{product.name}</h2>
+                <p>
+                  {product.category} · {product.dosageForm}
+                </p>
+              </div>
+              <button aria-label="Close details" onClick={commerce.closeProduct} type="button">
+                <X aria-hidden size={18} />
+              </button>
+            </header>
+            <div className="emr-sheet-body">
+              <div
+                className={`product-art product-art-${product.category.toLowerCase().replaceAll(" ", "-")}`}
+              >
+                <span>{product.dosageForm}</span>
+                <strong>{product.name.split(" ")[0]}</strong>
+                <small>{product.strength}</small>
+              </div>
+              <section className="product-detail-copy">
+                <h3>Product details</h3>
+                <p>{product.description}</p>
+                <dl>
+                  <div>
+                    <dt>Strength</dt>
+                    <dd>{product.strength}</dd>
+                  </div>
+                  <div>
+                    <dt>Dosage form</dt>
+                    <dd>{product.dosageForm}</dd>
+                  </div>
+                  <div>
+                    <dt>Test pharmacy</dt>
+                    <dd>{product.pharmacy}</dd>
+                  </div>
+                  <div>
+                    <dt>Estimated price</dt>
+                    <dd>${product.price}</dd>
+                  </div>
+                </dl>
+              </section>
+              <label className="product-patient-select">
+                Patient
+                <select value={patientId} onChange={(event) => setPatientId(event.target.value)}>
+                  {demoPatients.map((patient) => (
+                    <option key={patient.id} value={patient.id}>
+                      {patient.name} · {patient.state}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="product-safety-note">
+                Adding this product only updates the cart. A clinician must review and confirm
+                checkout.
+              </p>
+            </div>
+            <footer className="emr-sheet-footer">
+              <button
+                className="emr-button emr-button-primary emr-button-full"
+                onClick={addProduct}
+                type="button"
+              >
+                {added ? <Check aria-hidden size={16} /> : <ShoppingCart aria-hidden size={16} />}
+                {added ? "Added to cart" : "Add to patient cart"}
+              </button>
+            </footer>
+          </aside>
+        </>
+      ) : null}
     </EmrShell>
+  );
+}
+
+function ProductCard({ onOpen, product }: { onOpen(): void; product: DemoCatalogProduct }) {
+  const artClass = product.category.toLowerCase().replaceAll(" ", "-");
+  return (
+    <button className="marketplace-product" onClick={onOpen} type="button">
+      <span className={`product-art product-art-${artClass}`}>
+        <span>{product.dosageForm}</span>
+        <strong>{product.name.split(" ")[0]}</strong>
+        <small>{product.strength}</small>
+      </span>
+      <span className="product-card-copy">
+        <small>{product.category}</small>
+        <strong>{product.name}</strong>
+        <span>{product.strength}</span>
+        <span className="product-card-meta">
+          <span>{product.pharmacy}</span>
+          <b>From ${product.price}</b>
+        </span>
+      </span>
+    </button>
   );
 }

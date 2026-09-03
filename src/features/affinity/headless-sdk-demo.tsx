@@ -1,41 +1,27 @@
 import { ArrowRight, CheckCircle2, ExternalLink, LoaderCircle, RefreshCw } from "lucide-react";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
-import { DemoCode } from "./demo-code";
+import { PrescribingTools } from "../webmcp/prescribing-tools";
+import {
+  canCreateTestOrder,
+  createHostedAffinityTestAdapter,
+  type HostedOrder,
+  type HostedWorkflowOptions,
+} from "../../lib/patient-workflow";
 
-type HeadlessOptions = {
-  medications: Array<{
-    dosageForm: string;
-    id: string;
-    name: string;
-    route: string;
-    strength: string | null;
-  }>;
-  patients: Array<{
-    id: string;
-    name: string;
-    state: string;
-  }>;
-  recommendedPatientId: string | null;
-};
-
-type HeadlessOrder = {
-  orderId: string;
-  prescriptionIds: string[];
-  signingSession: {
-    expiresAt: string;
-    url: string;
-  };
-};
-
-export function HeadlessSdkDemo() {
+export function HeadlessSdkDemo({ preferredPatientName }: { preferredPatientName?: string }) {
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
-  const [options, setOptions] = useState<HeadlessOptions>();
+  const [options, setOptions] = useState<HostedWorkflowOptions>();
   const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<HeadlessOrder>();
+  const [result, setResult] = useState<HostedOrder>();
   const [reasonCategory, setReasonCategory] = useState("");
   const [selectedMedicationId, setSelectedMedicationId] = useState("");
+  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [humanConfirmed, setHumanConfirmed] = useState(false);
+  const [agentAnnouncement, setAgentAnnouncement] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const adapter = useMemo(() => createHostedAffinityTestAdapter(), []);
 
   useEffect(() => {
     void loadOptions();
@@ -50,13 +36,16 @@ export function HeadlessSdkDemo() {
     setLoading(true);
     setError(undefined);
     try {
-      const response = await fetch("/api/affinity/headless-options", { credentials: "include" });
-      const body = await readJson(response);
-      if (!response.ok || !isHeadlessOptions(body)) {
-        throw new Error(isErrorResponse(body) ? body.error : "Test data is unavailable.");
-      }
+      const body = await adapter.loadOptions();
       setOptions(body);
       setSelectedMedicationId((current) => current || body.medications[0]?.id || "");
+      setSelectedPatientId((current) => {
+        if (current) return current;
+        const preferredPatient = body.patients.find(
+          (patient) => patient.name === preferredPatientName,
+        );
+        return preferredPatient?.id ?? body.recommendedPatientId ?? body.patients[0]?.id ?? "";
+      });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Test data is unavailable.");
     } finally {
@@ -66,6 +55,12 @@ export function HeadlessSdkDemo() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!humanConfirmed) {
+      setError(
+        "Review the draft and complete the clinician confirmation before creating an order.",
+      );
+      return;
+    }
     const form = new FormData(event.currentTarget);
     const signingWindow = window.open(
       "about:blank",
@@ -79,48 +74,24 @@ export function HeadlessSdkDemo() {
     setResult(undefined);
     try {
       const compoundingContext = String(form.get("compoundingContext") ?? "").trim();
-      const response = await fetch("/api/affinity/headless-order", {
-        body: JSON.stringify({
-          patientId: String(form.get("patientId")),
-          prescriptions: [
-            {
-              ...(reasonCategory && compoundingContext
-                ? {
-                    compoundingReason: {
-                      category: reasonCategory,
-                      context: compoundingContext,
-                    },
-                  }
-                : {}),
-              daysSupply: Number(form.get("daysSupply")),
-              directions: String(form.get("directions")),
-              medicationId: String(form.get("medicationId")),
-              quantity: Number(form.get("quantity")),
-              quantityUnit: String(form.get("quantityUnit")),
-              refills: Number(form.get("refills")),
-              structuredSig: {
-                dose: String(form.get("dose")),
-                doseUnit: String(form.get("doseUnit")),
-                frequency: String(form.get("frequency")),
-                prn: false,
-                route: String(form.get("route")),
-              },
-              substitutionPermitted: false,
-            },
-          ],
-          returnUrl: `${window.location.origin}${window.location.pathname}`,
-        }),
-        credentials: "include",
-        headers: {
-          "content-type": "application/json",
-          "idempotency-key": `northstar_${crypto.randomUUID()}`,
-        },
-        method: "POST",
+      if (!adapter.createOrder) throw new Error("Affinity Test order creation is unavailable.");
+      const body = await adapter.createOrder({
+        ...(reasonCategory && compoundingContext
+          ? { compoundingReason: { category: reasonCategory, context: compoundingContext } }
+          : {}),
+        daysSupply: Number(form.get("daysSupply")),
+        directions: String(form.get("directions")),
+        dose: String(form.get("dose")),
+        doseUnit: String(form.get("doseUnit")),
+        frequency: String(form.get("frequency")),
+        medicationId: String(form.get("medicationId")),
+        patientId: String(form.get("patientId")),
+        quantity: Number(form.get("quantity")),
+        quantityUnit: String(form.get("quantityUnit")),
+        refills: Number(form.get("refills")),
+        returnUrl: `${window.location.origin}${window.location.pathname}`,
+        route: String(form.get("route")),
       });
-      const body = await readJson(response);
-      if (!response.ok || !isHeadlessOrder(body)) {
-        throw new Error(isErrorResponse(body) ? body.error : "The order could not be created.");
-      }
       setResult(body);
       if (signingWindow && !signingWindow.closed)
         signingWindow.location.replace(body.signingSession.url);
@@ -132,39 +103,61 @@ export function HeadlessSdkDemo() {
     }
   }
 
+  const prepareAgentDraft = useCallback(
+    (draft: {
+      daysSupply: number;
+      directions: string;
+      dose: string;
+      doseUnit: string;
+      frequency: string;
+      medicationId: string;
+      patientId: string;
+      quantity: number;
+      quantityUnit: string;
+      refills: number;
+    }) => {
+      setSelectedPatientId(draft.patientId);
+      setSelectedMedicationId(draft.medicationId);
+      setHumanConfirmed(false);
+      setResult(undefined);
+      setError(undefined);
+      setAgentAnnouncement(
+        "Agent prepared the visible Test draft. Clinician confirmation required.",
+      );
+      window.requestAnimationFrame(() => {
+        const form = formRef.current;
+        if (!form) return;
+        for (const [name, value] of Object.entries(draft)) {
+          if (name === "patientId" || name === "medicationId") continue;
+          const field = form.elements.namedItem(name);
+          if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+            field.value = String(value);
+          }
+        }
+      });
+    },
+    [],
+  );
+
   return (
     <section className="affinity-demo" aria-labelledby="headless-demo-title">
       <div className="affinity-demo-heading">
         <div>
           <div className="affinity-demo-label">
-            <span>Headless SDK</span>
-            <span>Northstar-owned UI</span>
+            <span>Unsigned proposal</span>
+            <span>Affinity Test</span>
           </div>
-          <h2 id="headless-demo-title">Create with your interface. Sign with Affinity.</h2>
+          <h2 id="headless-demo-title">Confirm the draft before provider review</h2>
           <p>
-            Northstar collects the prescription details. Its backend creates the unsigned Test order
-            with the Affinity TypeScript SDK, then sends the provider to Affinity to sign.
+            The agent may fill the form. A clinician must review every field before Northstar
+            creates the unsigned Test order.
           </p>
         </div>
         <span className="affinity-mode-badge">Test mode</span>
       </div>
 
       <div className="headless-demo-body">
-        <DemoCode title="View the server-side SDK call">{`
-const order = await affinity.orders.create({
-  patientId,
-  practiceId,
-  providerMappingId,
-  prescriptions,
-});
-
-const signing = await affinity.orderSigningSessions.create({
-  orderId: order.id,
-  practiceId,
-  providerMappingId,
-  userId,
-});`}</DemoCode>
-        <ol className="headless-flow" aria-label="Headless SDK workflow">
+        <ol className="headless-flow" aria-label="Medication order workflow">
           <li>
             <strong>1</strong>
             <span>
@@ -175,14 +168,14 @@ const signing = await affinity.orderSigningSessions.create({
           <li>
             <strong>2</strong>
             <span>
-              <b>Affinity SDK</b>Unsigned order on your server
+              <b>Human confirm</b>Unsigned Test order
             </span>
           </li>
           <ArrowRight aria-hidden size={15} />
           <li>
             <strong>3</strong>
             <span>
-              <b>Provider signs</b>PIN stays inside Affinity
+              <b>Provider review</b>PIN stays inside Affinity Test
             </span>
           </li>
         </ol>
@@ -204,14 +197,32 @@ const signing = await affinity.orderSigningSessions.create({
             </button>
           </div>
         ) : options ? (
-          <form className="headless-form" onSubmit={submit}>
+          <form
+            className="headless-form"
+            onChange={(event) => {
+              const field = event.target;
+              if (!(field instanceof HTMLInputElement) || field.name !== "humanConfirmation")
+                setHumanConfirmed(false);
+            }}
+            onSubmit={submit}
+            ref={formRef}
+          >
+            <PrescribingTools
+              medications={options.medications}
+              onPrepare={prepareAgentDraft}
+              patients={options.patients}
+            />
+            <p className="sr-only" aria-live="polite">
+              {agentAnnouncement}
+            </p>
             <div className="headless-form-grid">
               <label className="headless-field headless-field-wide">
                 Patient
                 <select
-                  defaultValue={options.recommendedPatientId ?? options.patients[0]?.id}
                   name="patientId"
+                  onChange={(event) => setSelectedPatientId(event.currentTarget.value)}
                   required
+                  value={selectedPatientId}
                 >
                   {options.patients.map((patient) => (
                     <option key={patient.id} value={patient.id}>
@@ -318,6 +329,20 @@ const signing = await affinity.orderSigningSessions.create({
               ) : null}
             </div>
 
+            <label className="headless-confirmation">
+              <input
+                checked={humanConfirmed}
+                name="humanConfirmation"
+                onChange={(event) => setHumanConfirmed(event.currentTarget.checked)}
+                type="checkbox"
+              />
+              <span>
+                <strong>Clinician confirmation</strong>
+                I reviewed the patient, formulation, SIG, quantity, and refills. Create an unsigned
+                Affinity Test order and open the separate signing step.
+              </span>
+            </label>
+
             <div className="headless-form-footer">
               <p>
                 ICD-10-CM diagnoses are optional. The API key and provider signing PIN never enter
@@ -326,7 +351,12 @@ const signing = await affinity.orderSigningSessions.create({
               <button
                 className="emr-button emr-button-primary"
                 disabled={
-                  pending || options.patients.length === 0 || options.medications.length === 0
+                  !canCreateTestOrder({
+                    humanConfirmed,
+                    medicationCount: options.medications.length,
+                    patientCount: options.patients.length,
+                    pending,
+                  })
                 }
                 type="submit"
               >
@@ -347,8 +377,8 @@ const signing = await affinity.orderSigningSessions.create({
               <div className="headless-success" role="status">
                 <CheckCircle2 aria-hidden size={18} />
                 <span>
-                  <strong>Unsigned order created</strong> {result.orderId} · Affinity signing opened
-                  securely.
+                  <strong>Unsigned order created</strong> {result.orderId} · Affinity Test signing
+                  opened securely.
                 </span>
               </div>
             ) : null}
@@ -361,52 +391,7 @@ const signing = await affinity.orderSigningSessions.create({
 
 function prepareSigningWindow(signingWindow: Window) {
   signingWindow.opener = null;
-  signingWindow.document.title = "Opening Affinity";
+  signingWindow.document.title = "Opening Affinity Test";
   signingWindow.document.body.innerHTML =
-    '<main style="font:14px system-ui;display:grid;min-height:100vh;place-content:center;text-align:center;color:#17211d"><strong>Opening Affinity signing…</strong><p style="color:#66736d">Creating a secure, single-use session.</p></main>';
-}
-
-async function readJson(response: Response): Promise<unknown> {
-  const body = await response.text();
-  try {
-    return JSON.parse(body);
-  } catch {
-    return undefined;
-  }
-}
-
-function isErrorResponse(value: unknown): value is { error: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "error" in value &&
-    typeof value.error === "string"
-  );
-}
-
-function isHeadlessOptions(value: unknown): value is HeadlessOptions {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "patients" in value &&
-    Array.isArray(value.patients) &&
-    "medications" in value &&
-    Array.isArray(value.medications) &&
-    "recommendedPatientId" in value &&
-    (value.recommendedPatientId === null || typeof value.recommendedPatientId === "string")
-  );
-}
-
-function isHeadlessOrder(value: unknown): value is HeadlessOrder {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "orderId" in value &&
-    typeof value.orderId === "string" &&
-    "signingSession" in value &&
-    typeof value.signingSession === "object" &&
-    value.signingSession !== null &&
-    "url" in value.signingSession &&
-    typeof value.signingSession.url === "string"
-  );
+    '<main style="font:14px system-ui;display:grid;min-height:100vh;place-content:center;text-align:center;color:#15201c"><strong>Opening Affinity Test signing…</strong><p style="color:#4b5d56">Creating a secure, single-use session.</p></main>';
 }

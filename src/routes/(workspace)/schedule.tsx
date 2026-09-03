@@ -3,7 +3,7 @@ import { CalendarDays, CheckCircle2, Clock3, MapPin, Video } from "lucide-react"
 import { useState } from "react";
 
 import { EmrSectionHeading, EmrShell, EmrStatus } from "../../components/emr-shell";
-import { demoSchedule } from "../../lib/demo-data";
+import { demoPatients, demoSchedule } from "../../lib/demo-data";
 import { requireSession } from "../../lib/require-session";
 
 export const Route = createFileRoute("/(workspace)/schedule")({
@@ -99,7 +99,15 @@ function Schedule() {
                   <EmrStatus tone={appointment.status === "Needs intake" ? "attention" : "success"}>
                     {appointment.status}
                   </EmrStatus>
-                  <Link className="emr-button emr-button-secondary" to="/patients">
+                  <Link
+                    className="emr-button emr-button-secondary"
+                    to="/patients"
+                    search={{
+                      patientId: demoPatients.find(
+                        (patient) => patient.name === appointment.patient,
+                      )?.id,
+                    }}
+                  >
                     Open chart
                   </Link>
                 </div>

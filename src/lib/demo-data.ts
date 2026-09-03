@@ -10,6 +10,9 @@ export type DemoPatient = {
   lastVisit: string;
   nextVisit: string;
   carePlan: string;
+  allergies: string[];
+  medications: Array<{ dose: string; name: string; status: "Active" | "Stopped" }>;
+  visits: Array<{ date: string; note: string; type: string }>;
 };
 
 export const demoPatients: DemoPatient[] = [
@@ -25,6 +28,15 @@ export const demoPatients: DemoPatient[] = [
     lastVisit: "Jul 22, 2026",
     nextVisit: "Aug 19, 2026",
     carePlan: "Metabolic health follow-up",
+    allergies: ["Penicillin"],
+    medications: [
+      { dose: "500 mg twice daily", name: "Metformin ER", status: "Active" },
+      { dose: "2,000 IU daily", name: "Vitamin D3", status: "Active" },
+    ],
+    visits: [
+      { date: "Jul 22, 2026", note: "Goals reviewed. Continue current plan.", type: "Follow up" },
+      { date: "Jun 24, 2026", note: "Baseline labs reviewed with patient.", type: "Lab review" },
+    ],
   },
   {
     id: "pat_amelia_aufderhar",
@@ -38,6 +50,15 @@ export const demoPatients: DemoPatient[] = [
     lastVisit: "Jul 18, 2026",
     nextVisit: "Aug 15, 2026",
     carePlan: "Weight management",
+    allergies: ["No known allergies"],
+    medications: [{ dose: "2.5 mg weekly", name: "Tirzepatide", status: "Active" }],
+    visits: [
+      {
+        date: "Jul 18, 2026",
+        note: "Tolerating current dose. Nutrition goals updated.",
+        type: "Follow up",
+      },
+    ],
   },
   {
     id: "pat_bennie_wintheiser",
@@ -51,6 +72,15 @@ export const demoPatients: DemoPatient[] = [
     lastVisit: "Jul 10, 2026",
     nextVisit: "Aug 7, 2026",
     carePlan: "Hormone optimization",
+    allergies: ["Sulfonamides"],
+    medications: [{ dose: "25 mg daily", name: "Enclomiphene", status: "Active" }],
+    visits: [
+      {
+        date: "Jul 10, 2026",
+        note: "Symptoms and recent hormone panel reviewed.",
+        type: "Follow up",
+      },
+    ],
   },
   {
     id: "pat_denise_kuhn",
@@ -64,6 +94,15 @@ export const demoPatients: DemoPatient[] = [
     lastVisit: "Jul 8, 2026",
     nextVisit: "Jul 31, 2026",
     carePlan: "Lab review required",
+    allergies: ["Latex"],
+    medications: [{ dose: "50 mcg daily", name: "Levothyroxine", status: "Active" }],
+    visits: [
+      {
+        date: "Jul 8, 2026",
+        note: "New laboratory panel ordered before treatment change.",
+        type: "Lab visit",
+      },
+    ],
   },
   {
     id: "pat_hector_lebsack",
@@ -77,6 +116,14 @@ export const demoPatients: DemoPatient[] = [
     lastVisit: "Jul 3, 2026",
     nextVisit: "Aug 5, 2026",
     carePlan: "Longevity program",
+    allergies: ["No known allergies"],
+    medications: [
+      { dose: "10 mg daily", name: "Atorvastatin", status: "Active" },
+      { dose: "81 mg daily", name: "Aspirin", status: "Stopped" },
+    ],
+    visits: [
+      { date: "Jul 3, 2026", note: "Cardiometabolic markers reviewed.", type: "Results review" },
+    ],
   },
   {
     id: "pat_matthew_kihn",
@@ -90,6 +137,18 @@ export const demoPatients: DemoPatient[] = [
     lastVisit: "Jun 29, 2026",
     nextVisit: "Jul 30, 2026",
     carePlan: "Medication reconciliation",
+    allergies: ["Codeine"],
+    medications: [
+      { dose: "20 mg daily", name: "Lisinopril", status: "Active" },
+      { dose: "500 mg daily", name: "Metformin", status: "Active" },
+    ],
+    visits: [
+      {
+        date: "Jun 29, 2026",
+        note: "Outside medication list needs reconciliation.",
+        type: "Chart review",
+      },
+    ],
   },
 ];
 
@@ -201,6 +260,10 @@ export const demoOrders = [
     pharmacy: "Affinity Test Pharmacy A",
     status: "Draft",
     updated: "8 min ago",
+    written: "Jul 29, 2026 at 9:34 AM",
+    dose: "0.25 mg weekly",
+    directions: "Inject 0.25 mg under the skin once weekly for 4 weeks.",
+    prescriber: "Dr. Maya Chen",
   },
   {
     id: "rx_01K48NQ2",
@@ -209,6 +272,10 @@ export const demoOrders = [
     pharmacy: "Affinity Test Pharmacy A",
     status: "Submitted",
     updated: "1 hr ago",
+    written: "Jul 29, 2026 at 8:41 AM",
+    dose: "2.5 mg weekly",
+    directions: "Inject 2.5 mg under the skin once weekly.",
+    prescriber: "Dr. Maya Chen",
   },
   {
     id: "rx_01K47ZZ8",
@@ -217,8 +284,106 @@ export const demoOrders = [
     pharmacy: "Affinity Test Pharmacy B",
     status: "Accepted",
     updated: "Yesterday",
+    written: "Jul 28, 2026 at 2:18 PM",
+    dose: "25 mg daily",
+    directions: "Take one capsule by mouth each morning.",
+    prescriber: "Dr. Maya Chen",
   },
 ] as const;
+
+export type DemoCatalogProduct = {
+  category: "Metabolic" | "Dermatology" | "General wellness" | "Sexual health";
+  description: string;
+  dosageForm: string;
+  id: string;
+  name: string;
+  pharmacy: string;
+  price: number;
+  strength: string;
+};
+
+export const demoCatalog: DemoCatalogProduct[] = [
+  {
+    id: "med_semaglutide_b12",
+    name: "Semaglutide + B12",
+    category: "Metabolic",
+    description: "Weekly injectable formulation for clinician directed metabolic care.",
+    dosageForm: "Multi dose vial",
+    strength: "2.5 mg / 1 mg per mL",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 149,
+  },
+  {
+    id: "med_tirzepatide_b12",
+    name: "Tirzepatide + B12",
+    category: "Metabolic",
+    description: "Weekly injectable formulation available in several Test strengths.",
+    dosageForm: "Multi dose vial",
+    strength: "10 mg / 1 mg per mL",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 189,
+  },
+  {
+    id: "med_metformin_er",
+    name: "Metformin ER",
+    category: "Metabolic",
+    description: "Extended release tablets for established treatment plans.",
+    dosageForm: "Tablet",
+    strength: "500 mg",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 28,
+  },
+  {
+    id: "med_tretinoin",
+    name: "Tretinoin cream",
+    category: "Dermatology",
+    description: "Topical retinoid cream for clinician reviewed dermatology plans.",
+    dosageForm: "Cream",
+    strength: "0.025%",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 42,
+  },
+  {
+    id: "med_minoxidil",
+    name: "Minoxidil topical",
+    category: "Dermatology",
+    description: "Topical solution for an established hair care plan.",
+    dosageForm: "Solution",
+    strength: "5%",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 35,
+  },
+  {
+    id: "med_sildenafil",
+    name: "Sildenafil",
+    category: "Sexual health",
+    description: "Oral tablets supplied after clinician review.",
+    dosageForm: "Tablet",
+    strength: "50 mg",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 32,
+  },
+  {
+    id: "med_vitamin_d3",
+    name: "Vitamin D3",
+    category: "General wellness",
+    description: "Daily capsules for documented vitamin D support.",
+    dosageForm: "Capsule",
+    strength: "2,000 IU",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 18,
+  },
+  {
+    id: "med_ondansetron",
+    name: "Ondansetron ODT",
+    category: "General wellness",
+    description: "Orally disintegrating tablets for clinician directed nausea care.",
+    dosageForm: "Tablet",
+    strength: "4 mg",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 24,
+  },
+];
 
 export const demoDocuments = [
   {

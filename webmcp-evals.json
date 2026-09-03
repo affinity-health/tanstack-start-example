@@ -1,0 +1,55 @@
+[
+  {
+    "name": "Search the synthetic marketplace",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Search the marketplace for semaglutide." }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "search_medication_marketplace",
+        "arguments": { "query": "semaglutide", "category": "metabolic" }
+      }
+    ]
+  },
+  {
+    "name": "Open a marketplace product",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Open Semaglutide + B12 in the marketplace." }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "open_marketplace_product",
+        "arguments": { "product": "Semaglutide + B12" }
+      }
+    ]
+  },
+  {
+    "name": "Add a product to a patient cart",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Add Semaglutide + B12 to Ada Zieme's cart. Do not check out."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "add_marketplace_product_to_cart",
+        "arguments": { "product": "Semaglutide + B12", "patient": "Ada Zieme" }
+      }
+    ]
+  },
+  {
+    "name": "Inspect a patient cart",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Inspect Ada Zieme's cart without checking out."
+      }
+    ],
+    "expectedCall": [
+      { "functionName": "inspect_patient_cart", "arguments": { "patient": "Ada Zieme" } }
+    ]
+  }
+]

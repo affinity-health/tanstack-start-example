@@ -18,7 +18,7 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
   const popup = useRef<Window | null>(null);
   const [phase, setPhase] = useState<LaunchPhase>("idle");
   const [message, setMessage] = useState(
-    "Affinity will open in a separate, focused browser window.",
+    "Affinity Test will open in a separate, focused browser window.",
   );
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
       if (!popup.current || popup.current.closed) {
         popup.current = null;
         setPhase("closed");
-        setMessage("The Affinity window was closed. Open a new session when you are ready.");
+        setMessage("The Affinity Test window was closed. Open a new session when you are ready.");
       }
     }, 500);
 
@@ -38,7 +38,7 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
   async function openHostedComposer() {
     if (popup.current && !popup.current.closed) {
       popup.current.focus();
-      setMessage("The existing Affinity window is now in focus.");
+      setMessage("The existing Affinity Test window is now in focus.");
       return;
     }
 
@@ -61,7 +61,7 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
     }
     renderLaunchingWindow(hostedWindow);
     setPhase("creating");
-    setMessage("Creating a single-use Affinity Hosted session…");
+    setMessage("Creating a single-use Affinity Test session…");
 
     try {
       const response = await fetch("/api/affinity/hosted-session", {
@@ -75,11 +75,11 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
 
       if (!response.ok || !result) {
         throw new Error(
-          readError(body) ?? `Affinity hosted-session request failed (HTTP ${response.status}).`,
+          readError(body) ?? `Affinity Test session request failed (HTTP ${response.status}).`,
         );
       }
       if (hostedWindow.closed) {
-        throw new Error("The popup was closed before Affinity finished opening.");
+        throw new Error("The popup was closed before Affinity Test finished opening.");
       }
 
       hostedWindow.location.replace(result.url);
@@ -87,15 +87,17 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
       setPhase("open");
       setMessage(
         providerSetup
-          ? "Affinity is open in a separate window. The platform cannot see the signing PIN."
-          : "Affinity is open in a separate window. Close it when you finish prescribing.",
+          ? "Affinity Test is open in a separate window. Northstar cannot see the signing PIN."
+          : "Affinity Test is open in a separate window. Close it when you finish prescribing.",
       );
     } catch (error) {
       if (!hostedWindow.closed) hostedWindow.close();
       popup.current = null;
       setPhase("error");
       setMessage(
-        error instanceof Error ? error.message : "Affinity could not open the hosted workflow.",
+        error instanceof Error
+          ? error.message
+          : "Affinity Test could not open the hosted workflow.",
       );
     }
   }
@@ -107,7 +109,7 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
           <ExternalLink aria-hidden size={21} />
         </span>
         <div>
-          <span>Affinity Hosted</span>
+          <span>Affinity Test integration</span>
           <h2>
             {providerSetup
               ? "Verify the provider and set the signing PIN"
@@ -115,8 +117,8 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
           </h2>
           <p>
             {providerSetup
-              ? "Northstar creates a single-use provider-verification session. The provider sets or resets the signing PIN only inside Affinity."
-              : "Northstar creates a single-use session on its backend. Affinity opens the complete workflow in a separate browser window without exposing the platform API key."}
+              ? "Northstar creates a single-use provider-verification session. The provider sets or resets the signing PIN only inside Affinity Test."
+              : "Northstar creates a single-use session on its backend. Affinity Test opens the complete workflow in a separate browser window without exposing the platform API key."}
           </p>
         </div>
       </div>
@@ -133,7 +135,7 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
           <span>2</span>
           <div>
             <strong>Validate delegated access</strong>
-            <p>Affinity redeems and verifies the scoped session automatically.</p>
+            <p>Affinity Test redeems and verifies the scoped session automatically.</p>
           </div>
         </li>
         <li>
@@ -144,7 +146,7 @@ export function HostedDemo({ workflow = "prescription_composer" }: { workflow?: 
             </strong>
             <p>
               {providerSetup
-                ? "Verify the provider and save a six-digit signing PIN inside Affinity."
+                ? "Verify the provider and save a six-digit signing PIN inside Affinity Test."
                 : "Close the hosted window when the focused workflow is complete."}
             </p>
           </div>
@@ -178,12 +180,12 @@ window.open(session.url);`}</DemoCode>
             <ExternalLink aria-hidden size={16} />
           )}
           {phase === "creating"
-            ? "Opening Affinity…"
+            ? "Opening Affinity Test…"
             : phase === "open"
-              ? "Focus Affinity window"
+              ? "Focus Affinity Test window"
               : providerSetup
                 ? "Open provider setup"
-                : "Open Affinity window"}
+                : "Open Affinity Test window"}
         </button>
       </div>
     </section>
@@ -210,7 +212,7 @@ function popupFeatures() {
 function renderLaunchingWindow(target: Window) {
   const document = target.document;
   document.documentElement.lang = "en";
-  document.title = "Opening Affinity";
+  document.title = "Opening Affinity Test";
 
   const style = document.createElement("style");
   style.textContent = `
@@ -227,7 +229,7 @@ function renderLaunchingWindow(target: Window) {
   const mark = document.createElement("span");
   mark.textContent = "A";
   const heading = document.createElement("h1");
-  heading.textContent = "Opening Affinity";
+  heading.textContent = "Opening Affinity Test";
   const copy = document.createElement("p");
   copy.textContent = "Creating a secure, single-use prescribing session…";
   main.appendChild(mark);
