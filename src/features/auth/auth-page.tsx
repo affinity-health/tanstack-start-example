@@ -91,8 +91,8 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
           <p className="eyebrow">Northstar telehealth</p>
           <h1>{isLogin ? "Your clinic day starts here." : "Set up your clinic workspace."}</h1>
           <p>
-            Review today&apos;s schedule, open synthetic patient charts, and prepare medication
-            orders in one clinical workspace.
+            Search the medication marketplace, fill a patient cart, and review Test orders in one
+            clinic workspace.
           </p>
         </div>
         <p className="auth-footnote">Demo environment. Synthetic patient data. Never Live.</p>

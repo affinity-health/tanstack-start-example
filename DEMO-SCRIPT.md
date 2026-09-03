@@ -1,66 +1,42 @@
 # Demo script
 
-Target length: 2 minutes 35 seconds. Hard stop: 2 minutes 50 seconds.
+Target length: 2 minutes 30 seconds. Hard stop: 2 minutes 50 seconds.
 
-## 0:00 to 0:20
+## 0:00 to 0:25
 
-Open Northstar and choose **Use demo clinician**. Go to **Patients** and show the "3 browser tools
-ready" status.
+Open Northstar and choose **Use demo clinician**. Land on **Medication marketplace**.
 
-Say: "This is Northstar, a demo telehealth platform you can copy. The signed in app has a schedule,
-patient charts, orders, documents, and messages. Optional WebMCP tools work inside the same clinic."
+Say: "Northstar is a demo telehealth clinic you can copy. The signed in app has a synthetic medication marketplace, patient carts, patients, and Test orders."
 
-## 0:20 to 0:55
+## 0:25 to 1:05
 
-Ask the browser agent: "Find eligible California patients."
+Ask the browser agent: "Search the marketplace for semaglutide and open the result."
 
-Show the filtered directory and the structured tool result. Then ask: "Open Ada Zieme."
+Show the visible search, product grid, and product sheet. Say: "The tool calls a registered Northstar function. It updates the same interface the clinician uses."
 
-Say: "The tools do not scrape the screen. They call Northstar's registered functions, and every
-change is visible to the clinician. The clinic still works without them."
+## 1:05 to 1:40
 
-## 0:55 to 1:30
+Ask: "Add this product to Ada Zieme's cart, then inspect her cart. Do not check out."
 
-Ask: "Prepare Ada's medication review."
+Show the route change, patient name, line item, quantity controls, and unchecked clinician confirmation.
 
-Show the medication orders route, the agent prepared handoff, the order queue, and Ada's unsigned
-review when the hosted Test records match.
+Say: "The agent can fill the cart. It cannot check this box or submit the Test order."
 
-Ask the agent to inspect the Test options, then fill a draft using details you state aloud. Show the
-two additional tools and the unchecked clinician confirmation.
+## 1:40 to 2:05
 
-Say: "The agent copied my supplied details into the visible form. It cannot check this confirmation,
-create the order, or access the signing PIN. No order has been created."
+As the clinician, review the patient and product, check the confirmation, and select **Confirm Test checkout**. Open **Orders** and show the new row.
 
-## 1:30 to 1:55
+Say: "The human action moved the cart into Affinity Test. The example never uses Live or real patient data."
 
-Return to **Patients** and ask the agent to prepare Denise Kuhn, whose status is Review.
+## 2:05 to 2:30
 
-Show the rejection.
+Show `src/lib/webmcp.ts`, `src/features/webmcp/marketplace-tools.ts`, and the marketplace tool tests.
 
-Say: "The shared workflow rejects patients who still need eligibility review. The agent cannot route
-around that check."
-
-## 1:55 to 2:20
-
-Show `src/lib/webmcp.ts`, the five tools across `src/features/webmcp/`, and the adapter tests.
-
-Say: "The public source uses `document.modelContext.registerTool`, JSON Schema, an AbortSignal for
-cleanup, and a no-op fallback for browsers without WebMCP. The same module drives a synthetic adapter
-and a hosted Affinity Test adapter, with a separate human confirmation gate."
-
-## 2:20 to 2:35
-
-Show the live URL and repository branch.
-
-Say: "Northstar runs on an isolated Alchemy v2 challenge stage. Affinity Test is the prescribing
-backend. The example uses synthetic patients, Stripe Test, and an internal Test pharmacy. It never
-uses Live."
+Say: "The public source uses document.modelContext.registerTool, JSON Schema, and an AbortSignal for cleanup. All four tools stop before checkout."
 
 ## Capture checklist
 
-- Use a 1440 by 900 browser viewport and 125 percent editor zoom.
-- Hide personal browser tabs, notifications, tokens, and terminal history.
-- Keep the WebMCP agent panel and the affected UI visible in the same frame.
-- Record one clean take. Trim dead time, but do not accelerate tool results.
-- Upload as an unlisted or public YouTube video and confirm the final duration is under three minutes.
+- Use a 1440 by 900 viewport and 125 percent editor zoom.
+- Hide tokens, personal tabs, notifications, and terminal history.
+- Keep the agent panel and changed clinic UI in the same frame.
+- Record one clean take and keep the final video under three minutes.

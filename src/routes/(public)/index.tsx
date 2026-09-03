@@ -5,11 +5,12 @@ import {
   FileText,
   Robot,
   ShieldCheck,
+  ShoppingCart,
   UserCircleCheck,
 } from "@phosphor-icons/react";
 
-import { LandingReveal, TaglineReveal } from "../../features/landing/tagline-reveal";
 import { HeroProductVisual } from "../../features/landing/hero-product-visual";
+import { LandingReveal, TaglineReveal } from "../../features/landing/tagline-reveal";
 
 export const Route = createFileRoute("/(public)/")({
   head: () => ({
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/(public)/")({
       {
         name: "description",
         content:
-          "Fork a small example telehealth clinic with synthetic patients, an Affinity Test prescribing integration, and optional WebMCP access.",
+          "Fork a small example telehealth clinic where people and browser agents search a synthetic medication marketplace and fill a patient cart.",
       },
     ],
   }),
@@ -29,17 +30,17 @@ const benefits = [
   {
     icon: FileText,
     title: "Fork a working clinic",
-    copy: "Northstar includes an EHR style workspace, synthetic patients, visit context, and a medication review flow. Start from code you can run.",
+    copy: "Northstar includes synthetic patients, a medication marketplace, patient carts, and Test orders. Start from code you can run.",
   },
   {
     icon: Robot,
     title: "Use WebMCP if you want it",
-    copy: "Five WebMCP tools are already installed. Keep them, change them, or remove them without changing the clinic workflow.",
+    copy: "Four WebMCP tools let agents search, open products, add to a cart, and inspect it in the same clinic UI.",
   },
   {
     icon: ShieldCheck,
-    title: "Keep prescribing human",
-    copy: "An agent may prepare an unsigned Test draft. A clinician still reviews the form and confirms every prescribing decision.",
+    title: "Keep checkout human",
+    copy: "An agent may fill a patient cart. A clinician still reviews every item and confirms Test checkout.",
   },
 ];
 
@@ -51,16 +52,16 @@ const steps = [
     copy: "Fork Northstar and run the same small telehealth clinic shown on this page.",
   },
   {
-    icon: Robot,
+    icon: ShoppingCart,
     number: "02",
-    title: "Run the clinic workspace",
-    copy: "Open synthetic patients, review a completed encounter, and move the visit into Affinity Test.",
+    title: "Build a patient cart",
+    copy: "Search the synthetic medication marketplace, open a product, and add it for a named patient.",
   },
   {
     icon: UserCircleCheck,
     number: "03",
-    title: "Add the agent when useful",
-    copy: "Optionally ask a WebMCP enabled browser agent to prepare the unsigned draft. The clinician confirms it.",
+    title: "Check out as the clinician",
+    copy: "Use the normal UI or let a WebMCP agent fill the cart. Only the clinician can confirm Test checkout.",
   },
 ];
 
@@ -68,32 +69,32 @@ const questions = [
   {
     question: "What is Northstar?",
     answer:
-      "Northstar is a small example telehealth platform you can fork. It includes an EHR style clinic workspace, synthetic patient data, and a medication review flow.",
+      "Northstar is a small example telehealth platform you can fork. It includes synthetic patients, a medication marketplace, patient carts, and simple Test orders.",
   },
   {
     question: "What is Affinity in this example?",
     answer:
-      "Affinity Test is the prescribing backend behind Northstar. This example prepares unsigned Test drafts only and never connects to Live.",
+      "Affinity Test is the backend behind Northstar's cart and order flow. The example uses synthetic data and never connects to Live.",
   },
   {
     question: "Do I need WebMCP to use the clinic?",
     answer:
-      "No. The clinic works through its normal human interface. WebMCP is an optional integration that is already wired into the example.",
+      "No. The marketplace and cart work through the normal clinic interface. WebMCP is optional and already wired into the example.",
   },
   {
-    question: "Can a browser agent prescribe?",
+    question: "Can a browser agent check out?",
     answer:
-      "No. An agent can prepare an unsigned proposal, but it cannot confirm or create an order. The clinician confirmation gate stops it first.",
+      "No. An agent can search, open a product, add it to a patient cart, and inspect the cart. Only a clinician can confirm checkout.",
   },
   {
     question: "Does the example use real patient data?",
     answer:
-      "No. Every patient is synthetic and every prescribing operation stays in Affinity Test. Northstar never connects to Live patient data.",
+      "No. Every patient and product is synthetic. Cart checkout stays in Affinity Test, and Northstar never connects to Live patient data.",
   },
   {
     question: "What should I try first?",
     answer:
-      "Open the clinic workspace and review the synthetic visit yourself. To try the optional agent path, ask it to prepare Ada Zieme's medication review without creating an order.",
+      "Use the demo clinician, search for Semaglutide, and add it to Ada Zieme's cart. Then open the cart and review it as the clinician.",
   },
 ];
 
@@ -104,16 +105,18 @@ function Home() {
       <section className="landing-hero section-shell" aria-labelledby="page-title">
         <div className="hero-copy">
           <p className="hero-kicker">
-            <span aria-hidden /> Example telehealth platform
+            <span aria-hidden />
+            Example telehealth platform
           </p>
           <h1 id="page-title">
             A demo telehealth clinic
             <br /> you can copy.
           </h1>
           <p className="hero-summary">
-            Northstar is a small example EHR for telehealth. Fork it. WebMCP is already wired if you
-            want a browser agent to prepare an unsigned Test draft. A clinician still confirms every
-            prescribing decision.
+            Northstar is a small example clinic for telehealth. Fork it. Search a synthetic
+            medication marketplace, add products to a patient cart, and review Test orders. WebMCP
+            is already wired if you want a browser agent to fill the cart. A clinician still checks
+            out.
           </p>
           <div className="hero-actions">
             <Link className="landing-button landing-button-primary" to="/login">
@@ -124,13 +127,12 @@ function Home() {
             </Link>
           </div>
           <p className="hero-proof">
-            <ShieldCheck aria-hidden weight="fill" /> Synthetic patients. Affinity Test. Never Live.
+            <ShieldCheck aria-hidden weight="fill" />
+            Synthetic patients. Affinity Test. Never Live.
           </p>
         </div>
-
         <HeroProductVisual />
       </section>
-
       <section
         className="benefits-section section-shell"
         id="benefits"
@@ -153,9 +155,7 @@ function Home() {
           ))}
         </div>
       </section>
-
       <TaglineReveal />
-
       <section
         className="how-section section-shell"
         id="workflow"
@@ -164,7 +164,7 @@ function Home() {
       >
         <header className="section-heading">
           <p>How it works</p>
-          <h2 id="workflow-title">Run Northstar first. Add agent access when you want it.</h2>
+          <h2 id="workflow-title">Search the catalog. Build a patient cart. Check it yourself.</h2>
         </header>
         <ol className="how-grid">
           {steps.map(({ icon: Icon, number, title, copy }) => (
@@ -179,40 +179,36 @@ function Home() {
           ))}
         </ol>
       </section>
-
       <section className="proof-section" id="proof" aria-labelledby="proof-title">
         <div className="section-shell proof-layout" data-landing-reveal>
           <div>
             <p className="proof-kicker">What belongs where</p>
-            <h2 id="proof-title">
-              Northstar is the clinic. Affinity Test is the prescribing backend.
-            </h2>
+            <h2 id="proof-title">Northstar is the clinic. Affinity Test is the Test backend.</h2>
             <p>
-              WebMCP gives a browser agent optional access to prepare visible work. The agent stops
-              at Northstar's clinician confirmation gate.
+              WebMCP lets a browser agent search the same catalog and fill the same patient cart.
+              The agent stops before Northstar's clinician checkout gate.
             </p>
           </div>
           <dl className="proof-list">
             <div>
               <dt>Northstar</dt>
-              <dd>Copyable clinic and EHR style workspace</dd>
+              <dd>Copyable clinic, marketplace, patient cart, and orders</dd>
             </div>
             <div>
               <dt>Affinity Test</dt>
-              <dd>Prescribing backend for unsigned demo drafts</dd>
+              <dd>Backend for synthetic Test carts and orders</dd>
             </div>
             <div>
               <dt>WebMCP</dt>
-              <dd>Optional browser agent access that is already wired</dd>
+              <dd>Optional catalog and cart tools that are already wired</dd>
             </div>
             <div>
               <dt>Clinician</dt>
-              <dd>Confirms every prescribing decision</dd>
+              <dd>Reviews the cart and confirms checkout</dd>
             </div>
           </dl>
         </div>
       </section>
-
       <section
         className="faq-section section-shell"
         aria-labelledby="faq-title"
@@ -231,7 +227,6 @@ function Home() {
           ))}
         </div>
       </section>
-
       <section
         className="final-cta section-shell"
         aria-labelledby="final-cta-title"
@@ -240,10 +235,10 @@ function Home() {
         <div>
           <ClipboardText aria-hidden weight="duotone" />
           <p>Open the example clinic</p>
-          <h2 id="final-cta-title">Sign in and start with today&apos;s schedule.</h2>
+          <h2 id="final-cta-title">Sign in and open the medication marketplace.</h2>
           <p>
-            Use the demo clinician for immediate access, or create your own account. Every patient
-            and order is synthetic.
+            Use the demo clinician for immediate access, or create your own account. Every patient,
+            product, cart, and order is synthetic.
           </p>
         </div>
         <Link className="landing-button landing-button-light" to="/login">

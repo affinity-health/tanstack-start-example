@@ -1,8 +1,19 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Home, LogOut, Pill, Search, Stethoscope, Users, X } from "lucide-react";
+import {
+  ClipboardList,
+  LogOut,
+  Search,
+  ShoppingCart,
+  Stethoscope,
+  Store,
+  Users,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { demoOrders, demoPatients } from "../lib/demo-data";
+import { ClinicAgentTools } from "../features/webmcp/clinic-agent-tools";
+import { useClinicCommerce } from "../features/marketplace/clinic-commerce";
+import { demoCatalog, demoOrders, demoPatients } from "../lib/demo-data";
 import { authClient } from "../lib/auth-client";
 import type { WorkspaceSession } from "../lib/require-session";
 
@@ -10,6 +21,7 @@ type WorkspacePage =
   | "documents"
   | "messages"
   | "overview"
+  | "cart"
   | "patients"
   | "prescriptions"
   | "schedule";
@@ -23,12 +35,6 @@ type EmrShellProps = {
   title: string;
 };
 
-const navigation = [
-  { icon: Home, id: "overview", label: "Home", to: "/dashboard" },
-  { count: 1, icon: Pill, id: "prescriptions", label: "Orders", to: "/medication-orders" },
-  { icon: Users, id: "patients", label: "Patients", to: "/patients" },
-] as const;
-
 export function EmrShell({
   actions,
   children,
@@ -38,6 +44,7 @@ export function EmrShell({
   title,
 }: EmrShellProps) {
   const navigate = useNavigate();
+  const commerce = useClinicCommerce();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchInput = useRef<HTMLInputElement>(null);
@@ -66,6 +73,22 @@ export function EmrShell({
         patientId: patient.id,
         to: "/patients" as const,
       }));
+    const products = demoCatalog
+      .filter((product) =>
+        [product.name, product.description, product.strength, product.category]
+          .join(" ")
+          .toLowerCase()
+          .includes(value),
+      )
+      .slice(0, 4)
+      .map((product) => ({
+        detail: `${product.strength} · ${product.category}`,
+        id: product.id,
+        kind: "Product" as const,
+        label: product.name,
+        productId: product.id,
+        to: "/dashboard" as const,
+      }));
     const orders = demoOrders
       .filter((order) =>
         [order.id, order.patient, order.medication, order.status]
@@ -82,8 +105,14 @@ export function EmrShell({
         patientId: demoPatients.find((patient) => patient.name === order.patient)?.id,
         to: "/medication-orders" as const,
       }));
-    return [...patients, ...orders];
+    return [...products, ...patients, ...orders];
   }, [query]);
+  const navigation = [
+    { icon: Store, id: "overview", label: "Marketplace", to: "/dashboard" },
+    { count: commerce.cartCount, icon: ShoppingCart, id: "cart", label: "Cart", to: "/cart" },
+    { icon: Users, id: "patients", label: "Patients", to: "/patients" },
+    { icon: ClipboardList, id: "prescriptions", label: "Orders", to: "/medication-orders" },
+  ] as const;
 
   useEffect(() => {
     const openSearch = (event: KeyboardEvent) => {
@@ -138,10 +167,12 @@ export function EmrShell({
                   <Link
                     key={`${match.kind}-${match.id}`}
                     onClick={() => {
+                      if ("productId" in match && match.productId)
+                        commerce.openProduct(match.productId);
                       setSearchOpen(false);
                       setQuery("");
                     }}
-                    search={{ patientId: match.patientId }}
+                    search={{ patientId: "patientId" in match ? match.patientId : undefined }}
                     to={match.to}
                   >
                     <span>
@@ -159,6 +190,7 @@ export function EmrShell({
         </div>
 
         <div className="emr-topbar-actions">
+          <ClinicAgentTools />
           <span className="emr-environment">Synthetic · Affinity Test</span>
           <span className="emr-avatar" aria-label={session.user.name}>
             {initials}

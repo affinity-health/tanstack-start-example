@@ -4,74 +4,41 @@
 
 Northstar, a demo telehealth platform
 
-## One-line summary
+## One line summary
 
-A copyable example telehealth clinic with synthetic patients, an Affinity Test prescribing backend,
-and optional WebMCP tools that cannot cross the clinician confirmation gate.
+A copyable telehealth clinic where a browser agent can search a synthetic medication marketplace and fill a patient cart, while checkout stays with the clinician.
 
 ## What it does
 
-Northstar works as a normal clinic workspace with a dashboard, patient charts, an order queue,
-documents, messages, and a schedule. On the authenticated Patients route, three optional browser
-tools can search synthetic patients, open the same chart shown to the clinician, and prepare an
-eligible patient's medication review. Each action updates Northstar's visible interface.
+Northstar opens into a searchable Test catalog. A clinician or browser agent can open a product and add it to a named synthetic patient's cart. The Cart screen shows the patient, line items, quantities, and estimated total. Only a clinician can check the confirmation and submit the Test order.
 
-The authenticated Test form exposes two additional tools: one reports options already on screen and
-one fills a draft from clinician-supplied details. The agent cannot check the confirmation gate or
-call order creation. The clinician reviews the form, explicitly confirms it, and completes signing
-inside Affinity Test.
+The authenticated app registers four WebMCP tools. They search the marketplace, open a product, add a product to a patient cart, and inspect the cart. Each tool changes the visible Northstar UI. None can confirm checkout, create an order, prescribe, sign, or enter a PIN.
 
 ## How we built it
 
-- TanStack Start and React power the existing clinician workspace.
-- `document.modelContext.registerTool` exposes five imperative WebMCP tools with JSON Schema.
-- One small prescribing workflow module provides two adapters: local synthetic demo records and the
-  authenticated Affinity Test routes.
-- The existing authenticated server routes use `@affinity-health/sdk` with production-hosted Test
-  credentials.
+- TanStack Start and React power the clinic.
+- `document.modelContext.registerTool` exposes four tools with JSON Schema.
+- One shared React model owns catalog filters, product detail, patient carts, and submitted Test orders.
+- Affinity Test remains the backend boundary inside Northstar.
 - Alchemy v2 deploys the isolated `webmcp-challenge` stage to Cloudflare Workers and D1.
-- Bun tests cover patient matching, eligibility rejection, tool side effects, tool registration,
-  unsupported browsers, request origins, and webhook verification.
+- Bun tests cover tool inputs, visible actions, the checkout boundary, registration, request origins, and webhooks.
 
-## Why the safety boundary matters
+## Why the boundary matters
 
-Healthcare agents should make routine navigation easier without silently becoming clinicians. This
-demo makes the boundary executable. An ineligible patient cannot enter the prescribing flow; an
-agent-prepared clinical draft cannot pass the separate human confirmation gate. Every agent action
-is visible and reversible. Affinity Test still owns provider authorization and signing.
+The agent can do useful setup work without becoming the clinician. A filled cart is visible and reversible. Northstar does not create a Test order until the clinician reviews the cart and confirms checkout. The demo uses only synthetic patients and products, and never connects to Live.
 
 ## What is new for the challenge
 
-Baseline `f55eedef7c8833f15dad335c23ba8f29bb521835` is dated August 5, 2026. It contains the
-pre-existing Northstar workspace and Affinity Test integrations.
-
-Branch `webmcp-challenge` adds all challenge work in commits dated after August 25, 2026:
-
-- direct WebMCP registration and lifecycle cleanup;
-- patient search, selection, and safe review preparation tools;
-- shared workflow logic and focused tests;
-- visible agent status, handoff state, and accessible announcements;
-- safety, architecture, deployment, and submission documentation;
-- a root MIT license.
+Baseline `f55eedef7c8833f15dad335c23ba8f29bb521835` is dated August 5, 2026. Branch `webmcp-challenge` adds the direct WebMCP registration, marketplace and cart tools, shared visible state, safety tests, clinic UI, MIT license, and submission docs in commits dated after August 25, 2026.
 
 ## Test evidence
 
-- `bun run check`: 23 tests passing; lint, formatting, and TypeScript passing.
-- `bun run build`: client and SSR production builds passing.
-- Native Chrome WebMCP smoke: three authenticated patient tools discovered; search execution
-  returned two eligible California patients and updated the visible query to `CA`.
+- `bun run check`: 27 tests pass; lint, formatting, and TypeScript checks pass.
+- `bun run build`: client and server production builds pass.
+- Native Chrome WebMCP smoke: pending final marketplace verification.
 
 ## Links
 
 - Live demo: `PENDING_ALCHEMY_V2_DEPLOY`
 - Source: https://github.com/affinity-health/tanstack-start-example/tree/webmcp-challenge
 - Video: `PENDING_YOUTUBE_URL`
-
-## Submission checklist
-
-- [x] MIT license published on the public GitHub branch
-- [x] Public repository includes `document.modelContext.registerTool`
-- [x] Dated challenge commit visible after August 25, 2026
-- [ ] Alchemy v2 non-production live URL verified
-- [ ] Public YouTube demo is under three minutes
-- [ ] Devpost fields contain the final repository, live demo, and video URLs

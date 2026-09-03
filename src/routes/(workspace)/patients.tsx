@@ -2,7 +2,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   AlertTriangle,
   CalendarDays,
-  ClipboardPlus,
+  ShoppingCart,
   History,
   Mail,
   MapPin,
@@ -11,12 +11,11 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { EmrShell, EmrStatus } from "../../components/emr-shell";
-import { PatientAgentTools } from "../../features/webmcp/patient-agent-tools";
+import { useClinicCommerce } from "../../features/marketplace/clinic-commerce";
 import { demoPatients } from "../../lib/demo-data";
-import type { PatientFilter } from "../../lib/patient-workflow";
 import { requireSession } from "../../lib/require-session";
 
 export const Route = createFileRoute("/(workspace)/patients")({
@@ -30,11 +29,11 @@ export const Route = createFileRoute("/(workspace)/patients")({
 
 function Patients() {
   const { session } = Route.useRouteContext();
+  const commerce = useClinicCommerce();
   const search = Route.useSearch();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"All" | "Eligible" | "Review">("All");
   const [selectedId, setSelectedId] = useState<string | null>(search.patientId ?? null);
-  const [agentAnnouncement, setAgentAnnouncement] = useState("");
 
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
@@ -42,26 +41,6 @@ function Patients() {
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, []);
-  const handleAgentSearch = useCallback(
-    (nextQuery: string, nextStatus: PatientFilter, message: string) => {
-      setQuery(nextQuery);
-      setStatus(
-        nextStatus === "eligible" ? "Eligible" : nextStatus === "review" ? "Review" : "All",
-      );
-      setAgentAnnouncement(message);
-    },
-    [],
-  );
-  const handleAgentOpen = useCallback((patientId: string, message: string) => {
-    setQuery("");
-    setStatus("All");
-    setSelectedId(patientId);
-    setAgentAnnouncement(message);
-  }, []);
-  const handleAgentPrepare = useCallback((path: string, message: string) => {
-    setAgentAnnouncement(message);
-    window.setTimeout(() => window.location.assign(path), 150);
   }, []);
   const filteredPatients = useMemo(() => {
     const value = query.trim().toLowerCase();
@@ -109,16 +88,7 @@ function Patients() {
               </button>
             ))}
           </div>
-          <PatientAgentTools
-            onAnnouncement={setAgentAnnouncement}
-            onOpen={handleAgentOpen}
-            onPrepare={handleAgentPrepare}
-            onSearch={handleAgentSearch}
-          />
         </div>
-        <p className="sr-only" aria-live="polite">
-          {agentAnnouncement}
-        </p>
         {filteredPatients.length ? (
           <div className="emr-table-wrap">
             <table className="emr-table emr-patient-table">
@@ -289,11 +259,11 @@ function Patients() {
             <footer className="emr-sheet-footer">
               <Link
                 className="emr-button emr-button-primary"
-                search={{ patientId: selectedPatient.id }}
-                to="/medication-orders"
+                onClick={() => commerce.setSelectedCartPatientId(selectedPatient.id)}
+                to="/dashboard"
               >
-                <ClipboardPlus aria-hidden size={16} />
-                Prepare order
+                <ShoppingCart aria-hidden size={16} />
+                Shop for patient
               </Link>
               <a
                 className="emr-button emr-button-secondary"

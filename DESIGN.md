@@ -1,6 +1,6 @@
 ---
 name: Northstar demo telehealth platform
-description: A copyable example telehealth clinic that leads directly into a working synthetic prescribing workflow.
+description: A copyable example telehealth clinic centered on a synthetic medication marketplace and patient cart.
 colors:
   canvas: "#f4f7f6"
   surface: "#ffffff"
@@ -56,8 +56,8 @@ motion:
 
 The page presents one product: Northstar, a small example telehealth clinic that people can fork.
 WebMCP Challenge judges and telehealth platform builders should sign in, enter the clinic, and use
-the same workspace shipped in the repository. Affinity Test is the prescribing backend inside
-Northstar. WebMCP is an optional integration that is already wired into the authenticated clinic.
+the same marketplace and cart shipped in the repository. Affinity Test is the Test backend inside
+Northstar. WebMCP is an optional integration already wired into the authenticated clinic.
 
 The public page uses layout A: a classic hero, supporting sections, and a repeated sign in call to
 action. The generated hero frame supports the story. The actual clinic starts after authentication
@@ -112,10 +112,10 @@ and animation while keeping every state visible.
 ## Product and safety states
 
 The authenticated clinic must retain hover, active, focus, loading, empty, and specific inline error
-states. Northstar is the example clinic and Affinity Test is its prescribing backend. Browser tools
-are optional. They may search, open, inspect, and prepare visible state, but they may not confirm,
-create, sign, or transmit a prescription. Affinity Test, synthetic patients, unsigned proposal, and
-never Live stay visible in the medication workflow.
+states. Northstar is the example clinic and Affinity Test is its Test backend. Browser tools are
+optional. They may search the marketplace, open a product, add it to a patient cart, and inspect the
+cart. They may not confirm checkout, create an order, prescribe, sign, or transmit anything.
+Affinity Test, synthetic data, clinician checkout, and never Live remain visible in the workflow.
 
 ## Ship requirements
 

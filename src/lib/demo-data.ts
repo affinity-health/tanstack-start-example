@@ -291,6 +291,100 @@ export const demoOrders = [
   },
 ] as const;
 
+export type DemoCatalogProduct = {
+  category: "Metabolic" | "Dermatology" | "General wellness" | "Sexual health";
+  description: string;
+  dosageForm: string;
+  id: string;
+  name: string;
+  pharmacy: string;
+  price: number;
+  strength: string;
+};
+
+export const demoCatalog: DemoCatalogProduct[] = [
+  {
+    id: "med_semaglutide_b12",
+    name: "Semaglutide + B12",
+    category: "Metabolic",
+    description: "Weekly injectable formulation for clinician directed metabolic care.",
+    dosageForm: "Multi dose vial",
+    strength: "2.5 mg / 1 mg per mL",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 149,
+  },
+  {
+    id: "med_tirzepatide_b12",
+    name: "Tirzepatide + B12",
+    category: "Metabolic",
+    description: "Weekly injectable formulation available in several Test strengths.",
+    dosageForm: "Multi dose vial",
+    strength: "10 mg / 1 mg per mL",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 189,
+  },
+  {
+    id: "med_metformin_er",
+    name: "Metformin ER",
+    category: "Metabolic",
+    description: "Extended release tablets for established treatment plans.",
+    dosageForm: "Tablet",
+    strength: "500 mg",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 28,
+  },
+  {
+    id: "med_tretinoin",
+    name: "Tretinoin cream",
+    category: "Dermatology",
+    description: "Topical retinoid cream for clinician reviewed dermatology plans.",
+    dosageForm: "Cream",
+    strength: "0.025%",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 42,
+  },
+  {
+    id: "med_minoxidil",
+    name: "Minoxidil topical",
+    category: "Dermatology",
+    description: "Topical solution for an established hair care plan.",
+    dosageForm: "Solution",
+    strength: "5%",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 35,
+  },
+  {
+    id: "med_sildenafil",
+    name: "Sildenafil",
+    category: "Sexual health",
+    description: "Oral tablets supplied after clinician review.",
+    dosageForm: "Tablet",
+    strength: "50 mg",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 32,
+  },
+  {
+    id: "med_vitamin_d3",
+    name: "Vitamin D3",
+    category: "General wellness",
+    description: "Daily capsules for documented vitamin D support.",
+    dosageForm: "Capsule",
+    strength: "2,000 IU",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 18,
+  },
+  {
+    id: "med_ondansetron",
+    name: "Ondansetron ODT",
+    category: "General wellness",
+    description: "Orally disintegrating tablets for clinician directed nausea care.",
+    dosageForm: "Tablet",
+    strength: "4 mg",
+    pharmacy: "Northstar Test Pharmacy",
+    price: 24,
+  },
+];
+
 export const demoDocuments = [
   {
     id: "doc_1",

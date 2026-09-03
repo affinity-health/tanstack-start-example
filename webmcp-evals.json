@@ -1,57 +1,55 @@
 [
   {
-    "name": "Find eligible California patients",
+    "name": "Search the synthetic marketplace",
     "messages": [
-      {
-        "role": "user",
-        "type": "message",
-        "content": "Find the eligible synthetic patients in California."
-      }
+      { "role": "user", "type": "message", "content": "Search the marketplace for semaglutide." }
     ],
     "expectedCall": [
       {
-        "functionName": "search_synthetic_patients",
-        "arguments": {
-          "query": "CA",
-          "status": "eligible"
-        }
+        "functionName": "search_medication_marketplace",
+        "arguments": { "query": "semaglutide", "category": "metabolic" }
       }
     ]
   },
   {
-    "name": "Open a synthetic patient record",
+    "name": "Open a marketplace product",
     "messages": [
-      {
-        "role": "user",
-        "type": "message",
-        "content": "Open Ada Zieme's synthetic patient record."
-      }
+      { "role": "user", "type": "message", "content": "Open Semaglutide + B12 in the marketplace." }
     ],
     "expectedCall": [
       {
-        "functionName": "open_synthetic_patient",
-        "arguments": {
-          "patient": "Ada Zieme"
-        }
+        "functionName": "open_marketplace_product",
+        "arguments": { "product": "Semaglutide + B12" }
       }
     ]
   },
   {
-    "name": "Prepare a safe medication review",
+    "name": "Add a product to a patient cart",
     "messages": [
       {
         "role": "user",
         "type": "message",
-        "content": "Prepare Ada Zieme's medication review, but do not create a prescription."
+        "content": "Add Semaglutide + B12 to Ada Zieme's cart. Do not check out."
       }
     ],
     "expectedCall": [
       {
-        "functionName": "prepare_medication_review",
-        "arguments": {
-          "patient": "Ada Zieme"
-        }
+        "functionName": "add_marketplace_product_to_cart",
+        "arguments": { "product": "Semaglutide + B12", "patient": "Ada Zieme" }
       }
+    ]
+  },
+  {
+    "name": "Inspect a patient cart",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Inspect Ada Zieme's cart without checking out."
+      }
+    ],
+    "expectedCall": [
+      { "functionName": "inspect_patient_cart", "arguments": { "patient": "Ada Zieme" } }
     ]
   }
 ]

@@ -9,6 +9,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { PublicHeader } from "../features/landing/public-header";
+import { ClinicCommerceProvider } from "../features/marketplace/clinic-commerce";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -24,14 +25,14 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Fork a small example telehealth clinic with synthetic patients, Affinity Test prescribing, and optional WebMCP access.",
+          "Fork a small example telehealth clinic with a synthetic medication marketplace, patient carts, Affinity Test, and optional WebMCP access.",
       },
       { property: "og:type", content: "website" },
       { property: "og:title", content: "Northstar, a demo telehealth platform" },
       {
         property: "og:description",
         content:
-          "A copyable example EHR for telehealth with synthetic patients and optional WebMCP access.",
+          "A copyable telehealth clinic where people and agents search a synthetic marketplace and fill patient carts together.",
       },
       {
         property: "og:image",
@@ -56,6 +57,7 @@ function RootDocument() {
     select: (state) =>
       [
         "/dashboard",
+        "/cart",
         "/documents",
         "/medication-orders",
         "/messages",
@@ -74,9 +76,11 @@ function RootDocument() {
           Skip to content
         </a>
         {isWorkspace ? null : <PublicHeader />}
-        <div id="main-content" tabIndex={-1}>
-          <Outlet />
-        </div>
+        <ClinicCommerceProvider>
+          <div id="main-content" tabIndex={-1}>
+            <Outlet />
+          </div>
+        </ClinicCommerceProvider>
         {isWorkspace ? null : (
           <footer className="site-footer">
             <Link className="landing-wordmark" to="/">
