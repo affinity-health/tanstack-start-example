@@ -157,7 +157,7 @@ export function HeadlessSdkDemo({ preferredPatientName }: { preferredPatientName
       </div>
 
       <div className="headless-demo-body">
-        <ol className="headless-flow" aria-label="Headless SDK workflow">
+        <ol className="headless-flow" aria-label="Medication order workflow">
           <li>
             <strong>1</strong>
             <span>

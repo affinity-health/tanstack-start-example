@@ -4,10 +4,11 @@ Target length: 2 minutes 35 seconds. Hard stop: 2 minutes 50 seconds.
 
 ## 0:00 to 0:20
 
-Show the public Northstar patient demo and the "3 browser tools ready" status.
+Open Northstar and choose **Use demo clinician**. Go to **Patients** and show the "3 browser tools
+ready" status.
 
-Say: "This is Northstar, a demo telehealth platform you can copy. It works as a normal clinic
-workspace, and its optional WebMCP integration exposes three browser tools using synthetic data."
+Say: "This is Northstar, a demo telehealth platform you can copy. The signed in app has a schedule,
+patient charts, orders, documents, and messages. Optional WebMCP tools work inside the same clinic."
 
 ## 0:20 to 0:55
 
@@ -22,8 +23,8 @@ change is visible to the clinician. The clinic still works without them."
 
 Ask: "Prepare Ada's medication review."
 
-Show the medication orders route, the agent-prepared handoff, the Headless SDK tab, and Ada selected
-when the hosted Test records match.
+Show the medication orders route, the agent prepared handoff, the order queue, and Ada's unsigned
+review when the hosted Test records match.
 
 Ask the agent to inspect the Test options, then fill a draft using details you state aloud. Show the
 two additional tools and the unchecked clinician confirmation.
@@ -33,7 +34,7 @@ create the order, or access the signing PIN. No order has been created."
 
 ## 1:30 to 1:55
 
-Return to the public demo and ask the agent to prepare Denise Kuhn, whose status is Review.
+Return to **Patients** and ask the agent to prepare Denise Kuhn, whose status is Review.
 
 Show the rejection.
 

@@ -1,5 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDays, Mail, MapPin, Phone, Search, ShieldCheck, UserRound } from "lucide-react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import {
+  AlertTriangle,
+  CalendarDays,
+  ClipboardPlus,
+  History,
+  Mail,
+  MapPin,
+  Pill,
+  Phone,
+  Search,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { EmrSectionHeading, EmrShell, EmrStatus } from "../../components/emr-shell";
@@ -13,14 +25,18 @@ export const Route = createFileRoute("/(workspace)/patients")({
   head: () => ({
     meta: [{ title: "Patients | Northstar Health" }],
   }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    patientId: typeof search.patientId === "string" ? search.patientId : undefined,
+  }),
   component: Patients,
 });
 
 function Patients() {
   const { session } = Route.useRouteContext();
+  const search = Route.useSearch();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"All" | "Eligible" | "Review">("All");
-  const [selectedId, setSelectedId] = useState("pat_ada_zieme");
+  const [selectedId, setSelectedId] = useState(search.patientId ?? "pat_ada_zieme");
   const [agentAnnouncement, setAgentAnnouncement] = useState("");
 
   const handleAgentSearch = useCallback(
@@ -179,7 +195,7 @@ function Patients() {
         </section>
 
         {selectedPatient ? (
-          <aside className="emr-panel emr-patient-detail" aria-label="Selected patient">
+          <aside className="emr-panel emr-patient-detail" aria-label="Patient chart">
             <div className="emr-patient-identity">
               <span className="emr-person-avatar emr-person-avatar-large" aria-hidden>
                 {selectedPatient.name
@@ -232,6 +248,56 @@ function Patients() {
               <strong>{selectedPatient.carePlan}</strong>
               <p>Last visit {selectedPatient.lastVisit}</p>
             </div>
+            <section className="emr-chart-section" aria-labelledby="medications-title">
+              <h3 id="medications-title">
+                <Pill aria-hidden size={15} /> Medications
+              </h3>
+              <ul>
+                {selectedPatient.medications.map((medication) => (
+                  <li key={medication.name}>
+                    <span>
+                      <strong>{medication.name}</strong>
+                      <small>{medication.dose}</small>
+                    </span>
+                    <EmrStatus tone={medication.status === "Active" ? "success" : "neutral"}>
+                      {medication.status}
+                    </EmrStatus>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section className="emr-chart-section" aria-labelledby="allergies-title">
+              <h3 id="allergies-title">
+                <AlertTriangle aria-hidden size={15} /> Allergies
+              </h3>
+              <ul>
+                {selectedPatient.allergies.map((allergy) => (
+                  <li key={allergy}>
+                    <span>
+                      <strong>{allergy}</strong>
+                      <small>Patient reported</small>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section className="emr-chart-section" aria-labelledby="visits-title">
+              <h3 id="visits-title">
+                <History aria-hidden size={15} /> Recent visits
+              </h3>
+              <ul>
+                {selectedPatient.visits.map((visit) => (
+                  <li key={`${visit.date}-${visit.type}`}>
+                    <span>
+                      <strong>{visit.type}</strong>
+                      <small>
+                        {visit.date} · {visit.note}
+                      </small>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
             <div className="emr-detail-section">
               <span>Prescribing status</span>
               <strong className="emr-detail-success">
@@ -240,13 +306,23 @@ function Patients() {
               </strong>
               <p>Affinity Test verifies provider scope before showing prescribing data.</p>
             </div>
-            <a
-              className="emr-button emr-button-secondary emr-button-full"
-              href={`mailto:${selectedPatient.email}`}
-            >
-              <UserRound aria-hidden size={16} />
-              Contact patient
-            </a>
+            <div className="emr-chart-actions">
+              <Link
+                className="emr-button emr-button-primary"
+                to="/medication-orders"
+                search={{ patientId: selectedPatient.id }}
+              >
+                <ClipboardPlus aria-hidden size={16} />
+                Prepare order
+              </Link>
+              <a
+                className="emr-button emr-button-secondary"
+                href={`mailto:${selectedPatient.email}`}
+              >
+                <UserRound aria-hidden size={16} />
+                Contact patient
+              </a>
+            </div>
           </aside>
         ) : null}
       </div>

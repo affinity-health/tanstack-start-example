@@ -22,9 +22,9 @@ synthetic patients, basic EHR views, and an unsigned medication proposal workflo
 the prescribing backend inside the example. WebMCP provides optional agent access to prepare work
 while the clinician retains every clinical and signing decision.
 
-Success means the public repository contains `document.modelContext.registerTool`, the live Test
-demo exposes useful tools to a compatible browser agent, and the human can see and continue every
-agent-started workflow in the Northstar interface.
+Success means the public repository contains `document.modelContext.registerTool`, the authenticated
+clinic exposes useful tools to a compatible browser agent, and the human can see and continue every
+agent started workflow in the Northstar interface.
 
 ## Positioning
 
@@ -35,9 +35,8 @@ and prescribing still crosses the Affinity Test authorization and signing bounda
 ## Operating context
 
 The build extends the existing Northstar Health demonstration workspace. It uses synthetic patients,
-Affinity Test, Stripe Test, and an internal Test pharmacy. The
-existing TanStack Start application, Better Auth session, Affinity SDK routes, Elements integration,
-Hosted workflows, and Alchemy v2 deployment remain in place.
+Affinity Test, Stripe Test, and an internal Test pharmacy. The TanStack Start application, Better
+Auth session, Affinity SDK routes, and Alchemy v2 deployment remain in place.
 
 ## Capabilities and constraints
 

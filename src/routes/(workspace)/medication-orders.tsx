@@ -1,21 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Code, ClipboardText, Robot, ShieldCheck, WifiHigh } from "@phosphor-icons/react";
-import { useState } from "react";
-
-import { EmrShell } from "../../components/emr-shell";
 import {
-  ElementsDemo,
-  HeadlessSdkDemo,
-  HostedDemo,
-  PracticeBillingDemo,
-} from "../../features/affinity";
-import { requireSession } from "../../lib/require-session";
-import { demoPatients } from "../../lib/demo-data";
+  Bot,
+  CheckCircle2,
+  Clock3,
+  ClipboardCheck,
+  FilePlus2,
+  Pill,
+  ShieldCheck,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 
-type ShowcaseFeature = "billing" | "elements" | "headless" | "hosted" | "provider";
+import { EmrSectionHeading, EmrShell, EmrStatus } from "../../components/emr-shell";
+import { HeadlessSdkDemo } from "../../features/affinity";
+import { demoOrders, demoPatients } from "../../lib/demo-data";
+import { requireSession } from "../../lib/require-session";
 
 type MedicationOrdersSearch = {
-  feature?: ShowcaseFeature;
   patientId?: string;
 };
 
@@ -25,178 +25,207 @@ export const Route = createFileRoute("/(workspace)/medication-orders")({
     meta: [{ title: "Medication orders | Northstar Health" }],
   }),
   validateSearch: (search: Record<string, unknown>): MedicationOrdersSearch => ({
-    feature: isShowcaseFeature(search.feature) ? search.feature : undefined,
     patientId: typeof search.patientId === "string" ? search.patientId : undefined,
   }),
   component: MedicationOrders,
 });
 
-const features = [
-  {
-    id: "elements",
-    label: "Embedded composer",
-    meta: "Elements",
-  },
-  {
-    id: "headless",
-    label: "Unsigned proposal",
-    meta: "Headless SDK",
-  },
-  {
-    id: "hosted",
-    label: "Hosted prescribing",
-    meta: "Hosted",
-  },
-  {
-    id: "provider",
-    label: "Provider verification",
-    meta: "Identity",
-  },
-  {
-    id: "billing",
-    label: "Practice billing",
-    meta: "Payments",
-  },
-] as const satisfies ReadonlyArray<{
-  id: ShowcaseFeature;
-  label: string;
-  meta: string;
-}>;
-
 function MedicationOrders() {
   const { session } = Route.useRouteContext();
   const search = Route.useSearch();
   const preparedPatient = demoPatients.find((patient) => patient.id === search.patientId);
-  const [feature, setFeature] = useState<ShowcaseFeature>(search.feature ?? "elements");
+  const preparedOrder = demoOrders.find((order) => order.patient === preparedPatient?.name);
+  const [selectedId, setSelectedId] = useState<string>(preparedOrder?.id ?? demoOrders[0]!.id);
+  const selectedOrder = useMemo(
+    () => demoOrders.find((order) => order.id === selectedId) ?? demoOrders[0]!,
+    [selectedId],
+  );
+  const [reviewPatientName, setReviewPatientName] = useState<string | undefined>(
+    preparedPatient?.name ?? (selectedOrder.status === "Draft" ? selectedOrder.patient : undefined),
+  );
+
+  function selectOrder(orderId: string) {
+    const order = demoOrders.find((item) => item.id === orderId);
+    setSelectedId(orderId);
+    setReviewPatientName(order?.status === "Draft" ? order.patient : undefined);
+  }
 
   return (
     <EmrShell
       actions={
-        <a className="emr-button emr-button-secondary" href="/api/openapi">
-          <Code aria-hidden size={16} />
-          API reference
-        </a>
+        <button
+          className="emr-button emr-button-primary"
+          type="button"
+          onClick={() => {
+            setSelectedId(demoOrders[0]!.id);
+            setReviewPatientName(demoOrders[0]!.patient);
+          }}
+        >
+          <FilePlus2 aria-hidden size={16} />
+          New order
+        </button>
       }
       current="prescriptions"
-      description="Review an unsigned proposal, confirm it, then continue to provider signing."
-      eyebrow="Medication operations"
+      description="Review drafts and track medication orders for your patients."
+      eyebrow="Clinical workspace"
       session={session}
-      title="Medication review"
+      title="Medication orders"
     >
       {preparedPatient ? (
-        <section className="agent-review-handoff" aria-label="Agent-prepared review">
+        <section className="agent-review-handoff" aria-label="Prepared medication review">
           <span className="agent-tools-mark">
-            <Robot aria-hidden size={18} weight="duotone" />
+            <Bot aria-hidden size={18} />
           </span>
           <span>
-            <strong>Review prepared for {preparedPatient.name}</strong>
+            <strong>Unsigned review prepared for {preparedPatient.name}</strong>
             <small>
-              The agent opened this Test workflow. No prescription was created, and all clinical
-              fields still require clinician review.
+              WebMCP opened the patient context. No order was created. A clinician must review and
+              confirm every field.
             </small>
           </span>
-          <span className="agent-review-tag">Synthetic data</span>
+          <span className="agent-review-tag">Synthetic patient</span>
         </section>
       ) : null}
-      <section className="emr-integration-strip" aria-label="Integration status">
+
+      <section className="emr-order-summary" aria-label="Order summary">
         <div>
-          <span className="emr-status-icon is-success">
-            <WifiHigh aria-hidden size={16} />
+          <span className="emr-status-icon">
+            <Pill aria-hidden size={16} />
           </span>
           <span>
-            <small>Integration</small>
-            <strong>Affinity Test connected</strong>
+            <small>Open drafts</small>
+            <strong>1</strong>
           </span>
-          <span className="emr-live-status">Online</span>
+        </div>
+        <div>
+          <span className="emr-status-icon is-success">
+            <CheckCircle2 aria-hidden size={16} />
+          </span>
+          <span>
+            <small>Sent today</small>
+            <strong>1</strong>
+          </span>
+        </div>
+        <div>
+          <span className="emr-status-icon">
+            <Clock3 aria-hidden size={16} />
+          </span>
+          <span>
+            <small>Awaiting pharmacy</small>
+            <strong>1</strong>
+          </span>
         </div>
         <div>
           <span className="emr-status-icon">
             <ShieldCheck aria-hidden size={16} />
           </span>
           <span>
-            <small>Access</small>
-            <strong>Provider verified</strong>
-          </span>
-        </div>
-        <div>
-          <span className="emr-status-icon">
-            <ClipboardText aria-hidden size={16} />
-          </span>
-          <span>
             <small>Environment</small>
-            <strong>Test data only</strong>
+            <strong>Affinity Test</strong>
           </span>
         </div>
       </section>
 
-      <section className="showcase-picker" aria-label="Medication workflows">
-        <header>
-          <div>
-            <span>Workflow mode</span>
-            <h2>Choose a medication workflow</h2>
+      <div className="emr-orders-layout">
+        <section className="emr-panel">
+          <EmrSectionHeading
+            description={`${demoOrders.length} synthetic orders`}
+            title="Order queue"
+          />
+          <div className="emr-table-wrap">
+            <table className="emr-table emr-orders-table">
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Medication</th>
+                  <th>Status</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {demoOrders.map((order) => (
+                  <tr
+                    className={selectedOrder.id === order.id ? "is-selected" : undefined}
+                    key={order.id}
+                  >
+                    <td>
+                      <button
+                        className="emr-order-select"
+                        type="button"
+                        onClick={() => selectOrder(order.id)}
+                      >
+                        <strong>{order.patient}</strong>
+                        <small>{order.id}</small>
+                      </button>
+                    </td>
+                    <td>
+                      <strong>{order.medication}</strong>
+                      <small>{order.dose}</small>
+                    </td>
+                    <td>
+                      <EmrStatus tone={order.status === "Draft" ? "attention" : "success"}>
+                        {order.status}
+                      </EmrStatus>
+                    </td>
+                    <td>{order.updated}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <p>
-            Northstar keeps review visible. Affinity Test handles prescribing and provider signing.
-          </p>
-        </header>
-        <div className="showcase-picker-grid" role="tablist" aria-label="Medication workflow">
-          {features.map(({ id, label, meta }) => (
-            <button
-              aria-controls={`showcase-panel-${id}`}
-              aria-selected={feature === id}
-              className={feature === id ? "is-active" : undefined}
-              id={`showcase-tab-${id}`}
-              key={id}
-              role="tab"
-              type="button"
-              onClick={() => setFeature(id)}
-            >
-              <span>
-                <small>{meta}</small>
-                <strong>{label}</strong>
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
+        </section>
 
-      <div
-        aria-labelledby={`showcase-tab-${feature}`}
-        id={`showcase-panel-${feature}`}
-        role="tabpanel"
-      >
-        {feature === "elements" ? (
-          <section className="affinity-demo" aria-labelledby="affinity-demo-title">
-            <div className="affinity-demo-heading">
-              <div>
-                <div className="affinity-demo-label">
-                  <span>Affinity Test integration</span>
-                  <span>Secure iframe</span>
-                </div>
-                <h2 id="affinity-demo-title">Prescription composer</h2>
-                <p>
-                  Northstar authenticates this user. Affinity Test independently scopes the
-                  provider, practice, patient access, and permitted actions.
-                </p>
-              </div>
-              <span className="affinity-mode-badge">Test mode</span>
+        <aside className="emr-panel emr-order-detail" aria-labelledby="order-detail-title">
+          <header>
+            <div>
+              <span>Order detail</span>
+              <h2 id="order-detail-title">{selectedOrder.medication}</h2>
+              <p>{selectedOrder.patient}</p>
             </div>
-            <ElementsDemo />
-          </section>
-        ) : feature === "headless" ? (
-          <HeadlessSdkDemo preferredPatientName={preparedPatient?.name} />
-        ) : feature === "hosted" ? (
-          <HostedDemo />
-        ) : feature === "provider" ? (
-          <HostedDemo workflow="provider_verification" />
-        ) : (
-          <PracticeBillingDemo />
-        )}
+            <EmrStatus tone={selectedOrder.status === "Draft" ? "attention" : "success"}>
+              {selectedOrder.status}
+            </EmrStatus>
+          </header>
+          <dl>
+            <div>
+              <dt>Dose</dt>
+              <dd>{selectedOrder.dose}</dd>
+            </div>
+            <div>
+              <dt>Directions</dt>
+              <dd>{selectedOrder.directions}</dd>
+            </div>
+            <div>
+              <dt>Pharmacy</dt>
+              <dd>{selectedOrder.pharmacy}</dd>
+            </div>
+            <div>
+              <dt>Prescriber</dt>
+              <dd>{selectedOrder.prescriber}</dd>
+            </div>
+            <div>
+              <dt>Started</dt>
+              <dd>{selectedOrder.written}</dd>
+            </div>
+          </dl>
+          {selectedOrder.status === "Draft" ? (
+            <button
+              className="emr-button emr-button-primary emr-button-full"
+              type="button"
+              onClick={() => setReviewPatientName(selectedOrder.patient)}
+            >
+              <ClipboardCheck aria-hidden size={16} />
+              Review unsigned draft
+            </button>
+          ) : (
+            <p className="emr-order-note">
+              This synthetic order is read only in the demo workspace.
+            </p>
+          )}
+        </aside>
       </div>
+
+      {reviewPatientName ? <HeadlessSdkDemo preferredPatientName={reviewPatientName} /> : null}
     </EmrShell>
   );
-}
-
-function isShowcaseFeature(value: unknown): value is ShowcaseFeature {
-  return ["billing", "elements", "headless", "hosted", "provider"].includes(String(value));
 }

@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import {
-  ArrowDown,
   ArrowRight,
   ClipboardText,
   FileText,
@@ -11,7 +10,6 @@ import {
 
 import { LandingReveal, TaglineReveal } from "../../features/landing/tagline-reveal";
 import { HeroProductVisual } from "../../features/landing/hero-product-visual";
-import { PublicAgentDemo } from "../../features/webmcp/public-agent-demo";
 
 export const Route = createFileRoute("/(public)/")({
   head: () => ({
@@ -118,9 +116,12 @@ function Home() {
             prescribing decision.
           </p>
           <div className="hero-actions">
-            <a className="landing-button landing-button-primary" href="#agent-demo">
-              Open the clinic workspace <ArrowDown aria-hidden weight="bold" />
-            </a>
+            <Link className="landing-button landing-button-primary" to="/login">
+              Sign in <ArrowRight aria-hidden weight="bold" />
+            </Link>
+            <Link className="landing-button landing-button-secondary" to="/signup">
+              Create account
+            </Link>
           </div>
           <p className="hero-proof">
             <ShieldCheck aria-hidden weight="fill" /> Synthetic patients. Affinity Test. Never Live.
@@ -238,31 +239,17 @@ function Home() {
       >
         <div>
           <ClipboardText aria-hidden weight="duotone" />
-          <p>The clinic is ready to run</p>
-          <h2 id="final-cta-title">Open Northstar and review the synthetic visit.</h2>
+          <p>Open the example clinic</p>
+          <h2 id="final-cta-title">Sign in and start with today&apos;s schedule.</h2>
           <p>
-            Use the interface yourself. To try the agent path, ask it to prepare Ada Zieme's
-            medication review without creating an order.
+            Use the demo clinician for immediate access, or create your own account. Every patient
+            and order is synthetic.
           </p>
         </div>
-        <a className="landing-button landing-button-light" href="#agent-demo">
-          Open the clinic workspace <ArrowRight aria-hidden weight="bold" />
-        </a>
+        <Link className="landing-button landing-button-light" to="/login">
+          Open Northstar <ArrowRight aria-hidden weight="bold" />
+        </Link>
       </section>
-
-      <section
-        className="live-demo-intro section-shell"
-        aria-labelledby="live-demo-title"
-        data-landing-reveal
-      >
-        <p>Northstar clinic workspace</p>
-        <h2 id="live-demo-title">Review the unsigned proposal</h2>
-        <p>
-          This is the working example, not a screenshot. Select a synthetic patient, inspect the
-          completed encounter, and prepare an Affinity Test draft.
-        </p>
-      </section>
-      <PublicAgentDemo />
     </main>
   );
 }

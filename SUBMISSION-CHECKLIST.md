@@ -11,10 +11,10 @@
 
 ## Product and safety
 
-- [x] Three public synthetic discovery/handoff tools are usable without sign-in.
+- [x] Three synthetic patient tools register inside the authenticated clinic.
 - [x] Two authenticated prescribing tools use hosted Affinity Test data.
 - [x] Agent-prepared drafts cannot satisfy the clinician confirmation gate.
-- [x] Signing and PIN entry remain inside Affinity.
+- [x] Signing and PIN entry remain inside Affinity Test.
 - [x] No Affinity Live credential, patient, pharmacy, or deployment is used.
 
 ## Verification

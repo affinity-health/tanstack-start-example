@@ -5,7 +5,7 @@ WebMCP is an optional integration that lets a browser agent prepare visible work
 
 ## MVP
 
-The MVP is one complete clinician workflow on the Patients page:
+The MVP is one complete clinician workflow inside the authenticated Northstar clinic:
 
 1. A browser agent searches the synthetic patient directory.
 2. The agent opens one matching patient in the visible UI.

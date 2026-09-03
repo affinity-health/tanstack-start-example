@@ -26,7 +26,7 @@ describe("patient workflow", () => {
   test("prepares a reversible review path for an eligible synthetic patient", () => {
     expect(prepareMedicationReview("Ada Zieme")).toEqual({
       ok: true,
-      path: "/medication-orders?feature=headless&patientId=pat_ada_zieme",
+      path: "/medication-orders?patientId=pat_ada_zieme",
       patient: expect.objectContaining({ id: "pat_ada_zieme", name: "Ada Zieme" }),
     });
   });

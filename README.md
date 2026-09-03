@@ -1,48 +1,91 @@
 # Northstar demo telehealth platform
 
-Northstar is a small example telehealth clinic you can copy. It includes an EHR style workspace,
-synthetic patients, and an Affinity Test prescribing integration for unsigned drafts. It never uses
-Affinity Live or real patient data.
+Northstar is a small example telehealth clinic you can copy. It has a clinician dashboard, schedule,
+patient charts, medication orders, documents, and secure message examples. All records are synthetic.
 
-Optional WebMCP wiring lets a compatible browser agent search synthetic patients, open the same
-record the clinician sees, and prepare a medication review from clinician supplied details. The
-agent cannot diagnose, confirm an order, or sign a prescription. The complete human interface works
-when WebMCP is unavailable or removed.
+Affinity Test is the prescribing backend for the unsigned medication order workflow. Northstar never
+uses Affinity Live or real patient data. Optional WebMCP wiring lets a compatible browser agent
+prepare work inside the authenticated clinic. The agent cannot diagnose, confirm an order, prescribe,
+or enter a signing PIN.
 
-## WebMCP tools
+## Enter the clinic
 
-Open the landing page or **Patients** in a browser with WebMCP enabled for the three public discovery
-tools. The landing page is a public synthetic-data demo; the signed-in route carries prepared context
-into the Affinity Test workflow, where two more tools inspect hosted options and fill the visible
-draft.
+Open `/login` and choose **Use demo clinician**. Northstar signs in the shared synthetic clinician,
+creating that demo account on first use. You can also create a separate account at `/signup`.
+
+After sign in:
+
+- **Overview** shows the day's schedule, work that needs attention, and recent medication orders.
+- **Schedule** switches between clinic days and links each appointment to its patient chart.
+- **Patients** searches synthetic records and shows medications, allergies, and recent visits.
+- **Medication orders** shows the order queue, order detail, and the guarded unsigned review.
+- **Documents** supports search, category filters, preview, and local review state.
+- **Messages** supports thread search and local demo replies.
+
+## Optional WebMCP tools
+
+Open **Patients** in a browser with WebMCP enabled for the three patient tools. Prepared context
+continues into **Medication orders**, where two more tools inspect Affinity Test options and fill the
+visible unsigned draft.
 
 | Tool                              | Visible effect                                               | Safety boundary                                 |
 | --------------------------------- | ------------------------------------------------------------ | ----------------------------------------------- |
 | `search_synthetic_patients`       | Applies query and eligibility filters                        | Returns only local synthetic directory fields   |
-| `open_synthetic_patient`          | Selects the matching patient record                          | Requires an exact synthetic name or ID          |
-| `prepare_medication_review`       | Opens the existing headless Affinity Test review UI          | Never creates, signs, or submits a prescription |
+| `open_synthetic_patient`          | Selects the matching patient chart                           | Requires an exact synthetic name or ID          |
+| `prepare_medication_review`       | Opens the Northstar medication review for that patient       | Never creates, signs, or submits a prescription |
 | `inspect_affinity_test_options`   | Lists options already visible in the authenticated Test form | Omits hosted resource IDs from its result       |
-| `prepare_test_prescription_draft` | Fills the visible form from clinician-supplied details       | Cannot satisfy the clinician confirmation gate  |
+| `prepare_test_prescription_draft` | Fills the visible form from clinician supplied details       | Cannot satisfy the clinician confirmation gate  |
 
-The tools and React screen share the small prescribing workflow seam in
-`src/lib/patient-workflow.ts`: one adapter normalizes the public synthetic records and one owns the
-authenticated Affinity Test requests, identifiers, actor-scoped server results, and errors.
-Agent-triggered changes appear in the workspace and are announced through an ARIA live region. A
-clinician must check the confirmation control before the app can create an unsigned Test order. See
-[SAFETY.md](SAFETY.md) for the enforced contract and [CHALLENGE.md](CHALLENGE.md) for the MVP
-boundary.
+The public source calls `document.modelContext.registerTool` directly. The tools and React screens
+share the workflow in `src/lib/patient-workflow.ts`. One adapter reads Northstar's synthetic records.
+The other owns the hosted Affinity Test requests and identifiers.
 
-## Challenge provenance
+Try this prompt after signing in:
 
-Commit `f55eedef7c8833f15dad335c23ba8f29bb521835`, dated August 5, 2026, is the pre-challenge
-baseline. It already contained the Northstar workspace, authentication, Affinity SDK and Elements
-examples, webhook verification, and Alchemy v2 infrastructure.
+```text
+Prepare Ada Zieme's medication review. Do not create an order.
+```
 
-Challenge work begins with commit `cc63826`, dated September 2, 2026, on branch
-`webmcp-challenge`. Its diff from the baseline isolates the WebMCP workflow, safety rules, tests,
-license, and submission material added after the challenge opened.
+Agent changes appear in the clinic and are announced through an ARIA live region. Editing a draft
+clears the clinician confirmation. The create action remains disabled until the clinician reviews the
+current values and checks the confirmation control. See [SAFETY.md](SAFETY.md).
 
-## Verify the challenge build
+## Run Northstar
+
+Install dependencies and start the local workspace:
+
+```bash
+bun install
+dev up --cwd .
+```
+
+The `dev` CLI starts Alchemy on `http://127.0.0.1:3001` and provisions the development D1 database.
+The normal account flow and the demo clinician both use Better Auth.
+
+For the hosted prescribing adapter, create `.env` with Affinity Test credentials:
+
+```bash
+AFFINITY_API_KEY=sk_test_...
+AFFINITY_WEBHOOK_SECRET=whsec_...
+AFFINITY_PROVIDER_MAPPING_ID=pmap_...
+AFFINITY_DEMO_PATIENT_STATE=CA
+```
+
+`AFFINITY_PROVIDER_MAPPING_ID` identifies the verified Test provider used by this small example.
+Keep API keys and webhook secrets on the server. Never use an Affinity Live key in Northstar.
+
+The integration uses:
+
+- `@affinity-health/sdk` for trusted server requests
+- `@affinity-health/elements` for the supported embedded component module
+- origin bound hosted sessions for provider signing
+- signed webhooks stored idempotently in Cloudflare D1
+
+The active medication order page uses Northstar's own review form and calls Affinity Test through
+`src/lib/patient-workflow.ts`. Older integration modules remain isolated under
+`src/features/affinity/` for people who want to adapt them, but they are not presented as clinic modes.
+
+## Verify
 
 ```bash
 bun install --frozen-lockfile
@@ -51,14 +94,16 @@ bun run build
 ```
 
 The repository also includes `webmcp-evals.json` for Chrome's experimental WebMCP evaluator. With
-the app running on port 3001, execute the deterministic smoke suite without an LLM key:
+Northstar running on port 3001, execute the smoke suite:
 
 ```bash
 npx webmcp-evals smoke -u http://localhost:3001 -e webmcp-evals.json -v
 ```
 
-Deploy only the isolated challenge stage. Supply hosted Affinity Test credentials in the
-calling shell. Never use an Affinity Live key.
+## Deploy the challenge stage
+
+Deploy only the isolated challenge stage with hosted Affinity Test credentials. The generated Worker
+URL becomes `APP_URL` so Better Auth callbacks stay on the same origin.
 
 ```bash
 APP_URL=https://your-challenge-worker.workers.dev \
@@ -68,236 +113,15 @@ AFFINITY_PROVIDER_MAPPING_ID=pmap_... \
 bun run deploy:challenge
 ```
 
-The deployment uses Alchemy v2 and the `webmcp-challenge` stage. The generated Worker URL becomes
-`APP_URL` for the final deployment so authentication callbacks stay on that origin.
+## Challenge provenance
 
-## Affinity Test integration
+Commit `f55eedef7c8833f15dad335c23ba8f29bb521835`, dated August 5, 2026, is the prechallenge baseline.
+It already contained the first Northstar workspace, authentication, Affinity SDK modules, webhook
+verification, and Alchemy v2 infrastructure.
 
-Northstar includes a small, working Affinity Test integration. It keeps each integration in one
-component and each trusted SDK call in one API route so copiers can replace or adapt the backend.
+Challenge work begins with commit `cc63826`, dated September 2, 2026, on branch
+`webmcp-challenge`. Its diff from the baseline isolates the WebMCP workflow, safety rules, tests,
+license, clinic product work, and submission material added after the challenge opened.
 
-## Five-minute walkthrough
-
-1. Open **Medication orders**.
-2. Show **Elements** first. Open “View the Elements integration,” then use the real embedded
-   prescription composer.
-3. Open **Headless SDK**. Show the server-side call, fill the Northstar-owned form, and open the
-   returned Affinity Test signing session.
-4. Open **Hosted** and **Provider setup** to show the two single-use popup workflows.
-5. Open **Practice billing** to show that Stripe collects the practice card without exposing card
-   data to the platform.
-
-The smallest useful code tour is:
-
-| File                                              | What it proves                                                                 |
-| ------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `src/features/affinity/elements-demo.tsx`         | The browser mounts the official React Element with a one-time client secret.   |
-| `src/features/affinity/headless-sdk-demo.tsx`     | Northstar owns the prescription form and opens Affinity Test only for signing. |
-| `src/features/affinity/hosted-demo.tsx`           | A click opens a secure Hosted session without exposing the API key.            |
-| `src/features/affinity/practice-billing-demo.tsx` | Stripe.js collects and replaces the practice-owned Test card.                  |
-| `src/server/api.ts`                               | Every trusted `@affinity-health/sdk` call stays on the server.                 |
-
-The example includes:
-
-- TanStack Start for routing, SSR, and server functions
-- Elysia for the HTTP API
-- Better Auth for email/password authentication
-- `@affinity-health/sdk` for trusted server-side Affinity API calls
-- Stripe.js practice card setup without card data touching the platform server
-- An origin-bound Affinity prescription composer session
-- Single-use Affinity Hosted prescribing and provider-verification sessions
-- A headless SDK route that creates one multi-prescription patient order and signing session
-- Signed Affinity webhooks stored idempotently in Cloudflare D1
-- Cloudflare D1 for auth storage
-- Elysia OpenAPI for generated API documentation
-- Alchemy v2 for Cloudflare Workers infrastructure and deployment
-
-The user signs in to this application. Its backend uses the Affinity service key and returns only a
-short-lived component secret to the authenticated browser. The service key never reaches client
-code.
-
-Hosted Test demo: [tanstackstartexample-website-release-ksulwrzuogvlekqa.dawsson.workers.dev](https://tanstackstartexample-website-release-ksulwrzuogvlekqa.dawsson.workers.dev). It uses the hosted
-Affinity Test environment, Stripe Test, synthetic patients, and the internal Test
-pharmacy; it cannot create a Live prescription or send one to a real pharmacy.
-
-## Run it
-
-Create `.env` with a production-hosted Test credential:
-
-```bash
-AFFINITY_API_KEY=sk_test_...
-AFFINITY_WEBHOOK_SECRET=whsec_...
-AFFINITY_PROVIDER_MAPPING_ID=pmap_...
-AFFINITY_DEMO_PATIENT_STATE=CA
-```
-
-`AFFINITY_PROVIDER_MAPPING_ID` is not a credential. It is the durable `pmap_...` identifier that
-links one provider in this platform to Affinity's independently verified provider identity, Test
-practice, and platform user. This deliberately single-provider demo stores one mapping in the
-environment. A real platform resolves and authorizes a separate mapping ID from its own provider
-record for every session.
-
-There is no separate membership ID to configure. The provider mapping answers “which verified
-Affinity provider is this?” Affinity then resolves that provider's active access to the requested
-practice, which answers “what may this provider do here?” Keeping identity and practice access
-separate prevents a platform from granting itself prescribing authority, but the demo backend only
-needs the provider mapping ID.
-
-Set `AFFINITY_DEMO_PATIENT_STATE` to a state where that demo provider is licensed. The headless
-example selects a matching synthetic patient first, while still listing the other Test patients so
-the provider-eligibility guard is easy to demonstrate.
-
-The configured mapping must be verified. In the Affinity production Platform portal's Test mode,
-allow every browser origin you use:
-
-```text
-https://api.dawson.gg
-https://your-generated-worker.workers.dev
-```
-
-Affinity's Test allowlist accepts HTTPS origins. When developing locally, browse through the
-existing `https://api.dawson.gg` tunnel to `localhost:3001`; do not replace that tunnel with the
-deployed Worker.
-
-Then start the app through the local development workspace:
-
-```bash
-bun install
-dev up --cwd .
-```
-
-The `dev` CLI starts Alchemy on `http://127.0.0.1:3001`, the fixed target of this example's existing
-protected `https://api.dawson.gg` development tunnel. Use that HTTPS URL when testing Affinity
-Elements because component sessions are origin-bound. Alchemy provisions the `dev_cli` stage's D1
-database and applies SQL migrations. Keeping the CLI workspace on its own stage prevents stale
-direct-development state from breaking startup. Local development uses the real managed D1
-binding. `bun run dev` remains available when you need to run Alchemy directly.
-
-The public TypeScript SDK is `@affinity-health/sdk`. It owns the dated API types, provider-mapping
-and component-session resources, exhaustive webhook event union, and raw-body HMAC verifier. The
-API key and webhook secret remain server-only.
-
-The public browser package is `@affinity-health/elements`. Its React wrapper creates the
-origin-checked iframe, exchanges the one-time component secret, validates lifecycle messages, and
-applies the approved appearance options.
-
-The hosted workflow uses `@affinity-health/sdk` on the platform backend. The backend returns a
-single-use hosted session URL to the authenticated browser. The platform API key remains on the
-backend.
-
-The payment setup uses the SDK only on the backend. The authenticated browser receives a one-time
-Stripe Test client secret and publishable key, renders Stripe's Payment Element, and sends only the
-confirmed SetupIntent ID back to the backend. This demo assumes its signed-in user is authorized to
-manage billing for the practice linked to the configured provider mapping. A real platform must
-enforce that practice authorization in its own session before calling the Affinity payment-profile
-endpoints.
-
-## Test the prescribing modes
-
-Sign in and open **Medication orders**. Use the launch-mode control to select one mode:
-
-- **Practice billing** records the user's consent and adds a Stripe Test card before an order can
-  be accepted.
-- **Embedded** renders the Affinity Elements iframe in the platform page.
-- **Headless SDK** renders a Northstar-owned prescription form, creates the unsigned order from the
-  Northstar backend, and opens Affinity Test only for provider signing.
-- **Popup window** opens the complete Affinity Hosted workflow in a focused window.
-- **Provider setup** opens a single-use verification session where the provider sets or resets the
-  six-digit signing PIN. The PIN is entered only inside Affinity Test and is never returned to
-  Northstar.
-
-The embedded component emits only the current `order.draft_created`, `order.signed`, and
-`order.submitted` browser events. Treat those events as UI hints and use
-the signed webhook receiver for authoritative state changes.
-
-The popup opens directly from the user click. The browser can then wait for the backend to create
-the hosted session without blocking the popup.
-
-## Test the headless SDK flow
-
-Use this route when your platform owns the prescribing interface. Send one patient and the complete
-prescription list from your authenticated backend session. The example creates the unsigned order
-and returns one provider-bound signing URL. Affinity Test collects the signing PIN on that URL.
-
-```bash
-curl --request POST http://localhost:3001/api/affinity/headless-order \
-  --header 'Content-Type: application/json' \
-  --header 'Idempotency-Key: encounter_123' \
-  --cookie 'your-authenticated-session-cookie' \
-  --data '{
-    "patientId": "pat_01j2y8m6jcc9tt24af5pw9x1bc",
-    "prescriptions": [{
-      "daysSupply": 30,
-      "directions": "Inject 0.25 mL subcutaneously once weekly",
-      "medicationId": "cat_01j2y8m6jcc9tt24af5pw9x1bc",
-      "quantity": 1,
-      "quantityUnit": "mL",
-      "refills": 0,
-      "structuredSig": {
-        "dose": "0.25",
-        "doseUnit": "mL",
-        "frequency": "once weekly",
-        "prn": false,
-        "route": "subcutaneous"
-      },
-      "substitutionPermitted": false
-    }]
-  }'
-```
-
-Repeat the prescription object to create multiple prescriptions for the same patient. Reuse the
-same idempotency key only when retrying the identical logical request. Open the returned
-`signingSession.url` only for the authenticated provider. Diagnoses are optional. When supplied,
-put the primary ICD-10-CM diagnosis first. When the selected catalog formulation requires a
-patient-specific compounding reason, send `compoundingReason` with one of the documented categories
-and the provider-entered explanation; do not infer or preselect it.
-
-## HTTP surface
-
-| Method     | URL                                    | Purpose                               |
-| ---------- | -------------------------------------- | ------------------------------------- |
-| `GET`      | `/api/health`                          | Health check                          |
-| `POST`     | `/api/affinity/component-session`      | Create a component session            |
-| `GET`      | `/api/affinity/headless-options`       | List Test patients and formulations   |
-| `POST`     | `/api/affinity/hosted-session`         | Create a prescribing or setup session |
-| `POST`     | `/api/affinity/headless-order`         | Create an order and signing session   |
-| `GET`      | `/api/affinity/payment-profile`        | Read safe practice payment status     |
-| `POST`     | `/api/affinity/payment-setup`          | Start Stripe Test card setup          |
-| `POST`     | `/api/affinity/payment-setup/complete` | Complete Test card setup              |
-| `POST`     | `/api/affinity/webhook`                | Verify and record a webhook           |
-| `GET`      | `/api/openapi`                         | Interactive OpenAPI reference         |
-| `GET`      | `/api/openapi/json`                    | Raw OpenAPI document                  |
-| `GET/POST` | `/api/auth/*`                          | Better Auth request handler           |
-
-Configure the Affinity webhook endpoint for the environment that should receive events:
-
-```text
-https://your-generated-worker.workers.dev/api/affinity/webhook
-```
-
-The receiver verifies the `affinity-signature` HMAC against the exact raw request body with a
-five-minute timestamp tolerance. Valid events are inserted into `affinity_webhook_event` by event
-ID, so retries are acknowledged without duplicating rows. It logs only event metadata to the
-Worker console. The D1 payload log is for synthetic test-mode data; do not use this demo retention
-policy for production PHI.
-
-`api.dawson.gg` is the optional Cloudflare Tunnel entrypoint for local development on
-`localhost:3001`; deployment does not create or modify that DNS record. Set `APP_URL` to the
-generated Worker origin when deploying a persistent hosted demo.
-
-## Commands
-
-```bash
-bun run dev          # migrate auth DB and start development
-bun run test         # webhook verification tests
-bun run check        # test, lint, format check, and typecheck
-bun run build        # production build
-bun run deploy       # deploy the Worker and D1 database
-bun run deploy:hosted  # deploy the persistent release-stage demo with explicit process secrets
-bun run destroy      # remove the managed stack
-```
-
-For the persistent hosted demo, export `APP_URL`, `AFFINITY_API_KEY`,
-`AFFINITY_PROVIDER_MAPPING_ID`, and `AFFINITY_WEBHOOK_SECRET` in the calling shell, then run
-`bun run deploy:hosted`. The deploy script reads only non-secret Cloudflare configuration from
-`.alchemy-deploy.env`, so an older local `.env` cannot replace the intended Test credentials.
+See [CHALLENGE.md](CHALLENGE.md), [DEMO-SCRIPT.md](DEMO-SCRIPT.md), and
+[SUBMISSION-CHECKLIST.md](SUBMISSION-CHECKLIST.md) for the submission record.

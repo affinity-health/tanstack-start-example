@@ -29,9 +29,9 @@ export function PublicHeader() {
           <a href="/#proof">Roles</a>
         </div>
 
-        <a className="header-demo-link" href="/#agent-demo">
-          Open clinic
-        </a>
+        <Link className="header-demo-link" to="/login">
+          Sign in
+        </Link>
 
         <button
           className={`nav-menu-button${open ? " is-open" : ""}`}
@@ -57,9 +57,12 @@ export function PublicHeader() {
           <a href="/#proof" onClick={close}>
             Roles
           </a>
-          <a href="/#agent-demo" onClick={close}>
-            Open the clinic workspace
-          </a>
+          <Link to="/login" onClick={close}>
+            Sign in
+          </Link>
+          <Link to="/signup" onClick={close}>
+            Create account
+          </Link>
         </nav>
       </div>
     </header>

@@ -11,10 +11,10 @@ and optional WebMCP tools that cannot cross the clinician confirmation gate.
 
 ## What it does
 
-Northstar works as a normal clinic workspace and exposes three optional browser tools. An agent can search synthetic
-patients, open the same record shown to the clinician, and prepare an eligible patient's Affinity
-Test medication review. Each action updates Northstar's visible interface. The same tools also appear
-on the authenticated Patients route, where prepared context continues into the existing workflow.
+Northstar works as a normal clinic workspace with a dashboard, patient charts, an order queue,
+documents, messages, and a schedule. On the authenticated Patients route, three optional browser
+tools can search synthetic patients, open the same chart shown to the clinician, and prepare an
+eligible patient's medication review. Each action updates Northstar's visible interface.
 
 The authenticated Test form exposes two additional tools: one reports options already on screen and
 one fills a draft from clinician-supplied details. The agent cannot check the confirmation gate or
@@ -58,8 +58,8 @@ Branch `webmcp-challenge` adds all challenge work in commits dated after August 
 
 - `bun run check`: 23 tests passing; lint, formatting, and TypeScript passing.
 - `bun run build`: client and SSR production builds passing.
-- Native Chrome WebMCP smoke: three public tools discovered; search execution returned two eligible
-  California patients and updated the visible query to `CA`.
+- Native Chrome WebMCP smoke: three authenticated patient tools discovered; search execution
+  returned two eligible California patients and updated the visible query to `CA`.
 
 ## Links
 

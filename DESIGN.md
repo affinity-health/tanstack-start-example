@@ -55,13 +55,13 @@ motion:
 ## Conversion goal
 
 The page presents one product: Northstar, a small example telehealth clinic that people can fork.
-WebMCP Challenge judges and telehealth platform builders should open the live workspace and run the
-same clinic shown in the repository. Affinity Test is the prescribing backend inside Northstar.
-WebMCP is an optional integration that is already wired into the example.
+WebMCP Challenge judges and telehealth platform builders should sign in, enter the clinic, and use
+the same workspace shipped in the repository. Affinity Test is the prescribing backend inside
+Northstar. WebMCP is an optional integration that is already wired into the authenticated clinic.
 
-The page uses layout A: a classic hero, supporting sections, a repeated call to action, then the
-working clinical workspace. The generated hero frame supports the story. It never replaces the real
-clinic workspace.
+The public page uses layout A: a classic hero, supporting sections, and a repeated sign in call to
+action. The generated hero frame supports the story. The actual clinic starts after authentication
+and uses the denser EmrShell system.
 
 ## Section order
 
@@ -71,8 +71,7 @@ clinic workspace.
 4. Three step workflow explanation
 5. Clear roles for Northstar, Affinity Test, WebMCP, and the clinician
 6. Six plain language questions and answers
-7. Final call to action for the clinic workspace, with the optional agent prompt
-8. Live synthetic patient and unsigned proposal workspace
+7. Final call to action for sign in and account creation
 
 ## Type
 
@@ -100,8 +99,8 @@ uses 24px, and controls use 8px or 12px. The floating navigation and status dots
 
 ## Icons
 
-Use Phosphor icons only on the landing page and medication proposal workflow. Icons clarify a named
-action or state. They do not decorate headings.
+Use Phosphor icons on the landing page and Lucide icons inside EmrShell. Icons clarify a named action
+or state. They do not decorate headings.
 
 ## Motion
 
@@ -112,11 +111,11 @@ and animation while keeping every state visible.
 
 ## Product and safety states
 
-The live workspace must retain hover, active, focus, loading, empty, and specific inline error states.
-Northstar is the example clinic and Affinity Test is its prescribing backend. Browser tools are
-optional. They may search, open, inspect, and prepare visible state, but they may not confirm, create,
-sign, or transmit a prescription. Affinity Test, synthetic patients, unsigned proposal, and never
-Live stay visible near the conversion path.
+The authenticated clinic must retain hover, active, focus, loading, empty, and specific inline error
+states. Northstar is the example clinic and Affinity Test is its prescribing backend. Browser tools
+are optional. They may search, open, inspect, and prepare visible state, but they may not confirm,
+create, sign, or transmit a prescription. Affinity Test, synthetic patients, unsigned proposal, and
+never Live stay visible in the medication workflow.
 
 ## Ship requirements
 

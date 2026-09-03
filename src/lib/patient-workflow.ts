@@ -220,7 +220,7 @@ export function prepareMedicationReview(
     };
   }
 
-  const search = new URLSearchParams({ feature: "headless", patientId: patient.id });
+  const search = new URLSearchParams({ patientId: patient.id });
   return {
     ok: true,
     patient,

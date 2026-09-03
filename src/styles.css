@@ -3432,6 +3432,336 @@ a:focus-visible {
   }
 }
 
+/* Northstar clinic flows */
+.landing-button-secondary {
+  color: #17342d;
+  background: white;
+  border-color: #b9cac5;
+}
+
+.landing-button-secondary:hover {
+  background: #edf4f2;
+  border-color: #89a69e;
+  transform: translateY(-2px);
+}
+
+.auth-clinic-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 22px;
+  color: white;
+  background: var(--accent);
+  border-radius: 12px;
+  place-items: center;
+}
+
+.auth-form-stack {
+  display: grid;
+  width: min(100%, 430px);
+  gap: 14px;
+}
+
+.auth-form-stack .auth-form {
+  width: 100%;
+}
+
+.auth-form input {
+  background: #f8faf9;
+  border-color: #9aaca6;
+  border-radius: 8px;
+}
+
+.auth-form input:focus {
+  background: white;
+  border-color: var(--accent);
+  outline: 3px solid rgb(13 107 95 / 16%);
+}
+
+.auth-demo-access {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 18px;
+  background: #eaf2ef;
+  border: 1px solid #c7d8d3;
+  border-radius: 12px;
+}
+
+.auth-demo-access > span {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-demo-access p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.auth-demo-button {
+  min-height: 38px;
+  color: white;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.auth-demo-button:hover {
+  color: white;
+  background: var(--accent-hover);
+}
+
+.auth-switch {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.emr-chart-section {
+  padding: 14px 0;
+  border-top: 1px solid var(--emr-border);
+}
+
+.emr-chart-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 9px;
+  color: #3f554e;
+  font-size: 10px;
+}
+
+.emr-chart-section ul {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.emr-chart-section li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.emr-chart-section li + li {
+  border-top: 1px solid #edf1ef;
+}
+
+.emr-chart-section li > span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.emr-chart-section strong {
+  font-size: 10px;
+}
+
+.emr-chart-section small {
+  color: var(--emr-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.emr-chart-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--emr-border);
+}
+
+.emr-order-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: white;
+  border: 1px solid var(--emr-border);
+  border-radius: 12px;
+}
+
+.emr-order-summary > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 68px;
+  padding: 12px 16px;
+}
+
+.emr-order-summary > div + div {
+  border-left: 1px solid var(--emr-border);
+}
+
+.emr-order-summary > div > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.emr-order-summary small {
+  color: var(--emr-muted);
+  font-size: 9px;
+}
+
+.emr-order-summary strong {
+  font-size: 13px;
+}
+
+.emr-orders-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.65fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.emr-orders-table {
+  min-width: 610px;
+}
+
+.emr-order-select {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.emr-order-detail {
+  position: sticky;
+  top: 92px;
+  padding: 18px;
+}
+
+.emr-order-detail > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--emr-border);
+}
+
+.emr-order-detail header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.emr-order-detail header span,
+.emr-order-detail header p {
+  color: var(--emr-muted);
+  font-size: 9px;
+}
+
+.emr-order-detail h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.emr-order-detail header p {
+  margin: 0;
+}
+
+.emr-order-detail dl {
+  display: grid;
+  margin: 0;
+  padding: 8px 0 16px;
+}
+
+.emr-order-detail dl > div {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.emr-order-detail dt {
+  color: var(--emr-muted);
+  font-size: 10px;
+}
+
+.emr-order-detail dd {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.emr-order-note {
+  margin: 8px 0 0;
+  color: var(--emr-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1120px) {
+  .emr-orders-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .emr-order-detail {
+    position: static;
+  }
+
+  .emr-patient-detail {
+    display: block;
+  }
+}
+
+@media (max-width: 720px) {
+  .emr-order-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .emr-order-summary > div:nth-child(3) {
+    border-left: 0;
+  }
+
+  .emr-order-summary > div:nth-child(n + 3) {
+    border-top: 1px solid var(--emr-border);
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-demo-access {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-demo-access p {
+    grid-column: 1;
+  }
+
+  .auth-demo-button {
+    width: 100%;
+  }
+
+  .emr-chart-actions,
+  .emr-order-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .emr-order-summary > div + div,
+  .emr-order-summary > div:nth-child(3) {
+    border-top: 1px solid var(--emr-border);
+    border-left: 0;
+  }
+}
+
 /* Elaya landing page */
 .skip-link {
   position: fixed;
@@ -5159,5 +5489,27 @@ a:focus-visible {
 
   .showcase-picker-grid > button.is-active {
     border-color: var(--accent-border);
+  }
+}
+
+@media (max-width: 1120px) {
+  .emr-patient-detail {
+    display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-intro {
+    min-height: 470px;
+    padding-top: 108px;
+  }
+
+  .auth-intro .back-link {
+    display: none;
+  }
+
+  .hero-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

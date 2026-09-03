@@ -51,7 +51,7 @@ describe("patient WebMCP tools", () => {
     const response = await tools[2]!.execute({ patient: "Ada Zieme" });
 
     expect(prepareReview).toHaveBeenCalledWith(
-      "/medication-orders?feature=headless&patientId=pat_ada_zieme",
+      "/medication-orders?patientId=pat_ada_zieme",
       "Prepared Ada Zieme's medication review. No order was created.",
     );
     expect(response.structuredContent).toEqual(
