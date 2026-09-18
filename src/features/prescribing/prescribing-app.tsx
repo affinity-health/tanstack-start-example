@@ -19,7 +19,6 @@ import { Menu, MenuTrigger, MenuPopup, MenuItem } from "../../components/ui/menu
 import {
   MoreHorizontal,
   ChevronDown,
-  Pill,
   ArrowRight,
   Check,
   ExternalLink,
@@ -206,7 +205,11 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
         </p>
       )}
       <div className="status-line" role="status" aria-live="polite">
-        {busy && busy !== "Loading workspace" ? `${busy}…` : signed ? "Prescription signed" : ""}
+        {busy && busy !== "Loading workspace" && busy !== "Loading defaults"
+          ? `${busy}…`
+          : signed
+            ? "Prescription signed"
+            : ""}
       </div>
       {error && (
         <div className="error" role="alert">
@@ -334,11 +337,8 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
               )}
               {options && (
                 <>
-                  <div className="default-summary">
-                    <div className="summary-heading">
-                      <Pill size={16} aria-hidden />
-                      <span>Medication defaults</span>
-                    </div>
+                  <div className="default-summary" key={medicationId}>
+                    <h3 className="summary-heading">Medication defaults</h3>
                     <p>{selectedPreset?.directions || "No default directions available."}</p>
                     <dl>
                       <div>
@@ -359,8 +359,11 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
                       </div>
                     </dl>
                   </div>
-                  <details>
-                    <summary>Adjust prescription</summary>
+                  <details className="prescription-adjustments">
+                    <summary>
+                      <ChevronDown size={14} aria-hidden="true" />
+                      Adjust prescription
+                    </summary>
                     <div className="fields">
                       <label>
                         Directions

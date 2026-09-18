@@ -310,7 +310,8 @@ section .preview-button {
   display: flex;
   width: 100%;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: 20px;
+  border-radius: 10px;
   min-height: 44px;
   gap: 10px;
   font-size: 14px;
@@ -322,23 +323,53 @@ section .preview-button {
   margin: 10px 0 0;
 }
 .default-summary {
-  margin: 20px 0 8px;
-  padding: 18px 20px;
-  background: #fafafa;
-  border-radius: 10px;
+  margin: 20px 0 0;
+  padding: 18px 0 16px;
+  border-top: 1px solid #ededed;
+  border-bottom: 1px solid #ededed;
+  opacity: 1;
+  transition: opacity 160ms cubic-bezier(0.19, 1, 0.22, 1);
 }
-.summary-heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+@starting-style {
+  .default-summary {
+    opacity: 0;
+  }
+}
+.default-summary .summary-heading {
+  margin: 0;
   font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
   color: #686868;
 }
 .default-summary > p {
-  margin: 12px 0 18px;
-  font-size: 15px;
-  line-height: 1.65;
+  margin: 8px 0 16px;
+  font-size: 14px;
+  line-height: 1.6;
 }
+.prescription-adjustments {
+  margin-top: 14px;
+}
+.prescription-adjustments > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  list-style: none;
+  font-size: 12px;
+}
+.prescription-adjustments > summary::-webkit-details-marker {
+  display: none;
+}
+.prescription-adjustments[open] > summary svg {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .default-summary {
+    transition-duration: 80ms;
+  }
+}
+
 dl {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -499,26 +530,64 @@ footer code {
   font-size: 14px;
   font-weight: 500;
 }
-.medication-search {
-  min-height: 46px;
-}
-.medication-search input:focus-visible {
-  outline: none;
-}
-.medication-picker .medication-search:focus-within {
-  border-color: #9a9a9a;
-  box-shadow: 0 0 0 1px #9a9a9a;
-  outline: none;
-}
-.medication-search input {
-  min-height: 44px;
-}
-.medication-selected {
+.medication-field {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  color: var(--muted-foreground);
+  gap: 12px;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  background: #fff;
+}
+.medication-field:focus-within {
+  border-color: #8a8a8a;
+}
+.medication-field[data-selected] {
+  min-height: 72px;
+  padding-block: 10px;
+}
+.medication-field[data-disabled] {
+  cursor: default;
+}
+.medication-field-content {
+  flex: 1;
+  min-width: 0;
+}
+.medication-field .medication-search {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.medication-field .medication-search::before {
+  display: none;
+}
+.medication-field input {
+  min-height: 44px;
+  font-size: 15px;
+  caret-color: var(--primary);
+}
+.medication-field input:focus-visible {
+  outline: none;
+}
+.medication-field[data-selected] input {
+  min-height: 24px;
+  height: 24px;
+  padding: 0;
+  line-height: 24px;
+  font-weight: 500;
+}
+.medication-field .medication-search:has(:disabled),
+.medication-field [data-slot="autocomplete-input-group"]:has(:disabled) {
+  opacity: 1;
+}
+.medication-pharmacy {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 18px;
+  color: #686868;
 }
 .medication-copy {
   display: flex;

@@ -46,6 +46,7 @@ export function MedicationPicker({
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
 
+  const fieldRef = useRef<HTMLDivElement>(null);
   const cache = useRef(new Map<string, Catalog>());
 
   useEffect(() => {
@@ -112,24 +113,34 @@ export function MedicationPicker({
           setLoading(true);
         }}
       >
-        <AutocompleteInput
-          id="medication-search"
-          placeholder="Search medications…"
-          className="medication-search"
-          size="lg"
-          startAddon={<Search aria-hidden="true" />}
-          onFocus={(event) => {
-            event.currentTarget.select();
-            setOpen(true);
-          }}
-        />
-        {selected && !open && (
-          <div className="medication-selected">
-            <MedicationImage key={selected.id} medication={selected} />
-            <small>{selected.pharmacyName}</small>
+        <div
+          ref={fieldRef}
+          className="medication-field"
+          data-selected={selected ? "" : undefined}
+          data-disabled={disabled ? "" : undefined}
+        >
+          {selected && <MedicationImage key={selected.id} medication={selected} />}
+          <div className="medication-field-content">
+            <AutocompleteInput
+              id="medication-search"
+              placeholder="Search medications…"
+              className="medication-search"
+              size="lg"
+              startAddon={selected ? undefined : <Search aria-hidden="true" />}
+              aria-describedby={selected && !open ? "medication-pharmacy" : undefined}
+              onFocus={(event) => {
+                event.currentTarget.select();
+                setOpen(true);
+              }}
+            />
+            {selected && (
+              <span id="medication-pharmacy" className="medication-pharmacy">
+                {open ? "Search to change medication" : selected.pharmacyName}
+              </span>
+            )}
           </div>
-        )}
-        <AutocompletePopup className="medication-command" sideOffset={6}>
+        </div>
+        <AutocompletePopup anchor={fieldRef} className="medication-command" sideOffset={6}>
           <div className="medication-results" aria-busy={loading}>
             {loading ? (
               <p role="status" className="sr-only">
