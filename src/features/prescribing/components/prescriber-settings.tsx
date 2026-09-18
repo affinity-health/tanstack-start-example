@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
@@ -42,7 +43,6 @@ export function PrescriberSettings({
   const [rows, setRows] = useState<string[][]>(() =>
     Object.entries(profile.states).map(([state, value]) => [state, value.npi, value.name]),
   );
-  const [error, setError] = useState("");
   function changeRows(next: string[][]) {
     setRows(next);
     setDraft({ ...draft, confirmed: false });
@@ -144,11 +144,6 @@ export function PrescriberSettings({
               />
               I confirm these prescriber names and NPIs.
             </label>
-            {error && (
-              <p className="error" role="alert">
-                {error}
-              </p>
-            )}
           </div>
         </DialogPanel>
         <DialogFooter>
@@ -166,8 +161,9 @@ export function PrescriberSettings({
                 localStorage.setItem(profileKey(mode), JSON.stringify(next));
                 onSave(next);
                 onOpenChange(false);
+                toast.success("Prescriber settings saved.");
               } catch {
-                setError(
+                toast.error(
                   "This browser could not save settings. Allow local storage and try again.",
                 );
               }

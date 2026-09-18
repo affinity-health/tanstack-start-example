@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { Check, Pill, Search } from "lucide-react";
 import { Button } from "../../../components/ui/button";
@@ -50,6 +51,13 @@ export function MedicationPicker({
   const [hasMore, setHasMore] = useState(initial?.hasMore ?? false);
   const [loading, setLoading] = useState(!initial);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (error) toast.error(error, { id: "medication-search-error", duration: 8000 });
+    else toast.dismiss("medication-search-error");
+    return () => {
+      toast.dismiss("medication-search-error");
+    };
+  }, [error]);
   const [retry, setRetry] = useState(0);
 
   const fieldRef = useRef<HTMLDivElement>(null);
@@ -160,8 +168,7 @@ export function MedicationPicker({
                 Searching medications…
               </p>
             ) : error ? (
-              <div className="medication-message" role="alert">
-                {error}{" "}
+              <div className="medication-message">
                 <Button variant="ghost" onClick={() => setRetry((value) => value + 1)}>
                   Retry
                 </Button>

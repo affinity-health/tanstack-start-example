@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { read, peekRead, seedRead, catalogPath, optionsPath, type Bootstrap } from "../data/reads";
@@ -93,6 +94,13 @@ export function Workspace({
   const [busy, setBusy] = useState(starting.practices || initial?.error ? "" : "Loading workspace");
   const [practicesLoaded, setPracticesLoaded] = useState(!!starting.practices);
   const [error, setError] = useState(initial?.error ?? "");
+  useEffect(() => {
+    if (error) toast.error(error, { id: "workspace-error", duration: 8000 });
+    else toast.dismiss("workspace-error");
+    return () => {
+      toast.dismiss("workspace-error");
+    };
+  }, [error]);
 
   // A retry of an identical mutation reuses its key, including after a network error.
   const [keys] = useState(() => new Map<string, string>());
@@ -284,7 +292,7 @@ export function Workspace({
           }
         }
         if (!send) {
-          setNotice("Draft created. Nothing has been sent to the pharmacy.");
+          toast.success("Draft created", { description: "Nothing has been sent to the pharmacy." });
           setReviewOpen(false);
           return;
         }
@@ -304,7 +312,7 @@ export function Workspace({
             })),
           });
           setSigned(true);
-          setNotice("Prescription signed.");
+          setNotice("");
         }
         await api("submit", {
           orderId: draft.id,
@@ -314,7 +322,8 @@ export function Workspace({
         });
         setSubmitted(true);
         setOrdersRevision((value) => value + 1);
-        setNotice("Prescription submitted to the pharmacy.");
+        setNotice("");
+        toast.success("Prescription sent to the pharmacy.");
       },
     );
   }
@@ -354,21 +363,10 @@ export function Workspace({
             records before prescribing.
           </p>
         )}
-        {error && !reviewOpen && (
-          <div className="error" role="alert">
-            <p>{error}</p>
-            {!practices.length && (
-              <Button variant="outline" onClick={load}>
-                Try again
-              </Button>
-            )}
-          </div>
-        )}
-        {notice && !reviewOpen && (
-          <p className="review-notice" role="status">
-            {notice}
-            {order && <span className="hint"> · {order.id}</span>}
-          </p>
+        {error && !reviewOpen && !practices.length && (
+          <Button variant="outline" onClick={load}>
+            Try again
+          </Button>
         )}
         {practicesLoaded && !busy && !error && !practices.length && (
           <p className="hint">No practices are available for this key.</p>
@@ -547,13 +545,12 @@ export function Workspace({
                 </p>
               )}
               {error && (
-                <div className="error" role="alert">
+                <div className="review-notice">
                   {signed && !submitted && (
                     <p>
                       The prescription is signed. Retry sending below; it will not be signed again.
                     </p>
                   )}
-                  <p>{error}</p>
                   {order && !signed && (
                     <Button
                       variant="outline"

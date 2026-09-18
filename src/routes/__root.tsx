@@ -1,4 +1,5 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { Toaster } from "sonner";
 import stylesheet from "../styles/app.css?url";
 
 export const Route = createRootRoute({
@@ -21,6 +22,20 @@ export const Route = createRootRoute({
       </head>
       <body>
         <div id="root">{children}</div>
+        <Toaster
+          position="bottom-right"
+          closeButton
+          toastOptions={{
+            duration: 5000,
+            style: {
+              fontFamily: "var(--font-sans)",
+              background: "var(--popover)",
+              color: "var(--popover-foreground)",
+              borderColor: "var(--border)",
+              borderRadius: "12px",
+            },
+          }}
+        />
         <Scripts />
       </body>
     </html>

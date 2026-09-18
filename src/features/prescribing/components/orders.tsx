@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, RefreshCw } from "lucide-react";
 import { Button } from "../../../components/ui/button";
@@ -42,6 +43,13 @@ export function OrdersView({
   const [page, setPage] = useState<Orders>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (error) toast.error(error, { id: "orders-error", duration: 8000 });
+    else toast.dismiss("orders-error");
+    return () => {
+      toast.dismiss("orders-error");
+    };
+  }, [error]);
   const [order, setOrder] = useState<Order>();
   const [busy, setBusy] = useState("");
   const [attested, setAttested] = useState(false);
@@ -176,7 +184,8 @@ export function OrdersView({
         actorId: registered.externalId,
       });
       setSent(true);
-      setNotice("Prescription submitted to the pharmacy.");
+      setNotice("");
+      toast.success("Prescription sent to the pharmacy.");
       onChanged();
       await load();
     });
@@ -214,12 +223,9 @@ export function OrdersView({
         </Button>
       </div>
       {error && !order && (
-        <p role="alert" className="error">
-          {error}{" "}
-          <Button variant="ghost" onClick={() => void load()}>
-            Try again
-          </Button>
-        </p>
+        <Button variant="outline" onClick={() => void load()}>
+          Try again
+        </Button>
       )}
       {!page && loading && (
         <p className="hint" role="status">
@@ -392,13 +398,10 @@ export function OrdersView({
                   </p>
                 )}
                 {error && (
-                  <div className="error" role="alert">
-                    <p>
-                      {signed
-                        ? "The prescription is signed. Retry sending; it will not be signed again. "
-                        : ""}
-                      {error}
-                    </p>
+                  <div className="review-notice">
+                    {signed && (
+                      <p>The prescription is signed. Retry sending; it will not be signed again.</p>
+                    )}
                     <Button variant="outline" disabled={!!busy} onClick={() => void open(order.id)}>
                       Refresh order for review
                     </Button>
