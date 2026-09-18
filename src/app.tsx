@@ -1,4 +1,3 @@
-import affinityMark from "./assets/affinity-mark.webp";
 import { useState, useEffect, useId } from "react";
 import { createRoot } from "react-dom/client";
 import { patients } from "./patients";
@@ -79,7 +78,12 @@ function App() {
     <>
       <header className="toolbar">
         <div className="brand">
-          <img src={affinityMark} width={30} height={30} alt="" />
+          <img
+            src="https://cdn.joinaffinityai.com/logos/affinity/mark-blue.v2.webp"
+            width={30}
+            height={30}
+            alt=""
+          />
           <span>
             Affinity AI <span className="brand-secondary">Prescribing demo</span>
           </span>
@@ -128,6 +132,18 @@ function App() {
         </div>
       </header>
       <Workspace key={mode} mode={mode} onBusy={setWorking} />
+      <footer>
+        <a
+          href="https://docs.joinaffinityai.com/guides/reference/sdks/typescript/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          SDK documentation <ExternalLink size={12} aria-hidden />
+        </a>
+        <span>
+          Terminal: <code>bun run example</code>
+        </span>
+      </footer>
     </>
   );
 }
@@ -685,18 +701,6 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
           <Json title="API response" value={lastResponse} />
         </div>
       )}
-      <footer>
-        <a
-          href="https://docs.joinaffinityai.com/guides/reference/sdks/typescript/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          SDK documentation <ExternalLink size={12} aria-hidden />
-        </a>
-        <span>
-          Terminal: <code>bun run example</code>
-        </span>
-      </footer>
     </main>
   );
 }
