@@ -8,7 +8,10 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Affinity prescribing demo" },
     ],
-    links: [{ rel: "stylesheet", href: stylesheet }],
+    links: [
+      { rel: "stylesheet", href: stylesheet },
+      { rel: "preconnect", href: "https://cdn.joinaffinityai.com" },
+    ],
   }),
   component: () => <Outlet />,
   shellComponent: ({ children }) => (

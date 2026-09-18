@@ -46,6 +46,9 @@ lerna-debug.log*
 # Infrastructure state
 .alchemy
 .vercel
+.wrangler
+.dev.vars
+.dev.vars.*
 
 # Local data
 *.sqlite

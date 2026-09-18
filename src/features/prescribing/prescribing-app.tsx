@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { read, peekRead, seedRead, catalogPath, optionsPath, type Bootstrap } from "./data/reads";
 import { patients } from "../../data/patients";
 import type {
   Practices,
@@ -26,9 +27,21 @@ import {
 } from "lucide-react";
 
 type Mode = "test" | "production";
-export function PrescribingApp() {
+export function PrescribingApp({
+  initial,
+  pending = false,
+}: {
+  initial?: Bootstrap;
+  pending?: boolean;
+}) {
   const [mode, setMode] = useState<Mode>("test");
   const [working, setWorking] = useState(false);
+  const [initialData, setInitialData] = useState(initial);
+  function changeMode(next: Mode) {
+    if (next === mode) return;
+    setInitialData(undefined);
+    setMode(next);
+  }
   return (
     <>
       <header className="toolbar">
@@ -46,7 +59,7 @@ export function PrescribingApp() {
         <div className="toolbar-actions">
           <Menu>
             <MenuTrigger
-              disabled={working}
+              disabled={working || pending}
               render={<Button variant="outline" />}
               className={`environment ${mode}`}
             >
@@ -55,10 +68,10 @@ export function PrescribingApp() {
               <ChevronDown size={14} />
             </MenuTrigger>
             <MenuPopup align="end">
-              <MenuItem onClick={() => setMode("test")}>
+              <MenuItem onClick={() => changeMode("test")}>
                 Test {mode === "test" && <Check size={15} aria-hidden />}
               </MenuItem>
-              <MenuItem onClick={() => setMode("production")}>
+              <MenuItem onClick={() => changeMode("production")}>
                 Production {mode === "production" && <Check size={15} aria-hidden />}
               </MenuItem>
             </MenuPopup>
@@ -86,7 +99,13 @@ export function PrescribingApp() {
           </Menu>
         </div>
       </header>
-      <Workspace key={mode} mode={mode} onBusy={setWorking} />
+      <Workspace
+        key={mode}
+        mode={mode}
+        onBusy={setWorking}
+        initial={mode === "test" ? initialData : undefined}
+        pending={pending}
+      />
       <footer>
         <a
           href="https://docs.joinaffinityai.com/guides/reference/sdks/typescript/"
@@ -104,17 +123,36 @@ export function PrescribingApp() {
 }
 const pretty = (value: unknown) => JSON.stringify(value, null, 2);
 function Json({ title, value }: { title: string; value: unknown }) {
+  const [open, setOpen] = useState(false);
   return (
-    <details>
+    <details onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary>{title}</summary>
-      <pre tabIndex={0}>{pretty(value)}</pre>
+      {open && <pre tabIndex={0}>{pretty(value)}</pre>}
     </details>
   );
 }
 
-function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => void }) {
-  const [practices, setPractices] = useState<Practices["data"]>([]);
-  const [practiceId, setPractice] = useState("");
+function Workspace({
+  mode,
+  onBusy,
+  initial,
+  pending,
+}: {
+  mode: Mode;
+  onBusy: (busy: boolean) => void;
+  initial?: Bootstrap;
+  pending: boolean;
+}) {
+  const [starting] = useState(() => {
+    const cached = peekRead<Practices>(mode, "practices");
+    const practices = cached ?? initial?.practices;
+    if (!cached && initial?.practices) seedRead(mode, "practices", initial.practices);
+    const practiceId = practices?.data[0]?.id ?? "";
+    if (initial?.catalog && practiceId) seedRead(mode, catalogPath(practiceId), initial.catalog);
+    return { practices, practiceId };
+  });
+  const [practices, setPractices] = useState<Practices["data"]>(starting.practices?.data ?? []);
+  const [practiceId, setPractice] = useState(starting.practiceId);
   const [externalId, setExternal] = useState(patients[0].externalId);
   const [patient, setPatient] = useState<PatientResult>();
   const [medicationId, setMedication] = useState("");
@@ -131,9 +169,9 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
   const [attested, setAttested] = useState(false);
   const [signed, setSigned] = useState(false);
   const [allergies, setAllergies] = useState(false);
-  const [busy, setBusy] = useState("Loading workspace");
-  const [practicesLoaded, setPracticesLoaded] = useState(false);
-  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(starting.practices || initial?.error ? "" : "Loading workspace");
+  const [practicesLoaded, setPracticesLoaded] = useState(!!starting.practices);
+  const [error, setError] = useState(initial?.error ?? "");
   const [lastResponse, setLastResponse] = useState<unknown>();
   // A retry of an identical mutation reuses its key, including after a network error.
   const [keys] = useState(() => new Map<string, string>());
@@ -144,7 +182,12 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
     setSigned(false);
   }
   async function api<T>(path: string, body?: unknown): Promise<T> {
-    const fingerprint = mode + path + pretty(body);
+    if (!body && (path === "practices" || path.startsWith("options?"))) {
+      const data = await read<T>(mode, path);
+      setLastResponse(data);
+      return data;
+    }
+    const fingerprint = mode + path + JSON.stringify(body);
     if (!keys.has(fingerprint)) keys.set(fingerprint, crypto.randomUUID());
     const response = await fetch(
       `/api/${path}${path.includes("?") ? "&" : "?"}mode=${mode}`,
@@ -155,7 +198,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
               "Content-Type": "application/json",
               "Idempotency-Key": keys.get(fingerprint)!,
             },
-            body: pretty(body),
+            body: JSON.stringify(body),
           }
         : undefined,
     );
@@ -186,8 +229,8 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
     });
   }
   useEffect(() => {
-    void load();
-  }, []);
+    if (!pending && !starting.practices && !initial?.error) void load();
+  }, [pending]);
   const selectedPreset = options?.presets.find((p) => p.id === options.defaultPresetId);
   const localPatient = patients.find((p) => p.externalId === externalId)!;
   return (
@@ -298,13 +341,16 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
                 key={practiceId}
                 mode={mode}
                 practiceId={practiceId}
+                initialCatalog={practiceId === starting.practiceId ? initial?.catalog : undefined}
                 disabled={!!busy || !practiceId}
                 onChange={(value) => {
                   setMedication(value);
-                  setOptions(undefined);
+                  setError("");
+                  setOptions(peekRead<Options>(mode, optionsPath(practiceId, value)));
                   setDirections("");
                   setDaysSupply("");
                   clearOrder();
+                  if (peekRead<Options>(mode, optionsPath(practiceId, value))) return;
                   void run("Loading defaults", async () => {
                     setOptions(
                       await api<Options>(

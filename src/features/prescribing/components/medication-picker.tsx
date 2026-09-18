@@ -8,6 +8,7 @@ import {
   AutocompleteList,
   AutocompleteItem,
 } from "../../../components/ui/autocomplete";
+import { read, peekRead, catalogPath, prefetchOptions } from "../data/reads";
 import type { Catalog } from "../types";
 
 type Medication = Catalog["data"][number];
@@ -28,64 +29,70 @@ function MedicationImage({ medication }: { medication: Medication }) {
 export function MedicationPicker({
   mode,
   practiceId,
+  initialCatalog,
   disabled,
   onChange,
 }: {
   mode: "test" | "production";
   practiceId: string;
+  initialCatalog?: Catalog;
   disabled: boolean;
   onChange: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Medication>();
-  const [items, setItems] = useState<Medication[]>([]);
+  const [initial] = useState(
+    () => peekRead<Catalog>(mode, catalogPath(practiceId)) ?? initialCatalog,
+  );
+  const [items, setItems] = useState<Medication[]>(initial?.data ?? []);
   const [cursor, setCursor] = useState("");
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(initial?.hasMore ?? false);
+  const [loading, setLoading] = useState(!initial);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
 
   const fieldRef = useRef<HTMLDivElement>(null);
-  const cache = useRef(new Map<string, Catalog>());
+  const intentTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(intentTimer.current), []);
 
   useEffect(() => {
     if (!practiceId) return;
-    const controller = new AbortController();
-    setLoading(true);
-    setError("");
-    const cacheKey = JSON.stringify([mode, practiceId, query.trim(), cursor]);
-    const cached = cache.current.get(cacheKey);
-    if (cached) {
-      setItems((previous) => (cursor ? [...previous, ...cached.data] : cached.data));
-      setHasMore(cached.hasMore);
+    let cancelled = false;
+    const path = catalogPath(practiceId, query, cursor);
+    const cached = peekRead<Catalog>(mode, path);
+    const apply = (result: Catalog) => {
+      if (cancelled) return;
+      setItems((previous) =>
+        cursor
+          ? [...new Map([...previous, ...result.data].map((item) => [item.id, item])).values()]
+          : result.data,
+      );
+      setHasMore(result.hasMore);
       setLoading(false);
+    };
+    setError("");
+    if (cached) {
+      apply(cached);
       return;
     }
+    setLoading(true);
     const timer = setTimeout(
-      async () => {
-        try {
-          const params = new URLSearchParams({ mode, practiceId, query: query.trim() });
-          if (cursor) params.set("startingAfter", cursor);
-          const response = await fetch(`/api/catalog?${params}`, { signal: controller.signal });
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error || "Unable to search medications.");
-          if (controller.signal.aborted) return;
-          cache.current.set(cacheKey, result);
-          setItems((previous) => (cursor ? [...previous, ...result.data] : result.data));
-          setHasMore(result.hasMore);
-        } catch (cause) {
-          if (!controller.signal.aborted)
-            setError(cause instanceof Error ? cause.message : "Unable to search medications.");
-        } finally {
-          if (!controller.signal.aborted) setLoading(false);
-        }
+      () => {
+        void read<Catalog>(mode, path)
+          .then(apply)
+          .catch((cause) => {
+            if (!cancelled) {
+              setError(cause instanceof Error ? cause.message : "Unable to search medications.");
+              setLoading(false);
+            }
+          });
       },
       query ? 75 : 0,
     );
     return () => {
+      cancelled = true;
       clearTimeout(timer);
-      controller.abort();
     };
   }, [query, cursor, mode, practiceId, retry]);
 
@@ -95,7 +102,12 @@ export function MedicationPicker({
         Medication
       </label>
       <Autocomplete
-        items={loading || error ? [] : items}
+        items={error ? [] : items}
+        onItemHighlighted={(item) => {
+          clearTimeout(intentTimer.current);
+          if (item && !loading)
+            intentTimer.current = setTimeout(() => prefetchOptions(mode, practiceId, item.id), 100);
+        }}
         filter={null}
         autoHighlight
         open={open}
@@ -108,9 +120,10 @@ export function MedicationPicker({
           if (details.reason === "item-press") return;
           setQuery(value);
           setCursor("");
-          setItems([]);
-          setHasMore(false);
-          setLoading(true);
+          const cached = peekRead<Catalog>(mode, catalogPath(practiceId, value));
+          if (cached) setItems(cached.data);
+          setHasMore(cached?.hasMore ?? false);
+          setLoading(!cached);
         }}
       >
         <div
@@ -164,6 +177,7 @@ export function MedicationPicker({
                   key={medication.id}
                   value={medication}
                   className="medication-result"
+                  disabled={loading}
                   onClick={() => {
                     setSelected(medication);
                     setOpen(false);

@@ -15,7 +15,7 @@ bun run dev
 
 Open http://localhost:3001.
 
-1. Practices load automatically. Use the toolbar to switch Test or Production.
+1. Practices and the first medication page load during streamed server rendering. Use the toolbar to switch Test or Production.
 2. Select an EMR patient, then search for a medication in the Coss command picker. Medication defaults load when you select it.
 3. Click **Preview prescription**. The app creates or reuses the patient by external ID and previews the default prescription. **Adjust prescription** exposes only directions and days supply when needed; use `example.ts` for other SDK options.
 4. A complete preview reveals the prescriber fields. Enter the NPI, confirm identity and allergy review, then **Continue to review**. This saves the review, registers or reuses the prescriber, and creates the draft.
@@ -83,7 +83,7 @@ It needs no running website. Patient-resolution helpers are available in `src/se
 | POST   | `/api/sign`                                    | Sign the explicitly reviewed versions     |
 
 The catalog route accepts `query`, `practiceId`, and `startingAfter`. Search runs through
-`affinity.catalog.list({ query })`, with debounced input and cancellation of stale results.
+`affinity.catalog.list({ query })`, with a 75 ms debounce and stale-response protection.
 Medication rows show `imageUrl` when available, or a pill icon when missing or unavailable.
 
 POST requests use `Idempotency-Key`. The website reuses keys for identical requests within the
@@ -118,3 +118,28 @@ remains unverified until registration succeeds. No order was signed or submitted
 
 If signing returns a version conflict, use **Refresh order for review**, inspect the updated order,
 and attest again. Refreshing never carries forward a previous attestation.
+
+## Responsiveness and Worker builds
+
+TanStack Start streams the form shell while the server loads practices and the first catalog page.
+Hydration reuses those results. Read-only practices, catalog searches, and prescribing options share
+a browser-memory cache: 60 seconds, at most 100 entries, keyed by environment and full request
+parameters. Concurrent reads share one request, and errors are not cached.
+
+Highlighting a medication for 100 ms prefetches its defaults. Search keeps previous results visible
+but disables them until the new query completes. Reopening a picker or switching back to an environment
+reuses fresh cached reads. Patient writes, previews, order retrieval, and signing are never prefetched
+or served from this cache. Preview still validates the medication revision with Affinity.
+The response inspector formats its JSON only when opened.
+
+```sh
+bun run build:worker
+```
+
+This builds the Cloudflare Worker and generates `.output/server/wrangler.json`.
+Hashed assets use a one-year immutable cache; HTML and API data stay private and uncached.
+`bun run build` still produces the local Bun server. Both builds are checked in CI.
+
+The existing localhost-only API restriction remains in place, including the streamed loader.
+Before hosting this prescribing demo, add authenticated access and replace that local guard with
+the deployment's access policy. This build command does not deploy or change credentials.
