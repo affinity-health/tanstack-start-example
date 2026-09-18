@@ -9,7 +9,7 @@ It uses `@affinity-health/sdk` **1.9.0-beta.4**, the `next` release from
 ```sh
 bun install
 cp .env.example .env # Skip if .env already exists.
-# Set AFFINITY_API_KEY to a current sk_test_ key.
+# Set AFFINITY_TEST_API_KEY to a current sk_test_ key.
 bun run dev
 ```
 
@@ -31,11 +31,10 @@ API errors and the last response are shown on the page.
 
 ## Environments
 
-Test uses `AFFINITY_TEST_API_KEY`, falling back to the existing `AFFINITY_API_KEY`.
-Production uses only `AFFINITY_PRODUCTION_API_KEY`. Set keys in `.env` and restart Bun.
-The server checks the key’s actual mode and caches successful validation for 60 seconds.
-Concurrent requests share that check; each SDK request still authenticates with Affinity. Missing Production configuration displays
-an error with the variable to set; it never falls back to Test credentials.
+Test uses only `AFFINITY_TEST_API_KEY`; Production uses only `AFFINITY_PRODUCTION_API_KEY`.
+Set keys in `.env` and restart the server. The client checks the key prefix against the selected
+mode; Affinity authenticates each SDK request. There is no separate key-validation request or
+credential fallback. Signing sets the registered prescriber's actor explicitly.
 
 Both modes create or reuse records from `src/data/patients.ts` by external ID. Replace the shipped sample
 records with your own EMR data before using Production. Switching environments clears patient,
@@ -50,10 +49,9 @@ Tailwind is bundled by Vite. TanStack Start serves the page and file-based API r
 bun run example
 ```
 
-Edit [example.ts](./example.ts). It checks Test access and lists practices and medications.
-Set `AFFINITY_PRACTICE_ID` and `AFFINITY_MEDICATION_ID` in `.env` to also create/reuse the synthetic
-California patient, read defaults, and preview a prescription. It never creates an order or signs automatically.
-The script needs no running website.
+Edit [example.ts](./example.ts) and use `createAffinity("test")` or `createAffinity("production")`.
+The current example retrieves API-key access information and prints its request time.
+It needs no running website. Patient-resolution helpers are available in `src/server/affinity/patients.ts`.
 
 ## Code
 

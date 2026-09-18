@@ -1,5 +1,5 @@
 import { ResponseError, type Affinity } from "@affinity-health/sdk";
-import { getAffinity, type AffinityMode } from "./affinity/client";
+import { createAffinity, type AffinityMode } from "./affinity/client";
 
 export const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -39,7 +39,7 @@ export async function apiHandler<TBody = Record<string, string>>(
     const key = request.headers.get("idempotency-key") ?? "";
     if (request.method === "POST" && !key)
       return json({ error: "Supply an Idempotency-Key for retries." }, 400);
-    const affinity = await getAffinity(mode);
+    const affinity = createAffinity(mode);
     return await handle({ affinity, body, mode, key, options: { idempotencyKey: key } });
   } catch (error) {
     if (error instanceof ResponseError)
