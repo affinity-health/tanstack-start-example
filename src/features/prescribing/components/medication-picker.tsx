@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Pill, Search } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import { Command, CommandInput, CommandList, CommandItem } from "../../../components/ui/command";
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverPopup,
-  PopoverTitle,
-} from "../../../components/ui/popover";
+  Autocomplete,
+  AutocompleteInput,
+  AutocompletePopup,
+  AutocompleteList,
+  AutocompleteItem,
+} from "../../../components/ui/autocomplete";
 import type { Catalog } from "../types";
 
 type Medication = Catalog["data"][number];
@@ -46,11 +46,21 @@ export function MedicationPicker({
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
 
+  const cache = useRef(new Map<string, Catalog>());
+
   useEffect(() => {
-    if (!open) return;
+    if (!practiceId) return;
     const controller = new AbortController();
     setLoading(true);
     setError("");
+    const cacheKey = JSON.stringify([mode, practiceId, query.trim(), cursor]);
+    const cached = cache.current.get(cacheKey);
+    if (cached) {
+      setItems((previous) => (cursor ? [...previous, ...cached.data] : cached.data));
+      setHasMore(cached.hasMore);
+      setLoading(false);
+      return;
+    }
     const timer = setTimeout(
       async () => {
         try {
@@ -60,6 +70,7 @@ export function MedicationPicker({
           const result = await response.json();
           if (!response.ok) throw new Error(result.error || "Unable to search medications.");
           if (controller.signal.aborted) return;
+          cache.current.set(cacheKey, result);
           setItems((previous) => (cursor ? [...previous, ...result.data] : result.data));
           setHasMore(result.hasMore);
         } catch (cause) {
@@ -75,98 +86,93 @@ export function MedicationPicker({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [open, query, cursor, mode, practiceId, retry]);
+  }, [query, cursor, mode, practiceId, retry]);
 
   return (
     <div className="medication-picker">
-      <span id="medication-label" className="medication-label">
+      <label htmlFor="medication-search" className="medication-label">
         Medication
-      </span>
-      <Popover
+      </label>
+      <Autocomplete
+        items={loading || error ? [] : items}
+        filter={null}
+        autoHighlight
         open={open}
-        onOpenChange={(value) => {
-          setOpen(value);
-          if (value) {
-            setQuery("");
-            setCursor("");
-            setItems([]);
-            setLoading(true);
-          }
+        onOpenChange={setOpen}
+        openOnInputClick
+        disabled={disabled}
+        itemToStringValue={(item: Medication) => `${item.name} ${item.strength}`}
+        value={open ? query : selected ? `${selected.name} ${selected.strength}` : query}
+        onValueChange={(value, details) => {
+          if (details.reason === "item-press") return;
+          setQuery(value);
+          setCursor("");
+          setItems([]);
+          setHasMore(false);
+          setLoading(true);
         }}
       >
-        <PopoverTrigger
-          render={<Button variant="outline" className="medication-trigger" />}
-          disabled={disabled}
-          aria-labelledby="medication-label medication-selection"
-        >
-          {selected && <MedicationImage key={selected.id} medication={selected} />}
-          <span id="medication-selection" className="medication-copy">
-            <span>{selected ? `${selected.name} ${selected.strength}` : "Search medications"}</span>
-            {selected && <small>{selected.pharmacyName}</small>}
-          </span>
-          <Search size={18} aria-hidden="true" />
-        </PopoverTrigger>
-        <PopoverPopup className="medication-command" align="start" sideOffset={6}>
-          <PopoverTitle className="sr-only">Select medication</PopoverTitle>
-          <Command
-            items={loading || error ? [] : items}
-            filter={null}
-            itemToStringValue={(value) => {
-              const item = value as Medication;
-              return `${item.name} ${item.strength}`;
-            }}
-            value={query}
-            onValueChange={(value) => {
-              setQuery(value);
-              setCursor("");
-              setItems([]);
-              setHasMore(false);
-              setLoading(true);
-            }}
-          >
-            <CommandInput aria-label="Search medications" placeholder="Search medications…" />
-            <div className="medication-results" aria-busy={loading}>
-              {loading ? (
-                <p role="status" className="medication-message">
-                  Searching medications…
-                </p>
-              ) : error ? (
-                <div className="medication-message" role="alert">
-                  {error}{" "}
-                  <Button variant="ghost" onClick={() => setRetry((value) => value + 1)}>
-                    Retry
-                  </Button>
-                </div>
-              ) : items.length === 0 ? (
-                <p role="status" className="medication-message">
-                  No medications found. Try another name.
-                </p>
-              ) : null}
-              <CommandList>
-                {(medication: Medication) => (
-                  <CommandItem
-                    key={medication.id}
-                    value={medication}
-                    className="medication-result"
-                    onClick={() => {
-                      setSelected(medication);
-                      setOpen(false);
-                      onChange(medication.id);
-                    }}
-                  >
-                    <MedicationImage medication={medication} />
-                    <span className="medication-copy">
-                      <span>
-                        {medication.name} {medication.strength}
-                      </span>
-                      <small>{medication.pharmacyName}</small>
+        <AutocompleteInput
+          id="medication-search"
+          placeholder="Search medications…"
+          className="medication-search"
+          size="lg"
+          startAddon={<Search aria-hidden="true" />}
+          onFocus={(event) => {
+            event.currentTarget.select();
+            setOpen(true);
+          }}
+        />
+        {selected && !open && (
+          <div className="medication-selected">
+            <MedicationImage key={selected.id} medication={selected} />
+            <small>{selected.pharmacyName}</small>
+          </div>
+        )}
+        <AutocompletePopup className="medication-command" sideOffset={6}>
+          <div className="medication-results" aria-busy={loading}>
+            {loading ? (
+              <p role="status" className="sr-only">
+                Searching medications…
+              </p>
+            ) : error ? (
+              <div className="medication-message" role="alert">
+                {error}{" "}
+                <Button variant="ghost" onClick={() => setRetry((value) => value + 1)}>
+                  Retry
+                </Button>
+              </div>
+            ) : items.length === 0 ? (
+              <p role="status" className="medication-message">
+                No medications found. Try another name.
+              </p>
+            ) : null}
+            <AutocompleteList>
+              {(medication: Medication) => (
+                <AutocompleteItem
+                  key={medication.id}
+                  value={medication}
+                  className="medication-result"
+                  onClick={() => {
+                    setSelected(medication);
+                    setOpen(false);
+                    setQuery("");
+                    setCursor("");
+                    onChange(medication.id);
+                  }}
+                >
+                  <MedicationImage medication={medication} />
+                  <span className="medication-copy">
+                    <span>
+                      {medication.name} {medication.strength}
                     </span>
-                    {selected?.id === medication.id && <Check size={18} aria-label="Selected" />}
-                  </CommandItem>
-                )}
-              </CommandList>
-            </div>
-          </Command>
+                    <small>{medication.pharmacyName}</small>
+                  </span>
+                  {selected?.id === medication.id && <Check size={18} aria-label="Selected" />}
+                </AutocompleteItem>
+              )}
+            </AutocompleteList>
+          </div>
           {!loading && !error && hasMore && (
             <Button
               variant="ghost"
@@ -176,8 +182,8 @@ export function MedicationPicker({
               Show more medications
             </Button>
           )}
-        </PopoverPopup>
-      </Popover>
+        </AutocompletePopup>
+      </Autocomplete>
     </div>
   );
 }

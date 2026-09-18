@@ -499,17 +499,25 @@ footer code {
   font-size: 14px;
   font-weight: 500;
 }
-.medication-trigger {
-  width: 100%;
-  height: auto;
+.medication-search {
   min-height: 46px;
-  padding: 10px 12px;
-  justify-content: flex-start;
-  text-align: left;
 }
-.medication-trigger > svg {
-  margin-left: auto;
-  flex-shrink: 0;
+.medication-search input:focus-visible {
+  outline: none;
+}
+.medication-picker .medication-search:focus-within {
+  border-color: #9a9a9a;
+  box-shadow: 0 0 0 1px #9a9a9a;
+  outline: none;
+}
+.medication-search input {
+  min-height: 44px;
+}
+.medication-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
   color: var(--muted-foreground);
 }
 .medication-copy {
@@ -558,12 +566,11 @@ footer code {
 .medication-command::before {
   display: none;
 }
-.medication-command [data-slot="popover-viewport"] {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  --viewport-inline-padding: 0px;
-  max-height: min(420px, var(--available-height));
+.medication-command [data-slot="autocomplete-list"] {
+  padding: 6px;
+}
+.medication-command [data-slot="autocomplete-popup"]:focus-visible {
+  outline: none;
 }
 .medication-results {
   min-height: 100px;
@@ -585,8 +592,8 @@ footer code {
   flex-shrink: 0;
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-slot="popover-popup"],
-  [data-slot="popover-positioner"] {
+  [data-slot="autocomplete-popup"],
+  [data-slot="autocomplete-positioner"] {
     transition: none;
   }
 }
