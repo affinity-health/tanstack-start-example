@@ -1,3 +1,4 @@
+import affinityMark from "./assets/affinity-mark.webp";
 import { useState, useEffect, useId } from "react";
 import { createRoot } from "react-dom/client";
 import { patients } from "./patients";
@@ -23,7 +24,15 @@ import {
   SelectItem,
 } from "./components/ui/select";
 import { Menu, MenuTrigger, MenuPopup, MenuItem } from "./components/ui/menu";
-import { MoreHorizontal, ChevronDown, Stethoscope, ExternalLink, RotateCw } from "lucide-react";
+import {
+  MoreHorizontal,
+  ChevronDown,
+  Pill,
+  ArrowRight,
+  Check,
+  ExternalLink,
+  RotateCw,
+} from "lucide-react";
 
 type Mode = "test" | "production";
 function Choice({
@@ -70,9 +79,9 @@ function App() {
     <>
       <header className="toolbar">
         <div className="brand">
-          <Stethoscope size={21} />
+          <img src={affinityMark} width={30} height={30} alt="" />
           <span>
-            Affinity <span className="brand-secondary">/ EMR</span>
+            Affinity AI <span className="brand-secondary">Prescribing demo</span>
           </span>
         </div>
         <div className="toolbar-actions">
@@ -87,9 +96,11 @@ function App() {
               <ChevronDown size={14} />
             </MenuTrigger>
             <MenuPopup align="end">
-              <MenuItem onClick={() => setMode("test")}>Test {mode === "test" ? "✓" : ""}</MenuItem>
+              <MenuItem onClick={() => setMode("test")}>
+                Test {mode === "test" && <Check size={15} aria-hidden />}
+              </MenuItem>
               <MenuItem onClick={() => setMode("production")}>
-                Production {mode === "production" ? "✓" : ""}
+                Production {mode === "production" && <Check size={15} aria-hidden />}
               </MenuItem>
             </MenuPopup>
           </Menu>
@@ -216,11 +227,8 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
       <div className="page-heading">
         <div>
           <h1>New prescription</h1>
-          <p className="intro">Choose a patient. Review the defaults. Preview and sign.</p>
+          <p className="intro">Select a patient and medication to get started.</p>
         </div>
-        <span className="workspace-label">
-          {mode === "test" ? "Test workspace" : "Production workspace"}
-        </span>
       </div>
       {mode === "production" && (
         <p className="production-note">
@@ -228,7 +236,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
           with your own records before creating a live prescription.
         </p>
       )}
-      <div className="status-line" role="status">
+      <div className="status-line" role="status" aria-live="polite">
         {busy ? `${busy}…` : signed ? "Prescription signed" : ""}
       </div>
       {error && (
@@ -251,7 +259,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
       <fieldset disabled={!!busy}>
         <div className="practice-row">
           {practices.length === 1 ? (
-            <span className="hint">{practices[0].name}</span>
+            <span className="practice-name">{practices[0].name}</span>
           ) : (
             <>
               <Choice
@@ -292,22 +300,25 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
                   clearOrder();
                 }}
               />
-              <div className="patient-identity">
-                <span className="avatar">
-                  {localPatient.name.first[0]}
-                  {localPatient.name.last[0]}
+              <div className="patient-caption">
+                <span>
+                  Born{" "}
+                  {new Date(localPatient.dateOfBirth + "T00:00:00").toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </span>
-                <div>
-                  <strong>
-                    {localPatient.name.first} {localPatient.name.last}
-                  </strong>
-                  <span>
-                    {localPatient.address.city}, {localPatient.address.state}
+                <span>
+                  {localPatient.address.city}, {localPatient.address.state}
+                </span>
+                {patient && (
+                  <span className="ready-label">
+                    <Check size={13} aria-hidden />
+                    Patient ready
                   </span>
-                </div>
+                )}
               </div>
-              <p className="hint">Born {localPatient.dateOfBirth}</p>
-              {patient && <p className="hint">Patient ready in Affinity</p>}
             </section>
           </aside>
           <div className="prescription-panel">
@@ -351,9 +362,18 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
                   Retry medication defaults
                 </Button>
               )}
+              {!options && !busy && !error && (
+                <p className="medication-hint">
+                  Select a medication to see its default directions and quantity.
+                </p>
+              )}
               {options && (
                 <>
                   <div className="default-summary">
+                    <div className="summary-heading">
+                      <Pill size={16} aria-hidden />
+                      <span>Medication defaults</span>
+                    </div>
                     <p>{selectedPreset?.directions || "No default directions available."}</p>
                     <dl>
                       <div>
@@ -407,6 +427,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
                 </>
               )}
               <Button
+                className="preview-button"
                 variant="default"
                 disabled={!practiceId || !options}
                 onClick={() =>
@@ -437,7 +458,8 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
                   })
                 }
               >
-                Preview prescription
+                {busy === "Previewing prescription" ? "Preparing preview…" : "Preview prescription"}
+                <ArrowRight size={16} aria-hidden />
               </Button>
               {preview && (
                 <>
@@ -658,9 +680,19 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
         </div>
       </fieldset>
 
-      {lastResponse !== undefined && <Json title="Last API response" value={lastResponse} />}
+      {lastResponse !== undefined && (
+        <div className="developer-details">
+          <Json title="API response" value={lastResponse} />
+        </div>
+      )}
       <footer>
-        Affinity SDK playground{" "}
+        <a
+          href="https://docs.joinaffinityai.com/guides/reference/sdks/typescript/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          SDK documentation <ExternalLink size={12} aria-hidden />
+        </a>
         <span>
           Terminal: <code>bun run example</code>
         </span>

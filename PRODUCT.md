@@ -6,6 +6,6 @@ The core task is selecting an EMR patient, creating or reusing their Affinity re
 
 The website loads automatically. The environment is always visible and switching clears the workflow. Credentials stay on the server, with separate keys for each environment. Signing is an explicit action after reviewing a draft; this demo does not submit orders to a pharmacy.
 
-Design direction: a restrained Apple-like desktop utility, Coss controls, generous separation between tasks, and plain language. No connection ceremony or decorative dashboard content.
+Design direction: the Affinity clinic dashboard’s neutral surfaces, blue actions, system typography, and Coss controls in a single-column form. No connection ceremony or decorative dashboard content.
 
 The first screen should contain only patient, medication, and Preview. Load medication defaults on selection. Keep directions and days supply under Adjust prescription; show prescriber fields only after a complete preview. Patient resolution happens as part of preview; allergy review, prescriber registration, and draft creation happen under Continue to review. Do not reintroduce separate setup buttons or a JSON editor.
