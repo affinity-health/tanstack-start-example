@@ -1,4 +1,4 @@
-import { ResponseError, type Affinity } from "@affinity-health/sdk";
+import { FetchError, ResponseError, type Affinity } from "@affinity-health/sdk";
 import { createAffinity, type AffinityMode } from "./affinity/client";
 import { hasSession } from "./auth/session";
 
@@ -43,6 +43,8 @@ export async function apiHandler<TBody = Record<string, string>>(
     const affinity = createAffinity(mode);
     return await handle({ affinity, body, mode, key, options: { idempotencyKey: key } });
   } catch (error) {
+    if (error instanceof FetchError && error.cause instanceof Error)
+      return json({ error: error.cause.message }, 502);
     if (error instanceof ResponseError)
       return json(
         {

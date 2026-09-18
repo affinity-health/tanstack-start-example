@@ -23,5 +23,24 @@ export function createAffinity(mode: AffinityMode = "test") {
       "AFFINITY_API_URL must be an HTTP(S) API URL without credentials, query, or fragment.",
     );
   const baseUrl = url.href.replace(/\/+$/, "").replace(/\/v1$/, "");
-  return new Affinity(apiKey, { baseUrl, timeout: 15_000, maxNetworkRetries: 0 });
+  return new Affinity(apiKey, {
+    baseUrl,
+    timeout: 15_000,
+    maxNetworkRetries: 0,
+    fetch: async (input, init) => {
+      const response = await fetch(input, { ...init, redirect: "manual" });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        const destination = location ? new URL(location, baseUrl).hostname : "a login page";
+        throw new Error(
+          `The Affinity API at ${url.hostname} redirected to ${destination}. Authenticate access to the remote development server before using this API URL.`,
+        );
+      }
+      if (response.headers.get("content-type")?.includes("text/html"))
+        throw new Error(
+          `The Affinity API at ${url.hostname} returned HTML instead of JSON (HTTP ${response.status}). Check AFFINITY_API_URL and the remote server's access settings.`,
+        );
+      return response;
+    },
+  });
 }
