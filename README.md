@@ -8,7 +8,7 @@ It uses `@affinity-health/sdk` **1.9.0-beta.4**, the `next` release from
 
 ```sh
 bun install
-cp .env.example .env # Skip if .env already exists.
+cp .env.example .env.dev # Skip if .env.dev already exists.
 # Set AFFINITY_TEST_API_KEY to a current sk_test_ key.
 bun run dev
 ```
@@ -32,9 +32,17 @@ API errors and the last response are shown on the page.
 ## Environments
 
 Test uses only `AFFINITY_TEST_API_KEY`; Production uses only `AFFINITY_PRODUCTION_API_KEY`.
-Set keys in `.env` and restart the server. The client checks the key prefix against the selected
+Development and `bun run example` load only `.env.dev`. `bun run start` and `bun run deploy`
+load only `.env.prod`. The old `.env` is not used. Restart the server after editing a file.
+The client checks the key prefix against the selected
 mode; Affinity authenticates each SDK request. There is no separate key-validation request or
 credential fallback. Signing sets the registered prescriber's actor explicitly.
+
+`AFFINITY_API_URL` selects the API server in each file, for example
+`https://affinity.harbor.run/api/v1` for development or `https://api.joinaffinityai.com/v1`
+for deployment. The SDK adds `/v1`, so the client removes that suffix from its base URL
+while preserving `/api`. When unset, the URL defaults to `https://api.joinaffinityai.com/v1`.
+The Test/Production switch selects the matching key on that server, not a different API URL.
 
 Both modes create or reuse records from `src/data/patients.ts` by external ID. Replace the shipped sample
 records with your own EMR data before using Production. Switching environments clears patient,
@@ -145,12 +153,14 @@ bun run deploy
 ```
 
 Deploys to https://affinity-prescribing-demo.harborrun.workers.dev in the Harbor account.
-Wrangler must be authenticated. The script builds the Worker and uploads only
-`AFFINITY_TEST_API_KEY`, `DEMO_PIN`, and `DEMO_SESSION_SECRET` as encrypted Worker secrets.
-Production is not uploaded. Existing Worker secrets are preserved by later deployments.
+Wrangler must be authenticated. Copy `.env.example` to `.env.prod` and configure it first.
+The script builds the Worker and uploads `AFFINITY_API_URL`, `AFFINITY_TEST_API_KEY`,
+`AFFINITY_PRODUCTION_API_KEY`, `DEMO_PIN`, and `DEMO_SESSION_SECRET` from `.env.prod`
+as encrypted Worker secrets. An empty Production key disables that mode and clears any
+previously deployed Production credential. Other Worker secrets are preserved.
 
 On first deployment, the script generates a 10-digit PIN and a random session secret and saves
-both in your ignored `.env`. Share the PIN with demo users. They enter it once per 12-hour session;
+both in your ignored `.env.prod`. Share the PIN with demo users. They enter it once per 12-hour session;
 no email or account is needed. The cookie is signed, HttpOnly, and SameSite=Strict. Hosted HTTPS uses a Secure cookie;
 local HTTP uses a separate cookie so the PIN flow works on localhost too.
 Cloudflare limits PIN attempts to five per minute per IP at each Cloudflare location.

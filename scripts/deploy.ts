@@ -3,9 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomBytes, randomInt } from "node:crypto";
 
-// Bun loads .env. Only these three secrets are uploaded; Production stays unset.
+// The environment runner loads .env.prod before this script starts.
 const testKey = process.env.AFFINITY_TEST_API_KEY;
-if (!testKey?.startsWith("sk_test_")) throw new Error("Set AFFINITY_TEST_API_KEY in .env first.");
+if (!testKey?.startsWith("sk_test_"))
+  throw new Error("Set AFFINITY_TEST_API_KEY in .env.prod first.");
 const pin = process.env.DEMO_PIN || String(randomInt(1_000_000_000, 10_000_000_000));
 const sessionSecret = process.env.DEMO_SESSION_SECRET || randomBytes(32).toString("hex");
 if (!/^\d{4,}$/.test(pin)) throw new Error("DEMO_PIN must have at least 4 digits.");
@@ -17,11 +18,13 @@ const additions = [
   !process.env.DEMO_SESSION_SECRET && `DEMO_SESSION_SECRET=${sessionSecret}`,
 ].filter(Boolean);
 if (additions.length) {
-  const existing = await Bun.file(".env")
+  const existing = await Bun.file(".env.prod")
     .text()
     .catch(() => "");
-  await writeFile(".env", `${existing.trimEnd()}\n\n${additions.join("\n")}\n`, { mode: 0o600 });
-  console.log("Saved the demo PIN and session secret in .env.");
+  await writeFile(".env.prod", `${existing.trimEnd()}\n\n${additions.join("\n")}\n`, {
+    mode: 0o600,
+  });
+  console.log("Saved the demo PIN and session secret in .env.prod.");
 }
 
 async function run(command: string[]) {
@@ -38,6 +41,8 @@ try {
     file,
     JSON.stringify({
       AFFINITY_TEST_API_KEY: testKey,
+      AFFINITY_PRODUCTION_API_KEY: process.env.AFFINITY_PRODUCTION_API_KEY || "",
+      AFFINITY_API_URL: process.env.AFFINITY_API_URL || "",
       DEMO_PIN: pin,
       DEMO_SESSION_SECRET: sessionSecret,
     }),

@@ -3,15 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --bun vite dev",
-    "start": "HOST=127.0.0.1 PORT=${PORT:-3001} bun .output/server/index.mjs",
-    "example": "bun example.ts",
-    "build": "bun --bun vite build",
-    "build:worker": "NITRO_PRESET=cloudflare-module bun --bun vite build",
+    "dev": "bun --no-env-file scripts/run.ts dev bun --no-env-file --bun vite dev",
+    "start": "HOST=127.0.0.1 PORT=${PORT:-3001} bun --no-env-file scripts/run.ts prod bun --no-env-file .output/server/index.mjs",
+    "example": "bun --no-env-file scripts/run.ts dev bun --no-env-file example.ts",
+    "build": "bun --no-env-file --bun vite build",
+    "build:worker": "NITRO_PRESET=cloudflare-module bun --no-env-file --bun vite build",
     "check": "oxlint && oxfmt --check && tsc --noEmit",
     "check-types": "tsc --noEmit",
     "format": "oxfmt --write",
-    "deploy": "bun scripts/deploy.ts"
+    "deploy": "bun --no-env-file scripts/run.ts prod bun --no-env-file scripts/deploy.ts"
   },
   "dependencies": {
     "@affinity-health/sdk": "1.9.0-beta.4",

@@ -5,6 +5,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 
 export default defineConfig({
+  // scripts/run.ts loads exactly .env.dev or .env.prod into the server process.
+  envDir: false,
   plugins: [
     tailwindcss(),
     tanstackStart(),
