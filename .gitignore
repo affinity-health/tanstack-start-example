@@ -15,9 +15,8 @@ src/routeTree.gen.ts
 
 # Environment variables
 .env
-.env*.local
-.env.dev
-.env.workspace
+.env.*
+!.env.example
 
 # IDEs and editors
 .vscode/*
@@ -53,9 +52,10 @@ lerna-debug.log*
 *.sqlite-shm
 *.sqlite-wal
 
-# Testing
-coverage
-.nyc_output
+# Browser artifacts
+.playwright-cli
+playwright-report
+test-results
 
 # Misc
 *.tgz

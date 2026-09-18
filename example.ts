@@ -1,15 +1,21 @@
 import { ResponseError } from "@affinity-health/sdk";
-import { createAffinity } from "./src/affinity";
-import { resolvePatient } from "./src/workflow";
+import { createAffinity } from "./src/server/affinity/client";
+import { resolvePatient } from "./src/server/affinity/patients";
 
 // Edit this file, then run: bun run example. No web server needed.
 const affinity = createAffinity();
 try {
+  console.time("apiKeys.retrieve");
   const access = await affinity.apiKeys.retrieve();
+  console.timeEnd("apiKeys.retrieve");
   if (access.livemode) throw new Error("Use a Test API key.");
   console.log("Access:", JSON.stringify(access, null, 2));
+  console.time("practices.list");
   console.log("Practices:", JSON.stringify(await affinity.practices.list({ limit: 10 }), null, 2));
+  console.timeEnd("practices.list");
+  console.time("catalog.list");
   console.log("Catalog:", JSON.stringify(await affinity.catalog.list({ limit: 10 }), null, 2));
+  console.timeEnd("catalog.list");
 
   // Set both IDs in .env to also create/reuse a synthetic patient and preview a prescription.
   const practiceId = process.env.AFFINITY_PRACTICE_ID;

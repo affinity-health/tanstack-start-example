@@ -1,6 +1,5 @@
-import { useState, useEffect, useId } from "react";
-import { createRoot } from "react-dom/client";
-import { patients } from "./patients";
+import { useState, useEffect } from "react";
+import { patients } from "../../data/patients";
 import type {
   Practices,
   Catalog,
@@ -10,19 +9,13 @@ import type {
   Preview,
   PreviewInput,
   Order,
-} from "./workflow";
+} from "./types";
 
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { Checkbox } from "./components/ui/checkbox";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectPopup,
-  SelectItem,
-} from "./components/ui/select";
-import { Menu, MenuTrigger, MenuPopup, MenuItem } from "./components/ui/menu";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Choice } from "./components/choice";
+import { Menu, MenuTrigger, MenuPopup, MenuItem } from "../../components/ui/menu";
 import {
   MoreHorizontal,
   ChevronDown,
@@ -34,44 +27,7 @@ import {
 } from "lucide-react";
 
 type Mode = "test" | "production";
-function Choice({
-  label,
-  value,
-  onChange,
-  items,
-  disabled,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  items: { value: string; label: string }[];
-  disabled?: boolean;
-}) {
-  const id = useId();
-  return (
-    <div className="choice">
-      <label id={id}>{label}</label>
-      <Select
-        value={value || null}
-        onValueChange={(v) => onChange(v ?? "")}
-        items={items}
-        disabled={disabled}
-      >
-        <SelectTrigger aria-labelledby={id}>
-          <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
-        </SelectTrigger>
-        <SelectPopup alignItemWithTrigger={false}>
-          {items.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectPopup>
-      </Select>
-    </div>
-  );
-}
-function App() {
+export function PrescribingApp() {
   const [mode, setMode] = useState<Mode>("test");
   const [working, setWorking] = useState(false);
   return (
@@ -704,4 +660,3 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
     </main>
   );
 }
-createRoot(document.getElementById("root")!).render(<App />);

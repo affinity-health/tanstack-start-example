@@ -3,19 +3,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --hot server.ts",
-    "start": "NODE_ENV=production bun server.ts",
+    "dev": "bun --bun vite dev",
+    "start": "HOST=127.0.0.1 PORT=${PORT:-3001} bun .output/server/index.mjs",
     "example": "bun example.ts",
-    "build": "bun build.ts",
-    "check": "bun test && oxlint && oxfmt --check && tsc --noEmit",
+    "build": "bun --bun vite build",
+    "check": "oxlint && oxfmt --check && tsc --noEmit",
     "check-types": "tsc --noEmit",
-    "format": "oxfmt --write",
-    "test": "bun test"
+    "format": "oxfmt --write"
   },
   "dependencies": {
     "@affinity-health/sdk": "1.9.0-beta.4",
     "@base-ui/react": "^1.8.0",
-    "bun-plugin-tailwind": "^0.1.2",
+    "@tanstack/react-router": "^1.170.38",
+    "@tanstack/react-start": "^1.168.56",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.47.0",
@@ -25,12 +25,16 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/bun": "^1.3.12",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "nitro": "^3.0.260903-beta",
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
-    "typescript": "^6.0.0"
+    "typescript": "^6.0.0",
+    "vite": "^8.3.0"
   },
   "packageManager": "bun@1.3.12"
 }
