@@ -1,8 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
+import { redirect } from "@tanstack/react-router";
+import { hasSession } from "./auth/session";
 import { apiHandler, json } from "./api-handler";
 import { listAll } from "./affinity/pagination";
 import type { Bootstrap } from "../features/prescribing/data/reads";
+
+export const requireSession = createServerFn({ method: "GET" }).handler(async () => {
+  if (!(await hasSession(getRequest()))) throw redirect({ href: "/unlock" });
+});
 
 // Returning this promise from the route loader lets Start stream the shell first.
 export const loadWorkspace = createServerFn({ method: "GET" }).handler(

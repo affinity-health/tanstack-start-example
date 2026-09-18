@@ -8,7 +8,7 @@ const testKey = process.env.AFFINITY_TEST_API_KEY;
 if (!testKey?.startsWith("sk_test_")) throw new Error("Set AFFINITY_TEST_API_KEY in .env first.");
 const pin = process.env.DEMO_PIN || String(randomInt(1_000_000_000, 10_000_000_000));
 const sessionSecret = process.env.DEMO_SESSION_SECRET || randomBytes(32).toString("hex");
-if (!/^\d{10,}$/.test(pin)) throw new Error("DEMO_PIN must have at least 10 digits.");
+if (!/^\d{4,}$/.test(pin)) throw new Error("DEMO_PIN must have at least 4 digits.");
 if (sessionSecret.length < 32)
   throw new Error("DEMO_SESSION_SECRET must have at least 32 characters.");
 

@@ -1,9 +1,10 @@
 import { Await, createFileRoute } from "@tanstack/react-router";
 import { PrescribingApp } from "../features/prescribing/prescribing-app";
-import { loadWorkspace } from "../server/bootstrap";
+import { loadWorkspace, requireSession } from "../server/bootstrap";
 
 export const Route = createFileRoute("/")({
   headers: () => ({ "Cache-Control": "private, no-store" }),
+  beforeLoad: () => requireSession(),
   loader: () => ({ workspace: loadWorkspace() }),
   component: Index,
 });

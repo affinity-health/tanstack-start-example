@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { read, peekRead, seedRead, catalogPath, optionsPath, type Bootstrap } from "./data/reads";
 import { patients } from "../../data/patients";
+import { requireBrowserSession } from "../../lib/session";
 import type {
   Practices,
   PatientResult,
@@ -203,6 +204,7 @@ function Workspace({
         : undefined,
     );
     const data = await response.json();
+    requireBrowserSession(data);
     setLastResponse(data);
     if (!response.ok) throw new Error(`${data.error} ${data.details ? pretty(data.details) : ""}`);
     return data as T;

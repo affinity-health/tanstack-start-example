@@ -151,7 +151,8 @@ Production is not uploaded. Existing Worker secrets are preserved by later deplo
 
 On first deployment, the script generates a 10-digit PIN and a random session secret and saves
 both in your ignored `.env`. Share the PIN with demo users. They enter it once per 12-hour session;
-no email or account is needed. The cookie is signed, Secure, HttpOnly, and SameSite=Strict.
+no email or account is needed. The cookie is signed, HttpOnly, and SameSite=Strict. Hosted HTTPS uses a Secure cookie;
+local HTTP uses a separate cookie so the PIN flow works on localhost too.
 Cloudflare limits PIN attempts to five per minute per IP at each Cloudflare location.
 Changing either PIN or session secret and redeploying invalidates existing sessions.
 

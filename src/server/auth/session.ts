@@ -1,4 +1,11 @@
-const cookieName = "__Host-demo-session";
+function cookieSettings(request: Request) {
+  const url = new URL(request.url);
+  const localHttp =
+    url.protocol === "http:" &&
+    ["localhost", "127.0.0.1"].includes(url.hostname) &&
+    !(request as WorkerRequest).runtime?.cloudflare;
+  return { name: localHttp ? "demo-session-local" : "__Host-demo-session", secure: !localHttp };
+}
 const sessionSeconds = 12 * 60 * 60;
 const encoder = new TextEncoder();
 
@@ -34,6 +41,7 @@ async function signingKey() {
 export async function hasSession(request: Request): Promise<boolean> {
   if (localDevelopment(request)) return true;
   if (!process.env.DEMO_PIN || !process.env.DEMO_SESSION_SECRET) return false;
+  const cookieName = cookieSettings(request).name;
   const token = request.headers
     .get("cookie")
     ?.split("; ")
@@ -90,6 +98,7 @@ export async function unlock(request: Request): Promise<Response> {
       headers: { ...headers, Location: "/unlock?error=pin" },
     });
   const expires = String(Math.floor(Date.now() / 1000) + sessionSeconds);
+  const cookie = cookieSettings(request);
   const signature = Array.from(
     new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(expires))),
     (byte) => byte.toString(16).padStart(2, "0"),
@@ -99,7 +108,7 @@ export async function unlock(request: Request): Promise<Response> {
     headers: {
       ...headers,
       Location: "/",
-      "Set-Cookie": `${cookieName}=${expires}.${signature}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${sessionSeconds}`,
+      "Set-Cookie": `${cookie.name}=${expires}.${signature}; Path=/; HttpOnly;${cookie.secure ? " Secure;" : ""} SameSite=Strict; Max-Age=${sessionSeconds}`,
     },
   });
 }

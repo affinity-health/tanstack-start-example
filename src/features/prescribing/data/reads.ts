@@ -1,4 +1,5 @@
 import type { Catalog, Options, Practices } from "../types";
+import { requireBrowserSession } from "../../../lib/session";
 
 export type Mode = "test" | "production";
 export type Bootstrap = { practices?: Practices; catalog?: Catalog; error?: string };
@@ -42,6 +43,7 @@ export async function read<T>(mode: Mode, path: string): Promise<T> {
   entry.pending = fetch(key)
     .then(async (response) => {
       const data = await response.json();
+      requireBrowserSession(data);
       if (!response.ok) throw new Error(data.error || "Request failed.");
       entry.value = data;
       entry.expires = Date.now() + lifetime;

@@ -19,7 +19,8 @@ export async function apiHandler<TBody = Record<string, string>>(
   { practiceRequired = true } = {},
 ) {
   const url = new URL(request.url);
-  if (!(await hasSession(request))) return json({ error: "Enter the demo PIN to continue." }, 401);
+  if (!(await hasSession(request)))
+    return json({ code: "SESSION_REQUIRED", error: "Enter the demo PIN to continue." }, 401);
   if (
     request.method === "POST" &&
     request.headers.get("origin") &&
