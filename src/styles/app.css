@@ -190,6 +190,7 @@ fieldset {
   overflow: hidden;
 }
 .practice-row {
+  min-height: 50px;
   padding: 15px 28px;
   border-bottom: 1px solid #ededed;
 }

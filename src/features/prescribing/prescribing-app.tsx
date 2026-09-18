@@ -132,7 +132,8 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
   const [attested, setAttested] = useState(false);
   const [signed, setSigned] = useState(false);
   const [allergies, setAllergies] = useState(false);
-  const [busy, setBusy] = useState("");
+  const [busy, setBusy] = useState("Loading workspace");
+  const [practicesLoaded, setPracticesLoaded] = useState(false);
   const [error, setError] = useState("");
   const [lastResponse, setLastResponse] = useState<unknown>();
   // A retry of an identical mutation reuses its key, including after a network error.
@@ -181,6 +182,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
     await run("Loading workspace", async () => {
       const practiceList = await api<Practices>("practices");
       setPractices(practiceList.data);
+      setPracticesLoaded(true);
       setPractice(practiceList.data[0]?.id ?? "");
     });
   }
@@ -204,7 +206,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
         </p>
       )}
       <div className="status-line" role="status" aria-live="polite">
-        {busy ? `${busy}…` : signed ? "Prescription signed" : ""}
+        {busy && busy !== "Loading workspace" ? `${busy}…` : signed ? "Prescription signed" : ""}
       </div>
       {error && (
         <div className="error" role="alert">
@@ -216,7 +218,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
           )}
         </div>
       )}
-      {!busy && !error && !practices.length && (
+      {practicesLoaded && !busy && !error && !practices.length && (
         <p className="production-note">
           No practices are available. Check this key's practice access in Affinity, then reload the
           workspace.
@@ -226,7 +228,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
         <div className="practice-row">
           {practices.length === 1 ? (
             <span className="practice-name">{practices[0].name}</span>
-          ) : (
+          ) : practices.length > 1 ? (
             <>
               <Choice
                 label="Practice"
@@ -246,7 +248,7 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
                 }}
               />
             </>
-          )}
+          ) : null}
         </div>
         <div className="workspace-grid">
           <aside className="patient-panel">
