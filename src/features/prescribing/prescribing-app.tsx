@@ -302,7 +302,7 @@ function Workspace({
           <aside className="patient-panel">
             <section>
               <Choice
-                label="Patient"
+                label="EMR Patient"
                 value={externalId}
                 disabled={!!busy}
                 items={patients.map((p) => ({

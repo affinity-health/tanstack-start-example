@@ -642,7 +642,7 @@ footer code {
   outline: none;
 }
 .medication-results {
-  min-height: 100px;
+  min-height: 0;
   overflow-y: auto;
 }
 .medication-result {
