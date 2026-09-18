@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
-import { Check, Pill, Search, X } from "lucide-react";
+import { Check, Pill, Search } from "lucide-react";
 import { Button } from "../../../components/ui/button";
+import { Command, CommandInput, CommandList, CommandItem } from "../../../components/ui/command";
 import {
-  Command,
-  CommandDialog,
-  CommandDialogTrigger,
-  CommandDialogPopup,
-  CommandDialogPrimitive,
-  CommandInput,
-  CommandList,
-  CommandItem,
-} from "../../../components/ui/command";
+  Popover,
+  PopoverTrigger,
+  PopoverPopup,
+  PopoverTitle,
+} from "../../../components/ui/popover";
 import type { Catalog } from "../types";
 
 type Medication = Catalog["data"][number];
@@ -85,7 +82,7 @@ export function MedicationPicker({
       <span id="medication-label" className="medication-label">
         Medication
       </span>
-      <CommandDialog
+      <Popover
         open={open}
         onOpenChange={(value) => {
           setOpen(value);
@@ -97,7 +94,7 @@ export function MedicationPicker({
           }
         }}
       >
-        <CommandDialogTrigger
+        <PopoverTrigger
           render={<Button variant="outline" className="medication-trigger" />}
           disabled={disabled}
           aria-labelledby="medication-label medication-selection"
@@ -108,20 +105,9 @@ export function MedicationPicker({
             {selected && <small>{selected.pharmacyName}</small>}
           </span>
           <Search size={18} aria-hidden="true" />
-        </CommandDialogTrigger>
-        <CommandDialogPopup className="medication-command">
-          <CommandDialogPrimitive.Title className="sr-only">
-            Select medication
-          </CommandDialogPrimitive.Title>
-          <CommandDialogPrimitive.Description className="sr-only">
-            Search the Affinity catalog by medication name.
-          </CommandDialogPrimitive.Description>
-          <CommandDialogPrimitive.Close
-            render={<Button variant="ghost" size="icon" className="medication-close" />}
-            aria-label="Close medication search"
-          >
-            <X size={18} />
-          </CommandDialogPrimitive.Close>
+        </PopoverTrigger>
+        <PopoverPopup className="medication-command" align="start" sideOffset={6}>
+          <PopoverTitle className="sr-only">Select medication</PopoverTitle>
           <Command
             items={loading || error ? [] : items}
             filter={null}
@@ -138,11 +124,7 @@ export function MedicationPicker({
               setLoading(true);
             }}
           >
-            <CommandInput
-              aria-label="Search medications"
-              placeholder="Search medications…"
-              className="pr-10"
-            />
+            <CommandInput aria-label="Search medications" placeholder="Search medications…" />
             <div className="medication-results" aria-busy={loading}>
               {loading ? (
                 <p role="status" className="medication-message">
@@ -194,8 +176,8 @@ export function MedicationPicker({
               Show more medications
             </Button>
           )}
-        </CommandDialogPopup>
-      </CommandDialog>
+        </PopoverPopup>
+      </Popover>
     </div>
   );
 }
