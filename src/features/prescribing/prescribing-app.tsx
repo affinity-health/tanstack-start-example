@@ -69,7 +69,7 @@ export function PrescribingApp({
         pending={pending}
         profile={profile}
         openSettings={() => setSettingsOpen(true)}
-        renderHeader={({ practices, practiceId, onPractice, view }) => (
+        renderHeader={({ practices, practiceId, onPractice, onView, view }) => (
           <header className="toolbar">
             <div className="brand">
               <img
@@ -107,7 +107,8 @@ export function PrescribingApp({
                 aria-current={view === "new" ? "page" : undefined}
                 aria-disabled={working}
                 onClick={(event) => {
-                  if (working) event.preventDefault();
+                  event.preventDefault();
+                  if (!working && view !== "new") onView("new");
                 }}
               >
                 New prescription
@@ -117,7 +118,8 @@ export function PrescribingApp({
                 aria-current={view === "orders" ? "page" : undefined}
                 aria-disabled={working || !practiceId}
                 onClick={(event) => {
-                  if (working || !practiceId) event.preventDefault();
+                  event.preventDefault();
+                  if (!working && practiceId && view !== "orders") onView("orders");
                 }}
               >
                 Orders

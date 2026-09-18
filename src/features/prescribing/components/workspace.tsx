@@ -49,12 +49,19 @@ export function Workspace({
     practices: Practices["data"];
     practiceId: string;
     onPractice: (id: string) => void;
+    onView: (view: "new" | "orders") => void;
     view: "new" | "orders";
   }) => ReactNode;
 }) {
   const [view, setView] = useState<"new" | "orders">("new");
+  const [ordersVisited, setOrdersVisited] = useState(false);
+  const [ordersRevision, setOrdersRevision] = useState(0);
+  function changeView(next: "new" | "orders") {
+    if (next === "orders") setOrdersVisited(true);
+    setView(next);
+  }
   useEffect(() => {
-    const navigate = () => setView(location.hash === "#orders" ? "orders" : "new");
+    const navigate = () => changeView(location.hash === "#orders" ? "orders" : "new");
     navigate();
     window.addEventListener("hashchange", navigate);
     return () => window.removeEventListener("hashchange", navigate);
@@ -267,6 +274,7 @@ export function Workspace({
           }
           draft = await api<Order>("orders", { ...preview.orderInput, userId: registered.id });
           setOrder(draft);
+          setOrdersRevision((value) => value + 1);
           if (send && !matchesPreview(draft, preview, npi, options!, localPatient)) {
             setAttested(false);
             setNotice("Your draft is ready. Review the saved prescription below before signing.");
@@ -303,6 +311,7 @@ export function Workspace({
           actorId: registered.externalId,
         });
         setSubmitted(true);
+        setOrdersRevision((value) => value + 1);
         setNotice("Prescription submitted to the pharmacy.");
       },
     );
@@ -315,6 +324,7 @@ export function Workspace({
         practices,
         practiceId,
         view,
+        onView: changeView,
         onPractice: (value) => {
           setPractice(value);
           setMedication("");
@@ -454,20 +464,23 @@ export function Workspace({
             </div>
           </div>
         </fieldset>
-        {view === "orders" && practiceId && (
-          <OrdersView
-            key={practiceId}
-            practiceId={practiceId}
-            mode={mode}
-            profile={profile}
-            api={api}
-            onBusy={(value) => {
-              onBusy(value);
-              setBusy(value ? "Updating order" : "");
-            }}
-            openSettings={openSettings}
-            onChanged={clearOrder}
-          />
+        {ordersVisited && practiceId && (
+          <div hidden={view !== "orders"}>
+            <OrdersView
+              revision={ordersRevision}
+              key={practiceId}
+              practiceId={practiceId}
+              mode={mode}
+              profile={profile}
+              api={api}
+              onBusy={(value) => {
+                onBusy(value);
+                setBusy(value ? "Updating order" : "");
+              }}
+              openSettings={openSettings}
+              onChanged={clearOrder}
+            />
+          </div>
         )}
         <Dialog
           open={reviewOpen}

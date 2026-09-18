@@ -27,7 +27,9 @@ export function OrdersView({
   onBusy,
   openSettings,
   onChanged,
+  revision,
 }: {
+  revision: number;
   practiceId: string;
   mode: "test" | "production";
   profile: Profile;
@@ -88,7 +90,7 @@ export function OrdersView({
     return () => {
       generation.current++;
     };
-  }, [listPath]);
+  }, [listPath, revision]);
   useEffect(() => {
     setAttested(false);
   }, [profile]);
