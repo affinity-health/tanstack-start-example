@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { patients } from "../../data/patients";
 import type {
   Practices,
-  Catalog,
   PatientResult,
   Prescriber,
   Options,
@@ -14,6 +13,7 @@ import type {
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Checkbox } from "../../components/ui/checkbox";
+import { MedicationPicker } from "./components/medication-picker";
 import { Choice } from "./components/choice";
 import { Menu, MenuTrigger, MenuPopup, MenuItem } from "../../components/ui/menu";
 import {
@@ -115,7 +115,6 @@ function Json({ title, value }: { title: string; value: unknown }) {
 
 function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => void }) {
   const [practices, setPractices] = useState<Practices["data"]>([]);
-  const [catalog, setCatalog] = useState<Catalog["data"]>([]);
   const [practiceId, setPractice] = useState("");
   const [externalId, setExternal] = useState(patients[0].externalId);
   const [patient, setPatient] = useState<PatientResult>();
@@ -180,12 +179,8 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
   }
   async function load() {
     await run("Loading workspace", async () => {
-      const [practiceList, medicationList] = await Promise.all([
-        api<Practices>("practices"),
-        api<Catalog>("catalog"),
-      ]);
+      const practiceList = await api<Practices>("practices");
       setPractices(practiceList.data);
-      setCatalog(medicationList.data);
       setPractice(practiceList.data[0]?.id ?? "");
     });
   }
@@ -221,11 +216,10 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
           )}
         </div>
       )}
-      {!busy && !error && (!practices.length || !catalog.length) && (
+      {!busy && !error && !practices.length && (
         <p className="production-note">
-          {!practices.length
-            ? "No practices are available. Check this key’s practice access in Affinity, then reload the workspace."
-            : "No medications are available in this environment. Check your catalog access in Affinity, then reload the workspace."}
+          No practices are available. Check this key's practice access in Affinity, then reload the
+          workspace.
         </p>
       )}
       <fieldset disabled={!!busy}>
@@ -295,14 +289,11 @@ function Workspace({ mode, onBusy }: { mode: Mode; onBusy: (busy: boolean) => vo
           </aside>
           <div className="prescription-panel">
             <section>
-              <Choice
-                label="Medication"
-                value={medicationId}
-                disabled={!!busy || !practiceId || !catalog.length}
-                items={catalog.map((m) => ({
-                  value: m.id,
-                  label: `${m.name} ${m.strength} · ${m.pharmacyName}`,
-                }))}
+              <MedicationPicker
+                key={practiceId}
+                mode={mode}
+                practiceId={practiceId}
+                disabled={!!busy || !practiceId}
                 onChange={(value) => {
                   setMedication(value);
                   setOptions(undefined);

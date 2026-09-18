@@ -1,17 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { apiHandler, json } from "../../server/api-handler";
-import { listAll } from "../../server/affinity/pagination";
+
 export const Route = createFileRoute("/api/catalog")({
   server: {
     handlers: {
       GET: ({ request }) =>
         apiHandler(
           request,
-          async ({ affinity }) =>
+          async ({ affinity, body }) =>
             json(
-              await listAll((cursor) =>
-                affinity.catalog.list({ limit: 100, startingAfter: cursor }),
-              ),
+              await affinity.catalog.list({
+                limit: 25,
+                query: body.query?.trim() || undefined,
+                practiceId: body.practiceId || undefined,
+                startingAfter: body.startingAfter || undefined,
+              }),
             ),
           { practiceRequired: false },
         ),

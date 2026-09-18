@@ -15,8 +15,8 @@ bun run dev
 
 Open http://localhost:3001.
 
-1. Practices and medications load automatically. Use the toolbar to switch Test or Production.
-2. Select an EMR patient and medication. Medication defaults load when you select it.
+1. Practices load automatically. Use the toolbar to switch Test or Production.
+2. Select an EMR patient, then search for a medication in the Coss command picker. Medication defaults load when you select it.
 3. Click **Preview prescription**. The app creates or reuses the patient by external ID and previews the default prescription. **Adjust prescription** exposes only directions and days supply when needed; use `example.ts` for other SDK options.
 4. A complete preview reveals the prescriber fields. Enter the NPI, confirm identity and allergy review, then **Continue to review**. This saves the review, registers or reuses the prescriber, and creates the draft.
 5. Review the draft and explicitly attest before signing its exact prescription versions.
@@ -74,7 +74,7 @@ The script needs no running website.
 | ------ | ---------------------------------------------- | ----------------------------------------- |
 | GET    | `/api/health`                                  | Local health check                        |
 | GET    | `/api/practices`                               | All accessible practices                  |
-| GET    | `/api/catalog`                                 | All catalog medications                   |
+| GET    | `/api/catalog`                                 | Search catalog; 25 results per page       |
 | GET    | `/api/options?practiceId=...&medicationId=...` | Prescribing defaults                      |
 | POST   | `/api/patient`                                 | Create or reuse by EMR external ID        |
 | POST   | `/api/allergies`                               | Explicit no-known-allergies review        |
@@ -83,6 +83,10 @@ The script needs no running website.
 | POST   | `/api/orders`                                  | Create a draft and retrieve it for review |
 | GET    | `/api/order?practiceId=...&orderId=...`        | Retrieve a draft for review               |
 | POST   | `/api/sign`                                    | Sign the explicitly reviewed versions     |
+
+The catalog route accepts `query`, `practiceId`, and `startingAfter`. Search runs through
+`affinity.catalog.list({ query })`, with debounced input and cancellation of stale results.
+Medication rows show `imageUrl` when available, or a pill icon when missing or unavailable.
 
 POST requests use `Idempotency-Key`. The website reuses keys for identical requests within the
 current page session, so an uncertain response can be retried. Reloading clears this local state;
