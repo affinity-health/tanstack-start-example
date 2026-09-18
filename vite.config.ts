@@ -12,7 +12,16 @@ export default defineConfig({
       preset: process.env.NITRO_PRESET ?? "bun",
       cloudflare: {
         nodeCompat: true,
-        wrangler: { name: "affinity-prescribing-demo", compatibility_date: "2026-09-18" },
+        wrangler: {
+          name: "affinity-prescribing-demo",
+          account_id: "6689e70db2aaff6670c28b7e4d36df02",
+          compatibility_date: "2026-09-18",
+          workers_dev: true,
+          preview_urls: false,
+          ratelimits: [
+            { name: "PIN_ATTEMPTS", namespace_id: "1001", simple: { limit: 5, period: 60 } },
+          ],
+        },
       },
     }),
     react(),

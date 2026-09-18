@@ -1,5 +1,6 @@
 import { ResponseError, type Affinity } from "@affinity-health/sdk";
 import { createAffinity, type AffinityMode } from "./affinity/client";
+import { hasSession } from "./auth/session";
 
 export const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -18,8 +19,7 @@ export async function apiHandler<TBody = Record<string, string>>(
   { practiceRequired = true } = {},
 ) {
   const url = new URL(request.url);
-  if (!["localhost", "127.0.0.1"].includes(url.hostname))
-    return json({ error: "Local access only." }, 403);
+  if (!(await hasSession(request))) return json({ error: "Enter the demo PIN to continue." }, 401);
   if (
     request.method === "POST" &&
     request.headers.get("origin") &&
