@@ -277,7 +277,9 @@ export function Workspace({
           setOrdersRevision((value) => value + 1);
           if (send && !matchesPreview(draft, preview, npi, options!, localPatient)) {
             setAttested(false);
-            setNotice("Your draft is ready. Review the saved prescription below before signing.");
+            setNotice(
+              "The saved prescription differs from the preview. Review the updated details and confirm again before signing.",
+            );
             return;
           }
         }

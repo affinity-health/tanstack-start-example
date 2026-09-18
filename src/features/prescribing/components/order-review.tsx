@@ -1,6 +1,41 @@
 import type { patients } from "../../../data/patients";
 import type { Options, Order, Preview } from "../types";
 
+// Optional nulls and object key order have no clinical meaning.
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === "object")
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, entry]) => entry != null)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, entry]) => [key, canonical(entry)]),
+    );
+  return value ?? null;
+}
+function equivalent(actual: unknown, expected: unknown) {
+  return JSON.stringify(canonical(actual)) === JSON.stringify(canonical(expected));
+}
+
+function address(value: object | null | undefined) {
+  return Object.fromEntries(
+    Object.entries(value ?? {}).filter(([key, entry]) => key !== "line2" || entry !== ""),
+  );
+}
+
+// Saved dispensing snapshots can contain the UUID behind the public shipping ID.
+function shippingId(id: string | null | undefined) {
+  if (!id || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) return id;
+  const alphabet = "0123456789abcdefghjkmnpqrstvwxyz";
+  let value = BigInt(`0x${id.replaceAll("-", "")}`);
+  let encoded = "";
+  for (let i = 0; i < 26; i++) {
+    encoded = alphabet[Number(value & 31n)] + encoded;
+    value >>= 5n;
+  }
+  return `shp_${encoded}`;
+}
+
 // Never sign silently if creation changed the prescription the clinician reviewed.
 export function matchesPreview(
   order: Order,
@@ -12,6 +47,7 @@ export function matchesPreview(
   if (
     preview.status !== "complete" ||
     order.patientId !== preview.orderInput.patientId ||
+    order.practiceId !== preview.orderInput.practiceId ||
     order.prescriberNpi !== npi ||
     order.prescriptions.length !== preview.prescriptions.length
   )
@@ -24,9 +60,12 @@ export function matchesPreview(
       rx.patientSnapshot.legalName === `${patient.name.first} ${patient.name.last}` &&
       rx.patientSnapshot.dateOfBirth === patient.dateOfBirth &&
       rx.patientSnapshot.state === patient.address.state &&
-      JSON.stringify(rx.patientSnapshot.address) === JSON.stringify(patient.address) &&
-      JSON.stringify(rx.structuredSig ?? null) === JSON.stringify(input.structuredSig ?? null) &&
-      JSON.stringify(rx.dispensing ?? null) === JSON.stringify(input.dispensing ?? null) &&
+      equivalent(address(rx.patientSnapshot.address), address(patient.address)) &&
+      equivalent(rx.structuredSig, input.structuredSig) &&
+      equivalent(
+        { ...rx.dispensing, shippingOptionId: shippingId(rx.dispensing?.shippingOptionId) },
+        { ...input.dispensing, shippingOptionId: shippingId(input.dispensing?.shippingOptionId) },
+      ) &&
       rx.catalogItemId === expected.medicationId &&
       rx.pharmacyId === options.catalog.pharmacyId &&
       rx.directions === expected.directions &&
@@ -34,7 +73,29 @@ export function matchesPreview(
       rx.quantityUnit === expected.quantity?.unit &&
       Number(rx.daysSupply) === expected.daysSupply &&
       rx.refills === expected.refills &&
-      JSON.stringify(rx.clinical ?? null) === JSON.stringify(clinical ?? null)
+      equivalent(
+        {
+          ...rx.clinical,
+          allergies: rx.clinical?.allergies ?? [],
+          conditions: rx.clinical?.conditions ?? [],
+          medications: rx.clinical?.medications ?? [],
+          observations: rx.clinical?.observations ?? [],
+        },
+        {
+          allergies: [], // The combined attestation confirms no known allergies.
+          conditions: (clinical?.diagnoses ?? []).map((diagnosis) => ({
+            ...diagnosis,
+            codeSystem: "icd-10-cm",
+            source: "Doctor",
+          })),
+          medications: (clinical?.currentMedications ?? []).map((display) => ({
+            display,
+            source: "Doctor",
+          })),
+          observations: clinical?.observations ?? [],
+          compoundingReason: clinical?.compoundingReason,
+        },
+      )
     );
   });
 }
