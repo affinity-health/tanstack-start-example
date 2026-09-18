@@ -61,49 +61,6 @@ export function PrescribingApp({
   }
   return (
     <>
-      <header className="toolbar">
-        <div className="brand">
-          <img
-            src="https://cdn.joinaffinityai.com/logos/affinity/mark-blue.v2.webp"
-            width={30}
-            height={30}
-            alt=""
-          />
-          <span>
-            Affinity AI <span className="brand-secondary">Prescribing demo</span>
-          </span>
-        </div>
-        <div className="toolbar-actions">
-          <Menu>
-            <MenuTrigger
-              disabled={working || pending}
-              render={<Button variant="outline" />}
-              className={`environment ${mode}`}
-            >
-              <span className="mode-dot" />
-              {mode === "test" ? "Test" : "Production"}
-              <ChevronDown size={14} />
-            </MenuTrigger>
-            <MenuPopup align="end">
-              <MenuItem onClick={() => changeMode("test")}>
-                Test {mode === "test" && <Check size={15} aria-hidden />}
-              </MenuItem>
-              <MenuItem onClick={() => changeMode("production")}>
-                Production {mode === "production" && <Check size={15} aria-hidden />}
-              </MenuItem>
-            </MenuPopup>
-          </Menu>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Prescriber settings"
-            disabled={working}
-            onClick={() => setSettingsOpen(true)}
-          >
-            <Settings size={19} />
-          </Button>
-        </div>
-      </header>
       <Workspace
         key={mode}
         mode={mode}
@@ -112,6 +69,92 @@ export function PrescribingApp({
         pending={pending}
         profile={profile}
         openSettings={() => setSettingsOpen(true)}
+        renderHeader={({ practices, practiceId, onPractice, view }) => (
+          <header className="toolbar">
+            <div className="brand">
+              <img
+                src="https://cdn.joinaffinityai.com/logos/affinity/mark-blue.v2.webp"
+                width={30}
+                height={30}
+                alt=""
+              />
+              <span>Affinity AI</span>
+              <Menu>
+                <MenuTrigger
+                  disabled={working || pending || !practices.length}
+                  render={<Button variant="ghost" />}
+                  className="practice-menu"
+                  aria-label="Practice"
+                >
+                  <span>
+                    {practices.find((p) => p.id === practiceId)?.name ?? "Select practice"}
+                  </span>
+                  <ChevronDown size={14} />
+                </MenuTrigger>
+                <MenuPopup align="start">
+                  {practices.map((practice) => (
+                    <MenuItem key={practice.id} onClick={() => onPractice(practice.id)}>
+                      {practice.name}
+                      {practice.id === practiceId && <Check size={15} aria-hidden />}
+                    </MenuItem>
+                  ))}
+                </MenuPopup>
+              </Menu>
+            </div>
+            <nav className="header-links" aria-label="Prescribing">
+              <a
+                href="#new"
+                aria-current={view === "new" ? "page" : undefined}
+                aria-disabled={working}
+                onClick={(event) => {
+                  if (working) event.preventDefault();
+                }}
+              >
+                New prescription
+              </a>
+              <a
+                href="#orders"
+                aria-current={view === "orders" ? "page" : undefined}
+                aria-disabled={working || !practiceId}
+                onClick={(event) => {
+                  if (working || !practiceId) event.preventDefault();
+                }}
+              >
+                Orders
+              </a>
+            </nav>
+            <div className="toolbar-actions">
+              <Menu>
+                <MenuTrigger
+                  disabled={working || pending}
+                  render={<Button variant="outline" />}
+                  className={`environment ${mode}`}
+                >
+                  <span className="mode-dot" />
+                  {mode === "test" ? "Test" : "Production"}
+                  <ChevronDown size={14} />
+                </MenuTrigger>
+                <MenuPopup align="end">
+                  <MenuItem onClick={() => changeMode("test")}>
+                    Test {mode === "test" && <Check size={15} aria-hidden />}
+                  </MenuItem>
+                  <MenuItem onClick={() => changeMode("production")}>
+                    Production {mode === "production" && <Check size={15} aria-hidden />}
+                  </MenuItem>
+                </MenuPopup>
+              </Menu>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Prescriber settings"
+                disabled={working}
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings size={19} />
+              </Button>
+            </div>
+          </header>
+        )}
       />
       {settingsOpen && (
         <PrescriberSettings

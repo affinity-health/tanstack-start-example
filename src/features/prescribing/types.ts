@@ -15,3 +15,5 @@ export type PatientResult = Awaited<ReturnType<typeof resolvePatient>>;
 export type Prescriber = Awaited<ReturnType<Affinity["team"]["createUser"]>>;
 export type Catalog = Awaited<ReturnType<Affinity["catalog"]["list"]>>;
 export type Practices = Awaited<ReturnType<Affinity["practices"]["list"]>>;
+
+export type Orders = Awaited<ReturnType<Affinity["orders"]["list"]>> & { nextCursor?: string };

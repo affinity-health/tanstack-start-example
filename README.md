@@ -15,12 +15,14 @@ bun run dev
 
 Open http://localhost:3001.
 
-1. Practices and the first medication page load during streamed server rendering. Use the toolbar to switch Test or Production.
+1. Practices and the first medication page load during streamed server rendering. Select a practice in the header dropdown; use the toolbar to switch Test or Production.
 2. Select an EMR patient, then search for a medication in the Coss command picker. Medication defaults load when you select it.
 3. Open the header settings cog and save a prescriber name and NPI for each destination state. Production also requires your email. Settings are stored in this browser separately for Test and Production.
 4. Select a medication. Supplies such as alcohol pads cannot be prescribed on their own. If the pharmacy requires a compounding reason, select its category and enter the patient-specific context.
 5. Click **Review prescription**. Affinity validates the defaults and opens the review dialog with directions, quantity, pharmacy, patient, and shipping information.
 6. Choose **Create draft**, or confirm the allergy and prescription review and click **Sign and send to pharmacy**. The saved NPI is selected by the patient's state. If the created prescription differs from the preview, review the saved draft and confirm again. A failed submission can be retried without signing again.
+
+Open **Orders** in the header to see the selected practice’s saved orders. The **Drafts** filter includes orders waiting for a prescriber signature. Open an order to review every prescription and sign and send it using your saved state-specific prescriber. Orders are loaded from Affinity and paginated, so they remain available after reloading. If an order changed since you opened it, the app requires another review before signing.
 
 An NPI identifies the prescriber; signing uses
 the registered user ID and matching actor external ID. Affinity enforces practice access and prescribing authority.
@@ -93,6 +95,7 @@ It needs no running website. Patient-resolution helpers are available in `src/se
 | POST   | `/api/allergies`                               | Explicit no-known-allergies review        |
 | POST   | `/api/prescriber`                              | Register or reuse a prescriber            |
 | POST   | `/api/preview`                                 | Resolve defaults and validate input       |
+| GET    | `/api/orders?practiceId=...`                   | List orders or drafts, 25 per page        |
 | POST   | `/api/orders`                                  | Create a draft and retrieve it for review |
 | GET    | `/api/order?practiceId=...&orderId=...`        | Retrieve a draft for review               |
 | POST   | `/api/submit`                                  | Submit the signed order to the pharmacy   |
