@@ -37,7 +37,7 @@ export function MedicationPicker({
   practiceId: string;
   initialCatalog?: Catalog;
   disabled: boolean;
-  onChange: (id: string) => void;
+  onChange: (item: Medication) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -105,7 +105,7 @@ export function MedicationPicker({
         items={error ? [] : items}
         onItemHighlighted={(item) => {
           clearTimeout(intentTimer.current);
-          if (item && !loading)
+          if (item && !loading && item.ordering.requiresPrescription && item.isOrderable)
             intentTimer.current = setTimeout(() => prefetchOptions(mode, practiceId, item.id), 100);
         }}
         filter={null}
@@ -183,7 +183,7 @@ export function MedicationPicker({
                     setOpen(false);
                     setQuery("");
                     setCursor("");
-                    onChange(medication.id);
+                    onChange(medication);
                   }}
                 >
                   <MedicationImage medication={medication} />
@@ -191,7 +191,14 @@ export function MedicationPicker({
                     <span>
                       {medication.name} {medication.strength}
                     </span>
-                    <small>{medication.pharmacyName}</small>
+                    <small>
+                      {medication.pharmacyName}
+                      {!medication.ordering.requiresPrescription
+                        ? " · Supply"
+                        : !medication.isOrderable
+                          ? " · Unavailable"
+                          : ""}
+                    </small>
                   </span>
                   {selected?.id === medication.id && <Check size={18} aria-label="Selected" />}
                 </AutocompleteItem>

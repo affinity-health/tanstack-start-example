@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { withMedicationImages } from "../../server/affinity/images";
 import { apiHandler, json } from "../../server/api-handler";
 
 export const Route = createFileRoute("/api/catalog")({
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/api/catalog")({
               practiceId: body.practiceId || undefined,
               startingAfter: body.startingAfter || undefined,
             });
-            const response = json(catalog);
+            const response = json({ ...catalog, data: catalog.data.map(withMedicationImages) });
             const duration = (performance.now() - start).toFixed(1);
             response.headers.set("X-Affinity-Duration-Ms", duration);
             response.headers.set(

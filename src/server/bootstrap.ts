@@ -3,6 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
 import { hasSession } from "./auth/session";
 import { apiHandler, json } from "./api-handler";
+import { withMedicationImages } from "./affinity/images";
 import { listAll } from "./affinity/pagination";
 import type { Bootstrap } from "../features/prescribing/data/reads";
 
@@ -26,7 +27,12 @@ export const loadWorkspace = createServerFn({ method: "GET" }).handler(
         const catalog = practiceId
           ? await affinity.catalog.list({ practiceId, limit: 25 }).catch(() => undefined)
           : undefined;
-        return json({ practices, ...(catalog ? { catalog } : {}) });
+        return json({
+          practices,
+          ...(catalog
+            ? { catalog: { ...catalog, data: catalog.data.map(withMedicationImages) } }
+            : {}),
+        });
       },
       { practiceRequired: false },
     );

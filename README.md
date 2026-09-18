@@ -17,17 +17,18 @@ Open http://localhost:3001.
 
 1. Practices and the first medication page load during streamed server rendering. Use the toolbar to switch Test or Production.
 2. Select an EMR patient, then search for a medication in the Coss command picker. Medication defaults load when you select it.
-3. Click **Preview prescription**. The app creates or reuses the patient by external ID and previews the default prescription. **Adjust prescription** exposes only directions and days supply when needed; use `example.ts` for other SDK options.
-4. A complete preview reveals the prescriber fields. Enter the NPI, confirm identity and allergy review, then **Continue to review**. This saves the review, registers or reuses the prescriber, and creates the draft.
-5. Review the draft and explicitly attest before signing its exact prescription versions.
+3. Open the header settings cog and save a prescriber name and NPI for each destination state. Production also requires your email. Settings are stored in this browser separately for Test and Production.
+4. Select a medication. Supplies such as alcohol pads cannot be prescribed on their own. If the pharmacy requires a compounding reason, select its category and enter the patient-specific context.
+5. Click **Review prescription**. Affinity validates the defaults and opens the review dialog with directions, quantity, pharmacy, patient, and shipping information.
+6. Choose **Create draft**, or confirm the allergy and prescription review and click **Sign and send to pharmacy**. The saved NPI is selected by the patient's state. If the created prescription differs from the preview, review the saved draft and confirm again. A failed submission can be retried without signing again.
 
-Signing does **not** submit the order to a pharmacy. An NPI identifies the prescriber; signing uses
+An NPI identifies the prescriber; signing uses
 the registered user ID and matching actor external ID. Affinity enforces practice access and prescribing authority.
 Use a Test NPI issued for your Affinity Test setup, with authority for the selected patient's state.
 
-The Test key needs permissions for practices, catalog, patients, team, order creation/read, and `orders:sign`.
+The Test key needs permissions for practices, catalog, patients, team, order creation/read, `orders:sign`, and order submission permissions.
 A 401 means the key is missing or invalid; a 403 may indicate missing scopes or access.
-API errors and the last response are shown on the page.
+API errors appear beside the relevant action. Full order details are available in the review dialog.
 
 ## Environments
 
@@ -94,6 +95,7 @@ It needs no running website. Patient-resolution helpers are available in `src/se
 | POST   | `/api/preview`                                 | Resolve defaults and validate input       |
 | POST   | `/api/orders`                                  | Create a draft and retrieve it for review |
 | GET    | `/api/order?practiceId=...&orderId=...`        | Retrieve a draft for review               |
+| POST   | `/api/submit`                                  | Submit the signed order to the pharmacy   |
 | POST   | `/api/sign`                                    | Sign the explicitly reviewed versions     |
 
 The catalog route accepts `query`, `practiceId`, and `startingAfter`. Search runs through
@@ -123,13 +125,9 @@ Verified against the Affinity Test API on September 18, 2026: standalone script,
 reuse, prescribing options, incomplete and complete previews, explicit allergy review, and draft
 creation. Test draft: `ord_7816d73pjs9dhvtajp1fy3209v`.
 
-Prescriber registration currently returns `400 idempotency_key_required` even though SDK 1.9.0-beta.4
-sends the header. Reproduced directly through the SDK, outside this app; request ID
-`723f3294-b565-488e-bc83-9973a6d64df6`. Signing is implemented, but live Test signing
-remains unverified until registration succeeds. No order was signed or submitted during verification.
-
-If signing returns a version conflict, use **Refresh order for review**, inspect the updated order,
-and attest again. Refreshing never carries forward a previous attestation.
+The review dialog, per-state prescriber settings, draft reopen, changed-draft re-review, and
+submission retry were verified with mocked API responses. Development API registration and
+idempotent replay were verified separately. No order was signed or submitted in live verification.
 
 ## Responsiveness and Worker builds
 
@@ -176,3 +174,5 @@ Local development skips the gate when `DEMO_PIN` is unset. Hosted access fails c
 or login rate-limit binding are missing. Hashed static assets are public and contain no credentials.
 Preview deployment URLs are disabled so there is one supported demo address.
 This shared PIN grants access to everyone who knows it; it is not individual prescriber identity.
+
+Medication images from the configured development API origin under `/cdn/` load through the PIN-protected `/api/medication-image` route. It adds `X-Api-Key` from `DEVBOX_API_KEY` on the server, refuses redirects and external targets, and leaves public CDN images unchanged. Production does not require this key.
