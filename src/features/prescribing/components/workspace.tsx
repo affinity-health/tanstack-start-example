@@ -68,7 +68,6 @@ export function Workspace({
   const [order, setOrder] = useState<Order>();
   const [attested, setAttested] = useState(false);
   const [signed, setSigned] = useState(false);
-  const [allergies, setAllergies] = useState(false);
   const [busy, setBusy] = useState(starting.practices || initial?.error ? "" : "Loading workspace");
   const [practicesLoaded, setPracticesLoaded] = useState(!!starting.practices);
   const [error, setError] = useState(initial?.error ?? "");
@@ -80,7 +79,6 @@ export function Workspace({
     setPrescriber(undefined);
     setSubmitted(false);
     setNotice("");
-    setAllergies(false);
     setOrder(undefined);
     setAttested(false);
     setSigned(false);
@@ -235,8 +233,8 @@ export function Workspace({
       signed ? "Sending to pharmacy" : send ? "Signing prescription" : "Creating draft",
       async () => {
         if (preview?.status !== "complete" || !patient || (!order && !profileReady)) return;
-        if (!signed && !allergies)
-          throw new Error("Confirm the allergy review before saving this prescription.");
+        if (!signed && !attested)
+          throw new Error("Confirm the patient history and prescription review before saving.");
         let registered = prescriber;
         let draft = order;
         if (!draft)
@@ -267,7 +265,7 @@ export function Workspace({
         }
         if (!registered) throw new Error("Prescriber information is missing. Reopen the review.");
         if (!signed) {
-          if (!attested || !allergies)
+          if (!attested)
             throw new Error("Confirm the prescription and allergy review before signing.");
           await api("sign", {
             orderId: draft.id,
@@ -492,12 +490,9 @@ export function Workspace({
             {preview?.status === "complete" && !signed && (
               <div className="review-confirmations">
                 <label className="check">
-                  <Checkbox disabled={!!busy} checked={allergies} onCheckedChange={setAllergies} />I
-                  reviewed this patient's history: no known allergies.
-                </label>
-                <label className="check">
                   <Checkbox disabled={!!busy} checked={attested} onCheckedChange={setAttested} />I
-                  reviewed this prescription and authorize signing as the prescriber shown above.
+                  reviewed this patient's history and prescription, confirm no known allergies, and
+                  authorize signing as the prescriber shown above.
                 </label>
               </div>
             )}
@@ -541,15 +536,12 @@ export function Workspace({
               <>
                 <Button
                   variant="outline"
-                  disabled={!canSave || !allergies || !!order || signed}
+                  disabled={!canSave || !attested || !!order || signed}
                   onClick={() => save(false)}
                 >
                   {order ? "Draft saved" : "Create draft"}
                 </Button>
-                <Button
-                  disabled={!canSave || (!signed && (!attested || !allergies))}
-                  onClick={() => save(true)}
-                >
+                <Button disabled={!canSave || (!signed && !attested)} onClick={() => save(true)}>
                   {busy
                     ? `${busy}…`
                     : signed
