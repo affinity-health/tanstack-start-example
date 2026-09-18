@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T04:33:31.420274+00:00",
+  "title": "Design System: Affinity EMR demo",
+  "extensions": {
+    "shadows": [
+      {
+        "name": "workspace",
+        "value": "0 5px 24px #00000005",
+        "purpose": "Faint lift beneath the workspace."
+      }
+    ],
+    "motion": [
+      {
+        "name": "control-shadow",
+        "value": "150ms",
+        "purpose": "Coss control shadow transitions; disabled for reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "coss-sm",
+        "value": "640px"
+      },
+      {
+        "name": "stacked-workspace",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "description": "Primary action for the current step. Preview appears first; review and signing follow.",
+      "html": "<button class=\"ds-button-primary\">Preview prescription</button>",
+      "css": ".ds-button-primary{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;font-size:14px;border-radius:8px;padding:0 11px;height:36px;font-weight:500;cursor:pointer;transition:box-shadow 150ms;background:var(--primary,#0068d9);color:var(--primary-foreground,white);border:1px solid var(--primary,#0068d9);}.ds-button-primary:hover{background:color-mix(in srgb,var(--primary,#0068d9) 90%,transparent)}.ds-button-primary:focus-visible{outline:2px solid var(--primary,#0068d9);outline-offset:3px}.ds-button-primary:active{box-shadow:inset 0 1px #00000014}.ds-button-primary:disabled{opacity:.64;pointer-events:none}@media(min-width:640px){.ds-button-primary{height:32px}}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none}}"
+    },
+    {
+      "name": "Outline button",
+      "kind": "button",
+      "description": "Outline button using the default Coss size.",
+      "html": "<button class=\"ds-button-outline\">Continue</button>",
+      "css": ".ds-button-outline{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;font-size:14px;border-radius:8px;padding:0 11px;height:36px;font-weight:500;cursor:pointer;transition:box-shadow 150ms;background:var(--popover,white);color:var(--foreground,#262626);border:1px solid var(--input,#d1d1d6);}.ds-button-outline:hover{background:var(--accent,#e8f1fd)}.ds-button-outline:focus-visible{outline:2px solid var(--primary,#0068d9);outline-offset:3px}.ds-button-outline:active{box-shadow:inset 0 1px #00000014}.ds-button-outline:disabled{opacity:.64;pointer-events:none}@media(min-width:640px){.ds-button-outline{height:32px}}@media(prefers-reduced-motion:reduce){.ds-button-outline{transition:none}}"
+    },
+    {
+      "name": "Ghost button",
+      "kind": "button",
+      "description": "Ghost button using the default Coss size.",
+      "html": "<button class=\"ds-button-ghost\">Continue</button>",
+      "css": ".ds-button-ghost{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;font-size:14px;border-radius:8px;padding:0 11px;height:36px;font-weight:500;cursor:pointer;transition:box-shadow 150ms;background:transparent;color:var(--foreground,#262626);border:1px solid transparent;}.ds-button-ghost:hover{background:var(--accent,#e8f1fd)}.ds-button-ghost:focus-visible{outline:2px solid var(--primary,#0068d9);outline-offset:3px}.ds-button-ghost:active{box-shadow:inset 0 1px #00000014}.ds-button-ghost:disabled{opacity:.64;pointer-events:none}@media(min-width:640px){.ds-button-ghost{height:32px}}@media(prefers-reduced-motion:reduce){.ds-button-ghost{transition:none}}"
+    },
+    {
+      "name": "Text input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labeled input with the app minimum height.",
+      "html": "<label class=\"ds-label\">NPI<input class=\"ds-input\" placeholder=\"10-digit NPI\"></label>",
+      "css": ".ds-label{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;font-size:14px;display:grid;gap:8px;font-size:12px;font-weight:500}.ds-input{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;font-size:14px;min-height:38px;border:1px solid var(--input,#d1d1d6);border-radius:8px;padding:0 11px;background:var(--background,white);color:var(--foreground,#262626)}.ds-input:focus-visible{outline:none;border-color:var(--ring,#0068d9);box-shadow:0 0 0 3px color-mix(in srgb,var(--ring,#0068d9) 24%,transparent)}.ds-input:disabled{opacity:.64}"
+    },
+    {
+      "name": "Environment selector",
+      "kind": "nav",
+      "description": "Always-visible environment menu trigger; static specimen.",
+      "html": "<button class=\"ds-environment\"><span class=\"ds-dot\"></span>Test<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
+      "css": ".ds-environment{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;font-size:14px;border-radius:8px;padding:0 11px;height:36px;font-weight:500;cursor:pointer;transition:box-shadow 150ms;display:inline-flex;align-items:center;gap:8px;background:white;color:var(--foreground,#262626);border:1px solid var(--input,#d1d1d6)}.ds-dot{width:7px;height:7px;border-radius:50%;background:#707079}.ds-environment:hover{background:var(--accent,#e8f1fd)}.ds-environment:focus-visible{outline:2px solid var(--primary,#0068d9);outline-offset:3px}@media(min-width:640px){.ds-environment{height:32px}}"
+    },
+    {
+      "name": "Patient context",
+      "kind": "custom",
+      "refersTo": "patient-panel",
+      "description": "Initials and identity inside the patient panel.",
+      "html": "<aside class=\"ds-patient\"><span class=\"ds-avatar\">EP</span><div><strong>Example patient</strong><span>Synthetic EMR record</span></div></aside>",
+      "css": ".ds-patient{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;font-size:14px;display:flex;align-items:center;gap:12px;background:#fbfbfc;padding:26px 24px;border-right:1px solid #e5e5e9}.ds-avatar{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#e9eaee;color:#626269;font-weight:500}.ds-patient strong{display:block;font-size:15px;font-weight:600}.ds-patient div>span{display:block;font-size:12px;color:#626269}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Apple-like desktop utility",
+    "overview": "A light prescribing workspace with Coss controls, system typography, and space between tasks. Patient context stays beside the editor on desktop. Blue marks actions and focus; neutral backgrounds organize the form.\n\nThis document describes `src/styles.css`, `src/app.tsx`, and `src/components/ui`. Browser authentication failed during implementation, so visual appearance and responsive behavior have not been verified with screenshots.",
+    "keyCharacteristics": [
+      "Light gray canvas with a white editor and subtly tinted patient panel.",
+      "Visible Test or Production context throughout the workflow.",
+      "Compact controls with later steps revealed only when needed."
+    ],
+    "rules": [],
+    "dos": [
+      "Do use the existing Coss components for controls and menus.",
+      "Do retain patient context and the visible environment selector.",
+      "Do reveal prescriber and signing controls after a complete preview.",
+      "Do keep optional prescription edits and technical details expandable."
+    ],
+    "donts": [
+      "Don't add a connection ceremony or separate patient setup buttons.",
+      "Don't restore preset pickers or a JSON editor.",
+      "Don't add decorative dashboard cards to the prescribing workflow.",
+      "Don't describe this code-derived document as screenshot-verified."
+    ]
+  }
+}

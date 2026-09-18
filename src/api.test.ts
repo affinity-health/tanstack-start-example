@@ -153,3 +153,54 @@ test("published SDK sends registration idempotency and actor headers", async () 
     { idempotencyKey: "registration-retry" },
   );
 });
+
+describe("environment selection", () => {
+  test("routes Production to its client and permits its catalog", async () => {
+    const response = await handleApi(
+      new Request("http://localhost:3001/api/catalog?mode=production"),
+      (mode) => {
+        expect(mode).toBe("production");
+        return client({
+          apiKeys: { retrieve: async () => ({ livemode: true }) },
+          catalog: { list: async () => ({ data: [] }) },
+        });
+      },
+    );
+    expect(response.status).toBe(200);
+  });
+  test("rejects a Test credential in Production", async () => {
+    const response = await handleApi(
+      new Request("http://localhost:3001/api/catalog?mode=production"),
+      () => client(),
+    );
+    expect(response.status).toBe(400);
+  });
+  test("rejects unknown modes before creating a client", async () => {
+    const response = await handleApi(
+      new Request("http://localhost:3001/api/catalog?mode=other"),
+      () => {
+        throw new Error("Must not create client");
+      },
+    );
+    expect(response.status).toBe(400);
+  });
+});
+
+test("catalog includes records beyond the first page", async () => {
+  const cursors: (string | undefined)[] = [];
+  const response = await handleApi(new Request("http://localhost:3001/api/catalog"), () =>
+    client({
+      catalog: {
+        list: async ({ startingAfter }: { startingAfter?: string }) => {
+          cursors.push(startingAfter);
+          return startingAfter
+            ? { data: [{ id: "cat_second" }], hasMore: false }
+            : { data: [{ id: "cat_first" }], hasMore: true };
+        },
+      },
+    }),
+  );
+  expect(response.status).toBe(200);
+  expect(cursors).toEqual([undefined, "cat_first"]);
+  expect((await response.json()).data).toEqual([{ id: "cat_first" }, { id: "cat_second" }]);
+});

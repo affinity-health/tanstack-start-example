@@ -15,13 +15,11 @@ bun run dev
 
 Open http://localhost:3001.
 
-1. Connect to Affinity and select a Test practice.
-2. Select a synthetic patient from the demo EMR and click **Create or reuse patient**. A matching `externalId` reuses the existing record without overwriting it.
-3. Review and save the patient's allergy status. The demo can confirm no known allergies; it refuses to clear recorded allergies.
-4. Select a medication and view its prescribing defaults. Select a preset or enter explicit directions and days supply. Advanced JSON overrides cover quantities or clinical requirements.
-5. Preview the prescription. Review the resolved directions, shipping, estimated prices, and any missing fields. Incomplete previews cannot become drafts.
-6. Register or reuse a prescriber with an Affinity Test NPI. The demo uses a stable external ID and synthetic `.test` email based on the NPI.
-7. Create the draft, review the complete order, and explicitly attest before signing its exact prescription versions.
+1. Practices and medications load automatically. Use the toolbar to switch Test or Production.
+2. Select an EMR patient and medication. Medication defaults load when you select it.
+3. Click **Preview prescription**. The app creates or reuses the patient by external ID and previews the default prescription. **Adjust prescription** exposes only directions and days supply when needed; use `example.ts` for other SDK options.
+4. A complete preview reveals the prescriber fields. Enter the NPI, confirm identity and allergy review, then **Continue to review**. This saves the review, registers or reuses the prescriber, and creates the draft.
+5. Review the draft and explicitly attest before signing its exact prescription versions.
 
 Signing does **not** submit the order to a pharmacy. An NPI identifies the prescriber; signing uses
 the registered user ID and matching actor external ID. Affinity enforces practice access and prescribing authority.
@@ -30,6 +28,20 @@ Use a Test NPI issued for your Affinity Test setup, with authority for the selec
 The Test key needs permissions for practices, catalog, patients, team, order creation/read, and `orders:sign`.
 A 401 means the key is missing or invalid; a 403 may indicate missing scopes or access.
 API errors and the last response are shown on the page.
+
+## Environments
+
+Test uses `AFFINITY_TEST_API_KEY`, falling back to the existing `AFFINITY_API_KEY`.
+Production uses only `AFFINITY_PRODUCTION_API_KEY`. Set keys in `.env` and restart Bun.
+The server checks the key’s actual mode on every request. Missing Production configuration displays
+an error with the variable to set; it never falls back to Test credentials.
+
+Both modes create or reuse records from `src/patients.ts` by external ID. Replace the shipped sample
+records with your own EMR data before using Production. Switching environments clears patient,
+prescriber, preview, draft, and signing state. No Production mutations were performed in verification.
+
+Controls are copied from the official [Coss UI registry](https://coss.com/ui/), built on Base UI.
+Tailwind is bundled by `bun-plugin-tailwind` in development and `build.ts`.
 
 ## Standalone TypeScript
 
@@ -57,12 +69,12 @@ The script needs no running website.
 | Method | Endpoint                                       | Purpose                                   |
 | ------ | ---------------------------------------------- | ----------------------------------------- |
 | GET    | `/api/health`                                  | Local health check                        |
-| GET    | `/api/practices`                               | First 100 accessible practices            |
-| GET    | `/api/catalog`                                 | First 100 catalog medications             |
+| GET    | `/api/practices`                               | All accessible practices                  |
+| GET    | `/api/catalog`                                 | All catalog medications                   |
 | GET    | `/api/options?practiceId=...&medicationId=...` | Prescribing defaults                      |
 | POST   | `/api/patient`                                 | Create or reuse by EMR external ID        |
 | POST   | `/api/allergies`                               | Explicit no-known-allergies review        |
-| POST   | `/api/prescriber`                              | Register or reuse a Test prescriber       |
+| POST   | `/api/prescriber`                              | Register or reuse a prescriber            |
 | POST   | `/api/preview`                                 | Resolve defaults and validate input       |
 | POST   | `/api/orders`                                  | Create a draft and retrieve it for review |
 | POST   | `/api/sign`                                    | Sign the explicitly reviewed versions     |
@@ -71,7 +83,7 @@ POST requests use `Idempotency-Key`. The website reuses keys for identical reque
 current page session, so an uncertain response can be retried. Reloading clears this local state;
 inspect Affinity before recreating an order after a reload. Preview itself creates no persistent order.
 
-This is a local, unauthenticated Test playground. It binds to loopback, rejects non-local API hosts
+This is a local, unauthenticated SDK playground. It binds to loopback, rejects non-local API hosts
 and cross-origin writes, and keeps API keys out of browser code. Do not expose it through a tunnel.
 The mock dashboard, messages, scheduling, auth/database, Stripe billing, and Cloudflare deployment
 configuration were removed. Existing hosted resources and local environment files were not changed.

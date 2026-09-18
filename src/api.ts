@@ -36,12 +36,30 @@ export async function handleApi(request: Request, getClient = createAffinity) {
   if (request.method !== method) return json({ error: `Use ${method}.` }, 405);
   try {
     const body = method === "POST" ? await request.json() : Object.fromEntries(url.searchParams);
-    const affinity = getClient();
+    const mode = url.searchParams.get("mode") ?? "test";
+    if (mode !== "test" && mode !== "production")
+      return json({ error: "Unknown environment." }, 400);
+    const affinity = getClient(mode);
     const access = await affinity.apiKeys.retrieve();
-    if (access.livemode) return json({ error: "Use a Test API key." }, 400);
-    if (url.pathname === "/api/practices")
-      return json(await affinity.practices.list({ limit: 100 }));
-    if (url.pathname === "/api/catalog") return json(await affinity.catalog.list({ limit: 100 }));
+    if (access.livemode !== (mode === "production"))
+      return json({ error: "API key does not match the selected environment." }, 400);
+    if (url.pathname === "/api/practices" || url.pathname === "/api/catalog") {
+      const list =
+        url.pathname === "/api/practices"
+          ? (cursor?: string) => affinity.practices.list({ limit: 100, startingAfter: cursor })
+          : (cursor?: string) => affinity.catalog.list({ limit: 100, startingAfter: cursor });
+      const first = await list();
+      const data = [...first.data];
+      let page = first;
+      while (page.hasMore && page.data.length) {
+        const cursor = page.data.at(-1)!.id;
+        page = await list(cursor);
+        if (page.data.at(-1)?.id === cursor)
+          throw new Error("Affinity returned a repeated pagination cursor.");
+        data.push(...page.data);
+      }
+      return json({ ...first, data, hasMore: false });
+    }
     if (typeof body.practiceId !== "string" || !body.practiceId.trim())
       return json({ error: "Select a practice." }, 400);
     const key = request.headers.get("idempotency-key");
@@ -53,13 +71,18 @@ export async function handleApi(request: Request, getClient = createAffinity) {
         return json(await resolvePatient(affinity, body.practiceId, body.externalId, key!));
       case "/api/prescriber": {
         if (body.identityAttestation !== true || !/^\d{10}$/.test(body.npi ?? ""))
-          return json({ error: "Enter a Test NPI and confirm the prescriber identity." }, 400);
+          return json({ error: "Enter a 10-digit NPI and confirm the prescriber identity." }, 400);
+        if (
+          mode === "production" &&
+          (typeof body.email !== "string" || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email))
+        )
+          return json({ error: "Enter the prescriber's email." }, 400);
         return json(
           await affinity.team.createUser(
             body.practiceId,
             {
               externalId: `demo-emr-prescriber-${body.npi}`,
-              email: `prescriber-${body.npi}@example.test`,
+              email: mode === "production" ? body.email : `prescriber-${body.npi}@example.test`,
               name: body.name,
               role: "prescriber",
               npi: body.npi,
