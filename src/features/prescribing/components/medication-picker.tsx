@@ -72,7 +72,7 @@ export function MedicationPicker({
           if (!controller.signal.aborted) setLoading(false);
         }
       },
-      query ? 250 : 0,
+      query ? 75 : 0,
     );
     return () => {
       clearTimeout(timer);
