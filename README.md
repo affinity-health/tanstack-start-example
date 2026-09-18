@@ -44,6 +44,12 @@ for deployment. The SDK adds `/v1`, so the client removes that suffix from its b
 while preserving `/api`. When unset, the URL defaults to `https://api.joinaffinityai.com/v1`.
 The Test/Production switch selects the matching key on that server, not a different API URL.
 
+For a Devbox-protected development URL, set `DEVBOX_API_KEY` in `.env.dev` to your Devbox
+personal API key. The SDK sends it server-side as `X-Api-Key`; Affinity's key stays in
+`Authorization`. Devbox verifies the key owner's access to the requested environment.
+The header is omitted when unset. Production does not need it, and deployment never uploads it.
+Redirects are rejected so credentials are not forwarded to a login page.
+
 Both modes create or reuse records from `src/data/patients.ts` by external ID. Replace the shipped sample
 records with your own EMR data before using Production. Switching environments clears patient,
 prescriber, preview, draft, and signing state. No Production mutations were performed in verification.

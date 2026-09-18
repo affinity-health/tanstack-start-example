@@ -25,6 +25,8 @@ export function createAffinity(mode: AffinityMode = "test") {
   const baseUrl = url.href.replace(/\/+$/, "").replace(/\/v1$/, "");
   return new Affinity(apiKey, {
     baseUrl,
+    // Devbox authenticates the proxy separately from Affinity's Authorization header.
+    headers: process.env.DEVBOX_API_KEY ? { "X-Api-Key": process.env.DEVBOX_API_KEY } : undefined,
     timeout: 15_000,
     maxNetworkRetries: 0,
     fetch: async (input, init) => {
@@ -33,7 +35,7 @@ export function createAffinity(mode: AffinityMode = "test") {
         const location = response.headers.get("location");
         const destination = location ? new URL(location, baseUrl).hostname : "a login page";
         throw new Error(
-          `The Affinity API at ${url.hostname} redirected to ${destination}. Authenticate access to the remote development server before using this API URL.`,
+          `The Affinity API at ${url.hostname} redirected to ${destination}. Set DEVBOX_API_KEY in .env.dev to authenticate the remote development proxy.`,
         );
       }
       if (response.headers.get("content-type")?.includes("text/html"))
