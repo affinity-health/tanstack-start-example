@@ -17,7 +17,7 @@ Open http://localhost:3001.
 
 1. Practices and the first medication page load on the server before the form renders. Select a practice in the header dropdown; use the toolbar to switch Test or Live.
 2. Select an EMR patient, then search for a medication in the Coss command picker. Medication defaults load when you select it.
-3. Open the header settings cog and save a prescriber name and NPI for each destination state. Live also requires your email, phone, practice address, and a current license number and expiry for each patient state. Settings are stored in this browser separately for Test and Live.
+3. Open the header settings cog and save a prescriber name and NPI for each destination state. Live also requires your email, phone, practice address, for each patient state. License details are optional. Settings are stored in this browser separately for Test and Live.
 4. Select a medication. Supplies such as alcohol pads cannot be prescribed on their own. If the pharmacy requires a compounding reason, select its category and enter the patient-specific context.
 5. Click **Review prescription**. Affinity validates the defaults and opens the review dialog with directions, quantity, pharmacy, patient, and shipping information.
 6. Choose **Create draft**, or confirm the allergy and prescription review and click **Sign and send to pharmacy**. The saved NPI is selected by the patient's state. If the created prescription differs from the preview, review the saved draft and confirm again. A failed submission can be retried without signing again.

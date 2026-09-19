@@ -185,10 +185,7 @@ export function Workspace({
         !!profile.address.line1.trim() &&
         !!profile.address.city.trim() &&
         !!profile.address.state.trim() &&
-        !!profile.address.postalCode.trim() &&
-        !!profile.states[localPatient.address.state]?.licenseNumber?.trim() &&
-        new Date(profile.states[localPatient.address.state]!.expiresAt + "T23:59:59Z").getTime() >
-          Date.now()));
+        !!profile.address.postalCode.trim()));
   const requirements = options?.catalog.prescriptionRequirements;
   const reasonRequired =
     requirements?.compoundingReason === "required" ||
@@ -293,7 +290,7 @@ export function Workspace({
                   licenseNumber: profile.states[localPatient.address.state]?.licenseNumber,
                   expiresAt: profile.states[localPatient.address.state]?.expiresAt,
                 },
-              ],
+              ].filter((license) => !!license.licenseNumber?.trim()),
               identityAttestation: true,
             });
             setPrescriber(registered);

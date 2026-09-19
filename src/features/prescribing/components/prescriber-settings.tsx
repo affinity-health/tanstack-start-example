@@ -76,7 +76,8 @@ export function PrescriberSettings({
         /^\d{10}$/.test(npi) &&
         name.trim() &&
         (mode === "test" ||
-          (licenseNumber.trim() && new Date(expiresAt + "T23:59:59Z").getTime() > Date.now())),
+          !expiresAt ||
+          (!!licenseNumber.trim() && new Date(expiresAt + "T23:59:59Z").getTime() > Date.now())),
     ) &&
     new Set(rows.map(([state]) => state)).size === rows.length &&
     draft.confirmed;
@@ -86,7 +87,7 @@ export function PrescriberSettings({
         <DialogHeader>
           <DialogTitle>Prescriber settings</DialogTitle>
           <DialogDescription>
-            Save the prescriber identity and current license for each patient state.{" "}
+            Save the prescriber identity for each patient state. License details are optional.{" "}
             {mode === "test" ? "Test" : "Live"} settings stay in this browser.
           </DialogDescription>
         </DialogHeader>
@@ -202,7 +203,7 @@ export function PrescriberSettings({
                 {mode === "production" && (
                   <>
                     <label className="state-license">
-                      License number
+                      License number (optional)
                       <Input
                         value={licenseNumber}
                         onChange={(e) =>
@@ -215,7 +216,7 @@ export function PrescriberSettings({
                       />
                     </label>
                     <label className="state-license-expiry">
-                      License expires
+                      License expires (optional)
                       <Input
                         type="date"
                         value={expiresAt}
@@ -253,7 +254,7 @@ export function PrescriberSettings({
                 checked={draft.confirmed}
                 onCheckedChange={(confirmed) => setDraft({ ...draft, confirmed })}
               />
-              I confirm this prescriber identity and license information.
+              I confirm this prescriber identity.
             </label>
           </div>
         </DialogPanel>

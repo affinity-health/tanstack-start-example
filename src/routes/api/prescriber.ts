@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/prescriber")({
             postalCode: string;
             country: "US";
           };
-          licenses: Array<{ state: string; licenseNumber: string; expiresAt: string }>;
+          licenses?: Array<{ state: string; licenseNumber: string; expiresAt?: string }>;
           identityAttestation: boolean;
         }>(request, async ({ affinity, body, mode, options }) => {
           if (body.identityAttestation !== true || !/^\d{10}$/.test(body.npi ?? ""))
@@ -34,18 +34,18 @@ export const Route = createFileRoute("/api/prescriber")({
             mode === "production" &&
             (!body.phone?.trim() ||
               !body.address?.line1?.trim() ||
-              !body.licenses?.length ||
-              body.licenses.some(
+              body.licenses?.some(
                 (license) =>
                   !license.licenseNumber?.trim() ||
                   !/^[A-Z]{2}$/.test(license.state) ||
-                  !(new Date(license.expiresAt + "T23:59:59Z").getTime() > Date.now()),
+                  (!!license.expiresAt &&
+                    !(new Date(license.expiresAt + "T23:59:59Z").getTime() > Date.now())),
               ))
           )
             return json(
               {
                 error:
-                  "Enter prescriber contact details and a current license for the patient's state.",
+                  "Enter prescriber contact details and check any optional license information.",
               },
               400,
             );
@@ -63,9 +63,11 @@ export const Route = createFileRoute("/api/prescriber")({
                   ? {
                       phone: body.phone,
                       address: body.address,
-                      licenses: body.licenses.map((license) => ({
+                      licenses: body.licenses?.map((license) => ({
                         ...license,
-                        expiresAt: license.expiresAt + "T23:59:59.000Z",
+                        expiresAt: license.expiresAt
+                          ? license.expiresAt + "T23:59:59.000Z"
+                          : undefined,
                       })),
                     }
                   : {}),

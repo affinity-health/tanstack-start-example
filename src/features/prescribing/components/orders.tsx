@@ -168,7 +168,7 @@ export function OrdersView({
             licenseNumber: profile.states[order.patientState]?.licenseNumber,
             expiresAt: profile.states[order.patientState]?.expiresAt,
           },
-        ],
+        ].filter((license) => !!license.licenseNumber?.trim()),
         identityAttestation: true,
       });
       if (!signed) {

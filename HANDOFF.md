@@ -36,7 +36,7 @@ then configure the synthetic clinician in Settings:
 - Email: demo-http-clinician@example.test
 - Phone: +12025550198
 - Address: 100 Synthetic Way, Austin, TX 78701
-- TX license: SYNTHETIC-DEMO-TX, expires 2035-01-01
+- License details: optional; leave blank to exercise headless signing without license records.
 
 Select Enclomiphene, review the resolved prescription, and explicitly confirm the patient and
 prescription review. These values are test fixtures, not a clinician's verified credentials.
