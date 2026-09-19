@@ -5,7 +5,7 @@
     "": {
       "name": "tanstack-start-example",
       "dependencies": {
-        "@affinity-health/sdk": "1.9.0-beta.4",
+        "@affinity-health/sdk": "1.9.2",
         "@base-ui/react": "^1.8.0",
         "@tanstack/react-router": "^1.170.38",
         "@tanstack/react-start": "^1.168.56",
@@ -34,7 +34,7 @@
     },
   },
   "packages": {
-    "@affinity-health/sdk": ["@affinity-health/sdk@1.9.0-beta.4", "", {}, "sha512-I6XyOaI+OcxT/2aq52ytW4iCSF0Z6S3mV8uV/3ja12N0ZL3tt9YYn7SBSFvLMu9iUXYwQI9X7VGm+rjenkV5WQ=="],
+    "@affinity-health/sdk": ["@affinity-health/sdk@1.9.2", "", {}, "sha512-7unoAjYddh1vyh8PRMzaABmy455LLOMQWYJdlnBW0oBzTfKJyku4wrRy9F9Yz15vWBw2Tg2tcmDoSeB3kJzC4Q=="],
 
     "@asamuzakjp/css-color": ["@asamuzakjp/css-color@5.1.11", "", { "dependencies": { "@asamuzakjp/generational-cache": "^1.0.1", "@csstools/css-calc": "^3.2.0", "@csstools/css-color-parser": "^4.1.0", "@csstools/css-parser-algorithms": "^4.0.0", "@csstools/css-tokenizer": "^4.0.0" } }, "sha512-KVw6qIiCTUQhByfTd78h2yD1/00waTmm9uy/R7Ck/ctUyAPj+AEDLkQIdJW0T8+qGgj3j5bpNKK7Q3G+LedJWg=="],
 
