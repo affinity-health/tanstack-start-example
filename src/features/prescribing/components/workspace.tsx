@@ -1,12 +1,15 @@
-import { appPath } from "../../../lib/app-path";
+import { useQueryClient } from "@tanstack/react-query";
+import { optionsQuery } from "../queries";
+import { previewOrder, createDraft } from "../prescribing.functions";
+import { getOrder } from "../orders.functions";
+import { idempotent } from "../../../lib/idempotency";
+import { sendReviewedOrder } from "../order-workflow";
+import type { getWorkspace } from "../prescribing.functions";
 import { toast } from "sonner";
 import { resolvePrescriber } from "../demo-profile";
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
-import { read, peekRead, seedRead, catalogPath, optionsPath, type Bootstrap } from "../data/reads";
 import { patients } from "../../../data/patients";
-import { requireBrowserSession } from "../../../lib/session";
-import { createMutationClient } from "../data/mutations";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
 import {
@@ -18,69 +21,27 @@ import {
   DialogPanel,
   DialogFooter,
 } from "../../../components/ui/dialog";
-import { OrdersView } from "./orders";
 import { Choice } from "./choice";
 import { MedicationPicker } from "./medication-picker";
 import { OrderReview, matchesPreview } from "./order-review";
 import type { Profile } from "./prescriber-settings";
-import type {
-  Practices,
-  PatientResult,
-  Options,
-  Preview,
-  PreviewInput,
-  Order,
-  Catalog,
-} from "../types";
+import type { Options, Preview, Order, Catalog } from "../types";
 
 export function Workspace({
-  mode,
   onBusy,
   initial,
-  pending,
   profile,
   openSettings,
-  renderHeader,
 }: {
-  mode: "test" | "production";
   onBusy: (busy: boolean) => void;
-  initial?: Bootstrap;
-  pending: boolean;
+  initial: Awaited<ReturnType<typeof getWorkspace>>;
   profile: Profile;
   openSettings: () => void;
-  renderHeader: (context: {
-    practices: Practices["data"];
-    practiceId: string;
-    onPractice: (id: string) => void;
-    onView: (view: "new" | "orders") => void;
-    view: "new" | "orders";
-  }) => ReactNode;
 }) {
-  const [view, setView] = useState<"new" | "orders">("new");
-  const [ordersVisited, setOrdersVisited] = useState(false);
-  const [ordersRevision, setOrdersRevision] = useState(0);
-  function changeView(next: "new" | "orders") {
-    if (next === "orders") setOrdersVisited(true);
-    setView(next);
-  }
-  useEffect(() => {
-    const navigate = () => changeView(location.hash === "#orders" ? "orders" : "new");
-    navigate();
-    window.addEventListener("hashchange", navigate);
-    return () => window.removeEventListener("hashchange", navigate);
-  }, []);
-  const [starting] = useState(() => {
-    const cached = peekRead<Practices>(mode, "practices");
-    const practices = cached ?? initial?.practices;
-    if (!cached && initial?.practices) seedRead(mode, "practices", initial.practices);
-    const practiceId = practices?.data[0]?.id ?? "";
-    if (initial?.catalog && practiceId) seedRead(mode, catalogPath(practiceId), initial.catalog);
-    return { practices, practiceId };
-  });
-  const [practices, setPractices] = useState<Practices["data"]>(starting.practices?.data ?? []);
-  const [practiceId, setPractice] = useState(starting.practiceId);
+  const { sessionId, practice } = initial;
+  const practiceId = practice.id;
+  const queryClient = useQueryClient();
   const [externalId, setExternal] = useState(patients[0].externalId);
-  const [patient, setPatient] = useState<PatientResult>();
   const [medicationId, setMedication] = useState("");
   const [options, setOptions] = useState<Options>();
   const [preview, setPreview] = useState<Preview>();
@@ -92,9 +53,8 @@ export function Workspace({
   const [order, setOrder] = useState<Order>();
   const [attested, setAttested] = useState(false);
   const [signed, setSigned] = useState(false);
-  const [busy, setBusy] = useState(starting.practices || initial?.error ? "" : "Loading workspace");
-  const [practicesLoaded, setPracticesLoaded] = useState(!!starting.practices);
-  const [error, setError] = useState(initial?.error ?? "");
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
   useEffect(() => {
     if (error) toast.error(error, { id: "workspace-error", duration: 8000 });
     else toast.dismiss("workspace-error");
@@ -110,25 +70,6 @@ export function Workspace({
     setOrder(undefined);
     setAttested(false);
     setSigned(false);
-  }
-  async function api<T>(path: string, body?: unknown): Promise<T> {
-    if (!body && (path === "practices" || path.startsWith("options?"))) {
-      const data = await read<T>(mode, path);
-
-      return data;
-    }
-    const { response, data } = body
-      ? await createMutationClient(sessionStorage)(mode, path, body)
-      : await (async () => {
-          const response = await fetch(
-            appPath(`/api/${path}${path.includes("?") ? "&" : "?"}mode=${mode}`),
-          );
-          return { response, data: await response.json() };
-        })();
-    requireBrowserSession(data);
-
-    if (!response.ok) throw new Error(data.details?.detail ?? data.error ?? "Request failed.");
-    return data as T;
   }
   const inFlight = useRef(false);
   const reviewButton = useRef<HTMLButtonElement>(null);
@@ -151,17 +92,6 @@ export function Workspace({
       onBusy(false);
     }
   }
-  async function load() {
-    await run("Loading workspace", async () => {
-      const practiceList = await api<Practices>("practices");
-      setPractices(practiceList.data);
-      setPracticesLoaded(true);
-      setPractice(practiceList.data[0]?.id ?? "");
-    });
-  }
-  useEffect(() => {
-    if (!pending && !starting.practices && !initial?.error) void load();
-  }, [pending]);
   const localPatient = patients.find((p) => p.externalId === externalId)!;
   const {
     npi,
@@ -192,13 +122,8 @@ export function Workspace({
       setError("This medication is not currently available to order. Choose another medication.");
       return;
     }
-    const cached = peekRead<Options>(mode, optionsPath(practiceId, item.id));
-    if (cached) {
-      setOptions(cached);
-      return;
-    }
     await run("Loading defaults", async () =>
-      setOptions(await api<Options>(optionsPath(practiceId, item.id))),
+      setOptions(await queryClient.fetchQuery(optionsQuery(sessionId, item.id))),
     );
   }
   async function review() {
@@ -209,39 +134,11 @@ export function Workspace({
         setReviewOpen(true);
         return;
       }
-      const resolved = patient ?? (await api<PatientResult>("patient", { practiceId, externalId }));
-      setPatient(resolved);
-      const input: PreviewInput = {
-        practiceId,
-        patientId: resolved.patient.id,
-        prescriptions: [
-          {
-            medicationId,
-            preset: "default",
-            expectedRevision: options.revision,
-            ...(reasonRequired
-              ? {
-                  overrides: {
-                    clinical: {
-                      compoundingReason: {
-                        context: reason.trim(),
-                        ...(category
-                          ? {
-                              category: category as NonNullable<
-                                Options["compoundingReasonCategoryDefault"]
-                              >,
-                            }
-                          : {}),
-                      },
-                    },
-                  },
-                }
-              : {}),
-          },
-        ],
-        shipping: { selection: "lowest_cost" },
-      };
-      setPreview(await api<Preview>("preview", input));
+      setPreview(
+        await previewOrder({
+          data: { externalId, medicationId, expectedRevision: options.revision, reason, category },
+        }),
+      );
       setAttested(false);
       setReviewOpen(true);
     });
@@ -250,16 +147,26 @@ export function Workspace({
     await run(
       signed ? "Sending to pharmacy" : send ? "Signing prescription" : "Creating draft",
       async () => {
-        if (preview?.status !== "complete" || !patient || (!order && !profileReady)) return;
+        if (preview?.status !== "complete" || !options || (send && !profileReady)) return;
         if (!signed && !attested)
           throw new Error("Confirm the patient history and prescription review before saving.");
         let draft = order;
-        if (!draft)
-          await api("allergies", { practiceId, patientId: patient.patient.id, confirmed: true });
         if (!draft) {
-          draft = await api<Order>("orders", preview.orderInput);
+          const input = {
+            prescription: {
+              externalId,
+              medicationId,
+              expectedRevision: options.revision,
+              reason,
+              category,
+            },
+            allergiesReviewed: true as const,
+          };
+          draft = await idempotent(sessionId + ":create", input, (key) =>
+            createDraft({ data: { ...input, key } }),
+          );
           setOrder(draft);
-          setOrdersRevision((value) => value + 1);
+          void queryClient.invalidateQueries({ queryKey: [sessionId, "orders"] });
           if (send && !matchesPreview(draft, preview, npi, options!, localPatient)) {
             setAttested(false);
             setNotice(
@@ -273,79 +180,39 @@ export function Workspace({
           setReviewOpen(false);
           return;
         }
-        if (!signed) {
-          if (!attested)
-            throw new Error("Confirm the prescription and allergy review before signing.");
-          await api("sign", {
-            orderId: draft.id,
-            practiceId,
-            npi,
-            signatureAttestation: true,
-            expectedVersions: draft.prescriptions.map((rx) => ({
-              prescriptionId: rx.id,
-              version: rx.version,
-            })),
-          });
+        const result = await sendReviewedOrder(sessionId, draft, npi, (signedOrder) => {
+          setOrder(signedOrder);
           setSigned(true);
-          setNotice("");
-        }
-        await api("submit", {
-          orderId: draft.id,
-          practiceId,
         });
+        setOrder(result.order);
+        if (result.status === "changed") {
+          setAttested(false);
+          setSigned(
+            result.order.status === "ready" || result.order.status === "partially_submitted",
+          );
+          setNotice("This order changed. Review its current details and confirm again.");
+          return;
+        }
+        void queryClient.invalidateQueries({ queryKey: [sessionId, "orders"] });
         setSubmitted(true);
-        setOrdersRevision((value) => value + 1);
+        setSigned(true);
         setNotice("");
         toast.success("Prescription sent to the pharmacy.");
       },
     );
   }
-  const canSave =
-    preview?.status === "complete" && (!!order || profileReady) && !busy && !submitted;
+  const canSave = preview?.status === "complete" && !busy && !submitted;
   return (
     <>
-      {renderHeader({
-        practices,
-        practiceId,
-        view,
-        onView: changeView,
-        onPractice: (value) => {
-          setPractice(value);
-          setMedication("");
-          setOptions(undefined);
-          setPatient(undefined);
-          setReason("");
-          setCategory("");
-          clearOrder();
-        },
-      })}
       <main>
         <div className="page-heading">
           <div>
-            <h1>{view === "new" ? "New prescription" : "Orders"}</h1>
-            <p className="intro">
-              {view === "new"
-                ? "Choose a patient and medication. Review, then send."
-                : "Review drafts and follow prescriptions sent to the pharmacy."}
-            </p>
+            <h1>New prescription</h1>
+            <p className="intro">Choose a patient and medication. Review, then send.</p>
           </div>
         </div>
-        {mode === "production" && (
-          <p className="production-note">
-            Live uses the configured API server. On development, use synthetic records and simulator
-            pharmacies. A production API connection can send real prescriptions.
-          </p>
-        )}
-        {error && !reviewOpen && !practices.length && (
-          <Button variant="outline" onClick={load}>
-            Try again
-          </Button>
-        )}
-        {practicesLoaded && !busy && !error && !practices.length && (
-          <p className="hint">No practices are available for this key.</p>
-        )}
-        <fieldset hidden={view !== "new"} disabled={!!busy || reviewOpen}>
-          <div className="workspace-grid" hidden={view !== "new"}>
+        <fieldset disabled={!!busy || reviewOpen}>
+          <div className="workspace-grid">
             <aside className="patient-panel">
               <section>
                 <Choice
@@ -357,7 +224,6 @@ export function Workspace({
                   }))}
                   onChange={(value) => {
                     setExternal(value);
-                    setPatient(undefined);
                     setReason("");
                     setCategory("");
                     clearOrder();
@@ -382,9 +248,7 @@ export function Workspace({
               <section>
                 <MedicationPicker
                   key={practiceId}
-                  mode={mode}
-                  practiceId={practiceId}
-                  initialCatalog={practiceId === starting.practiceId ? initial?.catalog : undefined}
+                  sessionId={sessionId}
                   disabled={!!busy || !practiceId}
                   onChange={(item) => void chooseMedication(item)}
                 />
@@ -437,24 +301,6 @@ export function Workspace({
             </div>
           </div>
         </fieldset>
-        {ordersVisited && practiceId && (
-          <div hidden={view !== "orders"}>
-            <OrdersView
-              revision={ordersRevision}
-              key={practiceId}
-              practiceId={practiceId}
-              mode={mode}
-              profile={profile}
-              api={api}
-              onBusy={(value) => {
-                onBusy(value);
-                setBusy(value ? "Updating order" : "");
-              }}
-              openSettings={openSettings}
-              onChanged={clearOrder}
-            />
-          </div>
-        )}
         <Dialog
           open={reviewOpen}
           onOpenChange={(open) => {
@@ -472,7 +318,7 @@ export function Workspace({
               </DialogTitle>
               <DialogDescription>
                 {localPatient.name.first} {localPatient.name.last} · {localPatient.address.state} ·{" "}
-                {mode === "test" ? "Test mode" : "Live"}
+                Test mode
               </DialogDescription>
             </DialogHeader>
             <DialogPanel>
@@ -490,7 +336,7 @@ export function Workspace({
                     ? `${name} · NPI ${npi}`
                     : `No NPI saved for ${localPatient.address.state}.`}
                 </p>
-                {!order && (
+                {!signed && (
                   <Button variant="ghost" onClick={openSettings}>
                     {profileReady ? "Edit settings" : "Set up prescriber"}
                   </Button>
@@ -529,9 +375,7 @@ export function Workspace({
                       onClick={() => {
                         setAttested(false);
                         void run("Refreshing draft", async () => {
-                          const refreshed = await api<Order>(
-                            `order?practiceId=${encodeURIComponent(practiceId)}&orderId=${encodeURIComponent(order.id)}`,
-                          );
+                          const refreshed = await getOrder({ data: { orderId: order.id } });
                           setOrder(refreshed);
                         });
                       }}
@@ -554,7 +398,10 @@ export function Workspace({
                   >
                     {order ? "Draft saved" : "Create draft"}
                   </Button>
-                  <Button disabled={!canSave || (!signed && !attested)} onClick={() => save(true)}>
+                  <Button
+                    disabled={!canSave || !profileReady || (!signed && !attested)}
+                    onClick={() => save(true)}
+                  >
                     {busy
                       ? `${busy}…`
                       : signed

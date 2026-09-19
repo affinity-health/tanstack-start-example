@@ -1,23 +1,17 @@
-import { appPath } from "../lib/app-path";
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
-import { unlock } from "../server/auth/session";
-import { prepareVisitor } from "../server/auth/prepare-visitor";
+import { beginDemo } from "../server/auth/session.functions";
 
 export const Route = createFileRoute("/unlock")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    error: search.error === "setup" ? "setup" : undefined,
-  }),
-  loader: () => prepareVisitor(),
   headers: () => ({ "Cache-Control": "private, no-store" }),
-  server: { handlers: { POST: ({ request }) => unlock(request) } },
   component: Welcome,
 });
 
 function Welcome() {
-  const { error } = Route.useSearch();
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   return (
@@ -36,10 +30,20 @@ function Welcome() {
           pharmacy. No account or API key needed.
         </p>
         <form
-          method="post"
-          action={appPath("/unlock")}
           className="mt-8 space-y-5"
-          onSubmit={() => setBusy(true)}
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setBusy(true);
+            setError("");
+            try {
+              await beginDemo({ data: { synthetic: true } });
+              await navigate({ to: "/prescribe" });
+            } catch (cause) {
+              setError(cause instanceof Error ? cause.message : "Unable to start demo.");
+            } finally {
+              setBusy(false);
+            }
+          }}
         >
           <label className="demo-consent">
             <Checkbox
@@ -55,7 +59,7 @@ function Welcome() {
           </label>
           {error && (
             <p role="alert" className="text-sm text-destructive-foreground">
-              We couldn't create your Test practice. Try again.
+              {error}
             </p>
           )}
           <Button type="submit" size="lg" className="w-full" disabled={!confirmed || busy}>

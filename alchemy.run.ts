@@ -13,6 +13,10 @@ export default Alchemy.Stack(
   Effect.gen(function* () {
     const stage = yield* Alchemy.Stage;
     if (stage !== "demo" && stage !== "local") throw new Error("Expected demo or local stage.");
+    const authDatabase = yield* Cloudflare.D1.Database("AuthDatabase", {
+      name: `affinity-emr-auth-${stage}`,
+      migrations: "./migrations/auth",
+    });
     const site = yield* Cloudflare.Website.Vite("Demo", {
       name: stage === "demo" ? "affinity-emr-demo" : "affinity-emr-demo-local",
       rootDir: ".",
@@ -21,6 +25,7 @@ export default Alchemy.Stack(
       domain: stage === "demo" ? "demo-emr.joinaffinityai.com" : undefined,
       compatibility: { flags: ["nodejs_compat", "nodejs_compat_populate_process_env"] },
       env: {
+        AUTH_DATABASE: authDatabase,
         ...(stage === "local" && process.env.VITE_BASE_PATH === "/emr-demo/"
           ? { DEMO_DEV_ORIGIN: "https://affinity.harbr.run" }
           : {}),

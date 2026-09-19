@@ -1,8 +1,9 @@
-import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import stylesheet from "../styles/app.css?url";
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -14,7 +15,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://cdn.joinaffinityai.com" },
     ],
   }),
-  component: () => <Outlet />,
+  component: Root,
   shellComponent: ({ children }) => (
     <html lang="en">
       <head>
@@ -41,3 +42,11 @@ export const Route = createRootRoute({
     </html>
   ),
 });
+function Root() {
+  const { queryClient } = Route.useRouteContext();
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Outlet />
+    </QueryClientProvider>
+  );
+}

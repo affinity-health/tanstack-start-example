@@ -9,7 +9,8 @@ import {
   AutocompleteList,
   AutocompleteItem,
 } from "../../../components/ui/autocomplete";
-import { read, peekRead, catalogPath, prefetchOptions } from "../data/reads";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { catalogQuery, optionsQuery } from "../queries";
 import type { Catalog } from "../types";
 
 type Medication = Catalog["data"][number];
@@ -28,29 +29,28 @@ function MedicationImage({ medication }: { medication: Medication }) {
 }
 
 export function MedicationPicker({
-  mode,
-  practiceId,
-  initialCatalog,
+  sessionId,
   disabled,
   onChange,
 }: {
-  mode: "test" | "production";
-  practiceId: string;
-  initialCatalog?: Catalog;
+  sessionId: string;
   disabled: boolean;
   onChange: (item: Medication) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Medication>();
-  const [initial] = useState(
-    () => peekRead<Catalog>(mode, catalogPath(practiceId)) ?? initialCatalog,
-  );
-  const [items, setItems] = useState<Medication[]>(initial?.data ?? []);
-  const [cursor, setCursor] = useState("");
-  const [hasMore, setHasMore] = useState(initial?.hasMore ?? false);
-  const [loading, setLoading] = useState(!initial);
-  const [error, setError] = useState("");
+  const [settledQuery, setSettledQuery] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setSettledQuery(query), query ? 100 : 0);
+    return () => clearTimeout(timer);
+  }, [query]);
+  const queryClient = useQueryClient();
+  const catalog = useInfiniteQuery(catalogQuery(sessionId, settledQuery));
+  const items = catalog.data?.pages.flatMap((page) => page.data) ?? [];
+  const loading = catalog.isFetching || query !== settledQuery;
+  const hasMore = catalog.hasNextPage;
+  const error = catalog.error?.message;
   useEffect(() => {
     if (error) toast.error(error, { id: "medication-search-error", duration: 8000 });
     else toast.dismiss("medication-search-error");
@@ -58,51 +58,10 @@ export function MedicationPicker({
       toast.dismiss("medication-search-error");
     };
   }, [error]);
-  const [retry, setRetry] = useState(0);
 
   const fieldRef = useRef<HTMLDivElement>(null);
   const intentTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(intentTimer.current), []);
-
-  useEffect(() => {
-    if (!practiceId) return;
-    let cancelled = false;
-    const path = catalogPath(practiceId, query, cursor);
-    const cached = peekRead<Catalog>(mode, path);
-    const apply = (result: Catalog) => {
-      if (cancelled) return;
-      setItems((previous) =>
-        cursor
-          ? [...new Map([...previous, ...result.data].map((item) => [item.id, item])).values()]
-          : result.data,
-      );
-      setHasMore(result.hasMore);
-      setLoading(false);
-    };
-    setError("");
-    if (cached) {
-      apply(cached);
-      return;
-    }
-    setLoading(true);
-    const timer = setTimeout(
-      () => {
-        void read<Catalog>(mode, path)
-          .then(apply)
-          .catch((cause) => {
-            if (!cancelled) {
-              setError(cause instanceof Error ? cause.message : "Unable to search medications.");
-              setLoading(false);
-            }
-          });
-      },
-      query ? 75 : 0,
-    );
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [query, cursor, mode, practiceId, retry]);
 
   return (
     <div className="medication-picker">
@@ -114,7 +73,9 @@ export function MedicationPicker({
         onItemHighlighted={(item) => {
           clearTimeout(intentTimer.current);
           if (item && !loading && item.ordering.requiresPrescription && item.isOrderable)
-            intentTimer.current = setTimeout(() => prefetchOptions(mode, practiceId, item.id), 100);
+            intentTimer.current = setTimeout(() => {
+              void queryClient.prefetchQuery(optionsQuery(sessionId, item.id));
+            }, 100);
         }}
         filter={null}
         autoHighlight
@@ -127,11 +88,6 @@ export function MedicationPicker({
         onValueChange={(value, details) => {
           if (details.reason === "item-press") return;
           setQuery(value);
-          setCursor("");
-          const cached = peekRead<Catalog>(mode, catalogPath(practiceId, value));
-          if (cached) setItems(cached.data);
-          setHasMore(cached?.hasMore ?? false);
-          setLoading(!cached);
         }}
       >
         <div
@@ -169,7 +125,7 @@ export function MedicationPicker({
               </p>
             ) : error ? (
               <div className="medication-message">
-                <Button variant="ghost" onClick={() => setRetry((value) => value + 1)}>
+                <Button variant="ghost" onClick={() => void catalog.refetch()}>
                   Retry
                 </Button>
               </div>
@@ -189,7 +145,6 @@ export function MedicationPicker({
                     setSelected(medication);
                     setOpen(false);
                     setQuery("");
-                    setCursor("");
                     onChange(medication);
                   }}
                 >
@@ -216,7 +171,7 @@ export function MedicationPicker({
             <Button
               variant="ghost"
               className="medication-more"
-              onClick={() => setCursor(items.at(-1)!.id)}
+              onClick={() => void catalog.fetchNextPage()}
             >
               Show more medications
             </Button>

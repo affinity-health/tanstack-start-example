@@ -30,11 +30,12 @@ cart or a multi-prescription editor. The SDK supports those independently.
 
 ## Isolation and limits
 
-Each anonymous browser session has one Test practice, a signed HttpOnly cookie, and a
-12-hour expiry. Returning in that browser resumes the workspace until expiry.
+Better Auth stores anonymous users and sessions in a demo-owned D1 database. Each browser
+has one Test practice, an HttpOnly session cookie, and a fixed 12-hour expiry. Returning in that browser resumes the workspace until expiry.
 There is no recovery or sharing of an anonymous session.
 
-All requests are server-side SDK calls. Practice requests must match the session.
+The UI uses typed TanStack Start server functions and TanStack Query. SDK calls stay on
+the server. Practice IDs come from the session, not browser input.
 Order reads, signing, and submission check order ownership before proceeding.
 Patient requests use the session's practice. Inline patients and arbitrary prescribers
 are not accepted by the demo. Live mode is rejected server-side, and no Live key is bound.
@@ -55,7 +56,7 @@ for audit history; session expiry is not clinical-record deletion.
 Cross-origin and missing-Origin writes are rejected. Mutation keys are namespaced by
 session. A pending browser mutation retains its key until the result is known.
 The public deployment has no shared webhook inbox, prescriber-management endpoint, or
-authenticated image proxy. The signed webhook helper remains as reference code only.
+authenticated image proxy. Unused proxy and webhook handlers are removed.
 
 ## Develop and check
 
@@ -68,7 +69,7 @@ bun test
 bun run build
 ```
 
-The website requires its Worker session binding. Run the local Worker through Alchemy
+The website requires its Worker D1 and Durable Object bindings. Run the local Worker through Alchemy
 with an isolated Test key and session secret supplied in the child environment:
 
 ```sh
@@ -98,14 +99,16 @@ Never put hosted secrets in environment files.
 ## Deploy
 
 The canonical stack is `affinity-emr-demo`, stage `demo`, in this repository's
-`alchemy.run.ts`. It owns Worker `affinity-emr-demo`, its session Durable Object binding,
+`alchemy.run.ts`. It owns Worker `affinity-emr-demo`, its Better Auth D1 database, ownership/quota Durable Object binding,
 and `demo-emr.joinaffinityai.com`.
 
 Operator and runtime secrets come from Doppler `affinity/stg` for this independent demo:
 
-- `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`: deployment only.
+- `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_EMR_DEMO_API_TOKEN`: deployment only.
+  The dedicated token needs Workers deployment, domain, and Account → D1 → Edit permissions.
+  `scripts/alchemy.ts` maps it to Alchemy's token variable only in the child process.
 - `AFFINITY_HARBOR_DEMO_API_KEY`: dedicated Harbor platform Test key for this demo.
-- `AFFINITY_DEMO_SESSION_SECRET`: cookie signing key.
+- `AFFINITY_DEMO_SESSION_SECRET`: Better Auth signing/encryption secret.
 
 Alchemy binds only the last two secrets to the Worker, under
 `AFFINITY_TEST_API_KEY` and `DEMO_SESSION_SECRET`. The demo key needs
@@ -129,10 +132,19 @@ private deployments. This stack does not delete, adopt, or expose them.
 
 ## Main code paths
 
-- `src/server/auth/`: signed sessions, ownership, quota storage.
-- `src/server/api-handler.ts`: request scope and CSRF checks.
-- `src/server/bootstrap.ts`: only the current session's practice and catalog.
-- `src/routes/api/`: server-side SDK calls.
-- `src/features/prescribing/`: existing prescribing and order review UI.
+- `src/routes/`: real `/prescribe`, `/orders`, and `/orders/$orderId` pages.
+- `src/features/prescribing/*.functions.ts`: validated, session-scoped server functions.
+- `src/features/prescribing/queries.ts`: TanStack Query keys and pagination.
+- `src/features/prescribing/order-workflow.ts`: shared reviewed-version signing and submission.
+- `src/features/prescribing/components/`: medication picker, prescription review, orders, settings.
+- `src/server/context.ts`: workspace authorization, ownership, quotas, and error mapping.
+- `src/server/auth/`: Better Auth configuration and anonymous practice provisioning.
+- `src/server/affinity/`: server SDK client, synthetic patient resolution, preview composition.
+- `src/lib/idempotency.ts`: retry keys, persisting hashes rather than prescription data.
+- `migrations/auth/`: Better Auth SQL migrations, applied by Alchemy.
 - `src/data/patients.ts`: synthetic patient fixtures.
-- `alchemy.run.ts`: independent Worker deployment.
+- `alchemy.run.ts`: independent Worker and database deployment.
+
+Replacing the old custom session cookie starts a fresh anonymous workspace. Existing
+Affinity Test records remain intact; the new authentication does not adopt old cookies.
+D1 stores authentication data only. Patient and order records remain in Affinity.

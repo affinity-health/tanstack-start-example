@@ -5,6 +5,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   envDir: false,
+  // Keep the Worker dev optimizer separate from standalone Vite processes.
+  cacheDir: `node_modules/.vite-${process.env.PORT ?? "standalone"}`,
   base: process.env.VITE_BASE_PATH ?? "/",
   build: { rolldownOptions: { external: ["cloudflare:workers"] } },
   plugins: [tailwindcss(), tanstackStart({ server: { entry: "./server.ts" } }), react()],

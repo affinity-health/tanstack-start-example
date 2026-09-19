@@ -881,6 +881,7 @@ footer code {
   display: none;
 }
 .order-row {
+  text-decoration: none;
   display: flex;
   width: 100%;
   align-items: center;
@@ -946,6 +947,9 @@ footer code {
 }
 .saved-prescription {
   padding: 20px 0;
+}
+.order-detail {
+  max-width: 760px;
 }
 .saved-prescription + .saved-prescription {
   border-top: 1px solid var(--border);

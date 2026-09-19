@@ -1,17 +1,27 @@
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { ExternalLink, Settings } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { PrescriberSettings, profileKey } from "./components/prescriber-settings";
-import { Workspace } from "./components/workspace";
+import { Link, Outlet } from "@tanstack/react-router";
+import type { Profile } from "./demo-profile";
 import { demoProfile, parseProfile } from "./demo-profile";
-import type { Bootstrap } from "./data/reads";
+import type { getWorkspace } from "./prescribing.functions";
+const WorkspaceContext = createContext<null | {
+  initial: Awaited<ReturnType<typeof getWorkspace>>;
+  profile: Profile;
+  openSettings: () => void;
+  onBusy: (busy: boolean) => void;
+}>(null);
+export function useWorkspace() {
+  const value = useContext(WorkspaceContext);
+  if (!value) throw new Error("Workspace layout is missing.");
+  return value;
+}
 
-export function PrescribingApp({
+export function WorkspaceLayout({
   initial,
-  pending = false,
 }: {
-  initial?: Bootstrap;
-  pending?: boolean;
+  initial: Awaited<ReturnType<typeof getWorkspace>>;
 }) {
   const [working, setWorking] = useState(false);
   const [profile, setProfile] = useState(demoProfile);
@@ -25,70 +35,47 @@ export function PrescribingApp({
   }, []);
   return (
     <>
-      <Workspace
-        mode="test"
-        onBusy={setWorking}
-        initial={initial}
-        pending={pending}
-        profile={profile}
-        openSettings={() => setSettingsOpen(true)}
-        renderHeader={({ practices, practiceId, onView, view }) => (
-          <header className="toolbar">
-            <div className="brand">
-              <img
-                src="https://cdn.joinaffinityai.com/logos/affinity/mark-blue.v2.webp"
-                width={30}
-                height={30}
-                alt=""
-              />
-              <span className="brand-name">
-                Affinity AI <small className="demo-label">EMR demo · Test only</small>
-              </span>
-              <span className="brand-separator" aria-hidden="true" />
-              <span className="practice-name">
-                {practices.find((p) => p.id === practiceId)?.name ?? "Loading practice…"}
-              </span>
-            </div>
-            <nav className="header-links" aria-label="Prescribing">
-              <a
-                href="#new"
-                aria-current={view === "new" ? "page" : undefined}
-                aria-disabled={working}
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (!working) onView("new");
-                }}
-              >
-                New prescription
-              </a>
-              <a
-                href="#orders"
-                aria-current={view === "orders" ? "page" : undefined}
-                aria-disabled={working || !practiceId}
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (!working && practiceId) onView("orders");
-                }}
-              >
-                Orders
-              </a>
-            </nav>
-            <div className="toolbar-actions">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Prescriber settings"
-                className="header-settings"
-                title="Prescriber settings"
-                disabled={working}
-                onClick={() => setSettingsOpen(true)}
-              >
-                <Settings size={24} />
-              </Button>
-            </div>
-          </header>
-        )}
-      />
+      <WorkspaceContext.Provider
+        value={{ initial, profile, openSettings: () => setSettingsOpen(true), onBusy: setWorking }}
+      >
+        <header className="toolbar">
+          <div className="brand">
+            <img
+              src="https://cdn.joinaffinityai.com/logos/affinity/mark-blue.v2.webp"
+              width={30}
+              height={30}
+              alt=""
+            />
+            <span className="brand-name">
+              Affinity AI <small className="demo-label">EMR demo · Test only</small>
+            </span>
+            <span className="brand-separator" aria-hidden="true" />
+            <span className="practice-name">{initial.practice.name}</span>
+          </div>
+          <nav className="header-links" aria-label="Prescribing">
+            <Link to="/prescribe" activeProps={{ "aria-current": "page" }} disabled={working}>
+              New prescription
+            </Link>
+            <Link to="/orders" activeProps={{ "aria-current": "page" }} disabled={working}>
+              Orders
+            </Link>
+          </nav>
+          <div className="toolbar-actions">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Prescriber settings"
+              className="header-settings"
+              title="Prescriber settings"
+              disabled={working}
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Settings size={24} />
+            </Button>
+          </div>
+        </header>
+        <Outlet />
+      </WorkspaceContext.Provider>
       {settingsOpen && (
         <PrescriberSettings
           profile={profile}
