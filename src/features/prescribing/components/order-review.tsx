@@ -46,9 +46,10 @@ export function matchesPreview(
 ) {
   if (
     preview.status !== "complete" ||
+    !("patientId" in preview.orderInput) ||
     order.patientId !== preview.orderInput.patientId ||
     order.practiceId !== preview.orderInput.practiceId ||
-    order.prescriberNpi !== npi ||
+    (order.prescriberNpi != null && order.prescriberNpi !== npi) ||
     order.prescriptions.length !== preview.prescriptions.length
   )
     return false;

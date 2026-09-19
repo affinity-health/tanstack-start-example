@@ -24,7 +24,6 @@ import type { Profile } from "./prescriber-settings";
 import type {
   Practices,
   PatientResult,
-  Prescriber,
   Options,
   Preview,
   PreviewInput,
@@ -88,7 +87,6 @@ export function Workspace({
   const [reviewOpen, setReviewOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [notice, setNotice] = useState("");
-  const [prescriber, setPrescriber] = useState<Prescriber>();
   const [order, setOrder] = useState<Order>();
   const [attested, setAttested] = useState(false);
   const [signed, setSigned] = useState(false);
@@ -105,7 +103,6 @@ export function Workspace({
 
   function clearOrder() {
     setPreview(undefined);
-    setPrescriber(undefined);
     setSubmitted(false);
     setNotice("");
     setOrder(undefined);
@@ -133,7 +130,6 @@ export function Workspace({
   const reviewButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     setAttested(false);
-    if (!order) setPrescriber(undefined);
   }, [profile]);
   async function run(label: string, action: () => Promise<void>) {
     if (inFlight.current) return;
@@ -260,31 +256,11 @@ export function Workspace({
         if (preview?.status !== "complete" || !patient || (!order && !profileReady)) return;
         if (!signed && !attested)
           throw new Error("Confirm the patient history and prescription review before saving.");
-        let registered = prescriber;
         let draft = order;
         if (!draft)
           await api("allergies", { practiceId, patientId: patient.patient.id, confirmed: true });
         if (!draft) {
-          if (!registered) {
-            registered = await api<Prescriber>("prescriber", {
-              practiceId,
-              npi,
-              name,
-              email: profile.email,
-              phone: profile.phone,
-              address: profile.address,
-              licenses: [
-                {
-                  state: localPatient.address.state,
-                  licenseNumber: profile.states[localPatient.address.state]?.licenseNumber,
-                  expiresAt: profile.states[localPatient.address.state]?.expiresAt,
-                },
-              ].filter((license) => !!license.licenseNumber?.trim()),
-              identityAttestation: true,
-            });
-            setPrescriber(registered);
-          }
-          draft = await api<Order>("orders", { ...preview.orderInput, userId: registered.id });
+          draft = await api<Order>("orders", preview.orderInput);
           setOrder(draft);
           setOrdersRevision((value) => value + 1);
           if (send && !matchesPreview(draft, preview, npi, options!, localPatient)) {
@@ -300,15 +276,13 @@ export function Workspace({
           setReviewOpen(false);
           return;
         }
-        if (!registered) throw new Error("Prescriber information is missing. Reopen the review.");
         if (!signed) {
           if (!attested)
             throw new Error("Confirm the prescription and allergy review before signing.");
           await api("sign", {
             orderId: draft.id,
             practiceId,
-            userId: registered.id,
-            actorId: registered.externalId,
+            npi,
             signatureAttestation: true,
             expectedVersions: draft.prescriptions.map((rx) => ({
               prescriptionId: rx.id,
@@ -321,8 +295,6 @@ export function Workspace({
         await api("submit", {
           orderId: draft.id,
           practiceId,
-          userId: registered.id,
-          actorId: registered.externalId,
         });
         setSubmitted(true);
         setOrdersRevision((value) => value + 1);
@@ -517,13 +489,11 @@ export function Workspace({
               <div className="review-prescriber">
                 <span className="hint">Prescriber</span>
                 <p>
-                  {prescriber
-                    ? `${order?.prescriberName ?? name} · NPI ${order?.prescriberNpi ?? npi}`
-                    : profileReady
-                      ? `${name} · NPI ${npi}`
-                      : `No NPI saved for ${localPatient.address.state}.`}
+                  {profileReady
+                    ? `${name} · NPI ${npi}`
+                    : `No NPI saved for ${localPatient.address.state}.`}
                 </p>
-                {!order && (
+                {!order && mode !== "test" && (
                   <Button variant="ghost" onClick={openSettings}>
                     {profileReady ? "Edit settings" : "Set up prescriber"}
                   </Button>

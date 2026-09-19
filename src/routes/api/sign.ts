@@ -5,25 +5,28 @@ export const Route = createFileRoute("/api/sign")({
   server: {
     handlers: {
       POST: ({ request }) =>
-        apiHandler<
-          SignOrderParams & { orderId: string; actorId: string; signatureAttestation: boolean }
-        >(request, async ({ affinity, body, options }) => {
-          if (
-            body.signatureAttestation !== true ||
-            typeof body.actorId !== "string" ||
-            !body.actorId.trim()
-          )
+        apiHandler<SignOrderParams & { orderId: string; npi: string }>(
+          request,
+          async ({ affinity, body, options, practiceId }) => {
+            if (body.signatureAttestation !== true || body.npi !== "1234567893")
+              return json(
+                { error: "Review the order and confirm signing as the Test Prescriber." },
+                400,
+              );
             return json(
-              { error: "Review the order and confirm signing as the registered prescriber." },
-              400,
+              await affinity.orders.sign(
+                body.orderId,
+                {
+                  practiceId,
+                  prescriber: { npi: body.npi },
+                  signatureAttestation: true,
+                  expectedVersions: body.expectedVersions,
+                },
+                options,
+              ),
             );
-          const { orderId, actorId, ...signature } = body;
-          return json(
-            await affinity
-              .withActor({ type: "user", id: actorId })
-              .orders.sign(orderId, signature, options),
-          );
-        }),
+          },
+        ),
     },
   },
 });

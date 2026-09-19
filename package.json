@@ -3,18 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --no-env-file scripts/run.ts dev bun --no-env-file --bun vite dev",
-    "start": "HOST=127.0.0.1 PORT=${PORT:-3001} bun --no-env-file scripts/run.ts prod bun --no-env-file .output/server/index.mjs",
+    "dev": "alchemy dev --stage local",
     "example": "bun --no-env-file scripts/run.ts dev bun --no-env-file example.ts",
-    "build": "bun --no-env-file --bun vite build",
-    "build:worker": "NITRO_PRESET=cloudflare-module bun --no-env-file --bun vite build",
-    "check": "oxlint && oxfmt --check && tsc --noEmit",
-    "check-types": "tsc --noEmit",
+    "build": "vp build",
+    "test": "bun test",
+    "check": "oxlint && oxfmt --check && tsgo --noEmit",
+    "check-types": "tsgo --noEmit",
     "format": "oxfmt --write",
-    "deploy": "bun --no-env-file scripts/run.ts prod bun --no-env-file scripts/deploy.ts"
+    "preview:demo": "alchemy plan --stage demo",
+    "deploy": "alchemy deploy --stage demo --yes"
   },
   "dependencies": {
-    "@affinity-health/sdk": "1.9.2",
+    "@affinity-health/sdk": "1.10.0",
     "@base-ui/react": "^1.8.0",
     "@tanstack/react-router": "^1.170.38",
     "@tanstack/react-start": "^1.168.56",
@@ -28,17 +28,25 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "1.56.0",
+    "@cloudflare/workers-types": "latest",
+    "@effect/platform-bun": "4.0.0-rc.112",
+    "@effect/platform-node": "4.0.0-rc.112",
     "@tailwindcss/vite": "^4.3.3",
     "@types/bun": "^1.3.12",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@typescript/native-preview": "latest",
     "@vitejs/plugin-react": "^6.1.1",
-    "nitro": "^3.0.260903-beta",
+    "alchemy": "2.0.0-beta.76",
+    "effect": "4.0.0-rc.112",
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
     "typescript": "^6.0.0",
-    "vite": "^8.3.0",
-    "wrangler": "4.101.0"
+    "vite-plus": "0.3.3"
+  },
+  "overrides": {
+    "@effect/platform-node-shared": "4.0.0-rc.112"
   },
   "packageManager": "bun@1.3.12"
 }

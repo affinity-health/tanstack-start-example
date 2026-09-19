@@ -12,7 +12,7 @@ import {
   DialogPanel,
   DialogFooter,
 } from "../../../components/ui/dialog";
-import type { Order, Orders, Prescriber } from "../types";
+import type { Order, Orders } from "../types";
 import type { Profile } from "./prescriber-settings";
 
 type Api = <T>(path: string, body?: unknown) => Promise<T>;
@@ -155,29 +155,12 @@ export function OrdersView({
         setNotice("This order changed. Review the updated details and confirm again.");
         return;
       }
-      const registered = await api<Prescriber>("prescriber", {
-        practiceId,
-        npi: identity!.npi,
-        name: identity!.name,
-        email: profile.email,
-        phone: profile.phone,
-        address: profile.address,
-        licenses: [
-          {
-            state: order.patientState,
-            licenseNumber: profile.states[order.patientState]?.licenseNumber,
-            expiresAt: profile.states[order.patientState]?.expiresAt,
-          },
-        ].filter((license) => !!license.licenseNumber?.trim()),
-        identityAttestation: true,
-      });
       if (!signed) {
         await api("allergies", { practiceId, patientId: order.patientId, confirmed: true });
         await api("sign", {
           orderId: order.id,
           practiceId,
-          userId: registered.id,
-          actorId: registered.externalId,
+          npi: identity!.npi,
           signatureAttestation: true,
           expectedVersions: order.prescriptions.map((rx) => ({
             prescriptionId: rx.id,
@@ -189,8 +172,6 @@ export function OrdersView({
       await api("submit", {
         orderId: order.id,
         practiceId,
-        userId: registered.id,
-        actorId: registered.externalId,
       });
       setSent(true);
       setNotice("");

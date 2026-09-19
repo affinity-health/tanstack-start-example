@@ -1,37 +1,11 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vite-plus";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { nitro } from "nitro/vite";
 
 export default defineConfig({
-  // scripts/run.ts loads exactly .env.dev or .env.prod into the server process.
   envDir: false,
-  plugins: [
-    tailwindcss(),
-    tanstackStart(),
-    nitro({
-      preset: process.env.NITRO_PRESET ?? "bun",
-      cloudflare: {
-        nodeCompat: true,
-        wrangler: {
-          name: "affinity-prescribing-demo",
-          account_id: "6689e70db2aaff6670c28b7e4d36df02",
-          compatibility_date: "2026-09-18",
-          workers_dev: true,
-          preview_urls: false,
-          kv_namespaces: [{ binding: "WEBHOOK_RECEIPTS", id: "aa97d08977554cb59a47ebf80fd1c539" }],
-          ratelimits: [
-            { name: "PIN_ATTEMPTS", namespace_id: "1001", simple: { limit: 5, period: 60 } },
-          ],
-        },
-      },
-    }),
-    react(),
-  ],
-  server: {
-    host: "127.0.0.1",
-    port: Number(process.env.PORT ?? process.env.DEV_SERVICE_PORT ?? 3001),
-    strictPort: true,
-  },
+  build: { rolldownOptions: { external: ["cloudflare:workers"] } },
+  plugins: [tailwindcss(), tanstackStart({ server: { entry: "./server.ts" } }), react()],
+  server: { host: "127.0.0.1", port: Number(process.env.PORT ?? 3001), strictPort: true },
 });

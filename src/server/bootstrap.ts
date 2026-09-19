@@ -4,7 +4,6 @@ import { redirect } from "@tanstack/react-router";
 import { hasSession } from "./auth/session";
 import { apiHandler, json } from "./api-handler";
 import { withMedicationImages } from "./affinity/images";
-import { listAll } from "./affinity/pagination";
 import type { Bootstrap } from "../features/prescribing/data/reads";
 
 export const requireSession = createServerFn({ method: "GET" }).handler(async () => {
@@ -18,11 +17,12 @@ export const loadWorkspace = createServerFn({ method: "GET" }).handler(
     const url = new URL("/api/practices?mode=test", request.url);
     const response = await apiHandler(
       new Request(url, { headers: request.headers }),
-      async ({ affinity }) => {
-        const practices = await listAll((cursor) =>
-          affinity.practices.list({ limit: 100, startingAfter: cursor }),
-        );
-        const practiceId = practices.data[0]?.id;
+      async ({ affinity, practiceId }) => {
+        const practices = {
+          object: "list",
+          data: [await affinity.practices.retrieve(practiceId)],
+          hasMore: false,
+        };
         // Catalog failures stay recoverable in the picker without hiding the practices.
         const catalog = practiceId
           ? await affinity.catalog.list({ practiceId, limit: 25 }).catch(() => undefined)

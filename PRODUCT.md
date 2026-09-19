@@ -1,11 +1,23 @@
 # Affinity EMR demo
 
-A small local website and API for a developer testing the Affinity TypeScript SDK, with an independent `bun run example` entry point.
+A public, Test-only EMR integration demo using the published Affinity TypeScript SDK.
+Keep the existing neutral surfaces, blue actions, typography, and Coss prescribing form.
 
-The core task is selecting an EMR patient, creating or reusing their Affinity record, choosing medication defaults, previewing, and signing with an NPI. Both Test and Production use the EMR's patient records. The shipped records are explicitly synthetic examples and should be replaced for real prescribing.
+Visitors start an anonymous session and receive one isolated Test practice. No shared
+practice directory, Live switch, real patient entry, or login is part of this demo.
 
-The website loads automatically. The environment is always visible and switching clears the workflow. Credentials stay on the server, with separate keys for each environment. Signing is an explicit action after reviewing a draft; this demo does not submit orders to a pharmacy.
+The prescribing screen contains the sample patient and medication picker. Load defaults
+on selection, resolve the synthetic patient during preview, and show directions, quantity,
+shipping, and prices in review. Prefill the Test Prescriber identity. Require explicit
+review before signing; supply the synthetic NPI at signing rather than registering a user
+in a separate step. Create unsigned drafts, sign exact versions, then submit to simulators.
+Keep submission retry separate from signing.
 
-Design direction: the Affinity clinic dashboard’s neutral surfaces, blue actions, system typography, and Coss controls in a single-column form. No connection ceremony or decorative dashboard content.
+Orders lists the current session's drafts and submitted orders. Session ownership applies
+to every server route. Expiry removes access to the workspace, not the Affinity audit history.
 
-The first screen should contain only patient, medication, and Preview. Load medication defaults on selection. Keep directions and days supply under Adjust prescription; show prescriber fields only after a complete preview. Patient resolution happens as part of preview; allergy review, prescriber registration, and draft creation happen under Continue to review. Do not reintroduce separate setup buttons or a JSON editor.
+The website currently demonstrates one prescription per order. Multi-item and OTC ordering
+remain SDK capabilities, not UI features claimed by this demo.
+
+Keep the independent `bun run example` entry point for developers. Infrastructure belongs
+to this repository's Alchemy graph, separate from Affinity dashboard deployments.

@@ -20,7 +20,11 @@ export const Route = createFileRoute("/api/prescriber")({
           licenses?: Array<{ state: string; licenseNumber: string; expiresAt?: string }>;
           identityAttestation: boolean;
         }>(request, async ({ affinity, body, mode, options }) => {
-          if (body.identityAttestation !== true || !/^\d{10}$/.test(body.npi ?? ""))
+          if (
+            body.identityAttestation !== true ||
+            body.npi !== "1234567893" ||
+            body.name !== "Test Prescriber"
+          )
             return json(
               { error: "Enter a 10-digit NPI and confirm the prescriber identity." },
               400,

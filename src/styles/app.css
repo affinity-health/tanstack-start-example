@@ -403,6 +403,8 @@ dd {
   overflow-wrap: anywhere;
 }
 .check {
+  user-select: none;
+  -webkit-user-select: none;
   flex-direction: row;
   align-items: flex-start;
   gap: 10px;
@@ -413,6 +415,20 @@ dd {
 }
 .check [data-slot="checkbox"] {
   margin-top: 3px;
+}
+label.demo-consent {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.demo-consent [data-slot="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 details {
   margin: 12px 0 0;

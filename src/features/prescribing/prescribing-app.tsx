@@ -1,17 +1,9 @@
-import { useState, useEffect } from "react";
-import { Button } from "../../components/ui/button";
-import { Menu, MenuTrigger, MenuPopup, MenuItem } from "../../components/ui/menu";
-import { Settings, ChevronDown, Check, ExternalLink } from "lucide-react";
-import {
-  PrescriberSettings,
-  emptyProfile,
-  profileKey,
-  type Profile,
-} from "./components/prescriber-settings";
+import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { Workspace } from "./components/workspace";
+import { demoProfile } from "./demo-profile";
 import type { Bootstrap } from "./data/reads";
 
-type Mode = "test" | "production";
 export function PrescribingApp({
   initial,
   pending = false,
@@ -19,81 +11,17 @@ export function PrescribingApp({
   initial?: Bootstrap;
   pending?: boolean;
 }) {
-  const [mode, setMode] = useState<Mode>("test");
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [profile, setProfile] = useState<Profile>(emptyProfile);
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(profileKey(mode)) ?? "null");
-      if (
-        !saved ||
-        typeof saved.email !== "string" ||
-        !saved.states ||
-        typeof saved.states !== "object"
-      ) {
-        setProfile(emptyProfile);
-      } else {
-        const entries = Object.entries(saved.states).flatMap(([state, value]) => {
-          const entry =
-            typeof value === "string"
-              ? { npi: value, name: saved.name ?? "", licenseNumber: "", expiresAt: "" }
-              : (value as {
-                  npi?: unknown;
-                  name?: unknown;
-                  licenseNumber?: unknown;
-                  expiresAt?: unknown;
-                } | null);
-          return entry && typeof entry.npi === "string" && typeof entry.name === "string"
-            ? [
-                [
-                  state,
-                  {
-                    npi: entry.npi,
-                    name: entry.name,
-                    licenseNumber:
-                      typeof entry.licenseNumber === "string" ? entry.licenseNumber : "",
-                    expiresAt: typeof entry.expiresAt === "string" ? entry.expiresAt : "",
-                  },
-                ],
-              ]
-            : [];
-        });
-        setProfile({
-          email: saved.email,
-          phone: typeof saved.phone === "string" ? saved.phone : "",
-          address:
-            saved.address &&
-            ["line1", "city", "state", "postalCode"].every(
-              (key) => typeof saved.address[key] === "string",
-            )
-              ? { ...saved.address, country: "US" }
-              : emptyProfile.address,
-          states: Object.fromEntries(entries),
-          confirmed: saved.confirmed === true,
-        });
-      }
-    } catch {
-      setProfile(emptyProfile);
-    }
-  }, [mode]);
   const [working, setWorking] = useState(false);
-  const [initialData, setInitialData] = useState(initial);
-  function changeMode(next: Mode) {
-    if (next === mode) return;
-    setInitialData(undefined);
-    setMode(next);
-  }
   return (
     <>
       <Workspace
-        key={mode}
-        mode={mode}
+        mode="test"
         onBusy={setWorking}
-        initial={mode === "test" ? initialData : undefined}
+        initial={initial}
         pending={pending}
-        profile={profile}
-        openSettings={() => setSettingsOpen(true)}
-        renderHeader={({ practices, practiceId, onPractice, onView, view }) => (
+        profile={demoProfile}
+        openSettings={() => {}}
+        renderHeader={({ practices, practiceId, onView, view }) => (
           <header className="toolbar">
             <div className="brand">
               <img
@@ -103,30 +31,11 @@ export function PrescribingApp({
                 alt=""
               />
               <span>
-                Affinity AI{" "}
-                <small className="demo-label">Prescribing demo · synthetic patients only</small>
+                Affinity AI <small className="demo-label">EMR demo · synthetic patients only</small>
               </span>
-              <Menu>
-                <MenuTrigger
-                  disabled={working || pending || !practices.length}
-                  render={<Button variant="ghost" />}
-                  className="practice-menu"
-                  aria-label="Practice"
-                >
-                  <span>
-                    {practices.find((p) => p.id === practiceId)?.name ?? "Select practice"}
-                  </span>
-                  <ChevronDown size={14} />
-                </MenuTrigger>
-                <MenuPopup align="start">
-                  {practices.map((practice) => (
-                    <MenuItem key={practice.id} onClick={() => onPractice(practice.id)}>
-                      {practice.name}
-                      {practice.id === practiceId && <Check size={15} aria-hidden />}
-                    </MenuItem>
-                  ))}
-                </MenuPopup>
-              </Menu>
+              <span className="practice-menu">
+                {practices.find((p) => p.id === practiceId)?.name ?? "Loading practice…"}
+              </span>
             </div>
             <nav className="header-links" aria-label="Prescribing">
               <a
@@ -135,7 +44,7 @@ export function PrescribingApp({
                 aria-disabled={working}
                 onClick={(event) => {
                   event.preventDefault();
-                  if (!working && view !== "new") onView("new");
+                  if (!working) onView("new");
                 }}
               >
                 New prescription
@@ -146,55 +55,21 @@ export function PrescribingApp({
                 aria-disabled={working || !practiceId}
                 onClick={(event) => {
                   event.preventDefault();
-                  if (!working && practiceId && view !== "orders") onView("orders");
+                  if (!working && practiceId) onView("orders");
                 }}
               >
                 Orders
               </a>
             </nav>
             <div className="toolbar-actions">
-              <Menu>
-                <MenuTrigger
-                  disabled={working || pending}
-                  render={<Button variant="outline" />}
-                  className={`environment ${mode}`}
-                >
-                  <span className="mode-dot" />
-                  {mode === "test" ? "Test" : "Live"}
-                  <ChevronDown size={14} />
-                </MenuTrigger>
-                <MenuPopup align="end">
-                  <MenuItem onClick={() => changeMode("test")}>
-                    Test {mode === "test" && <Check size={15} aria-hidden />}
-                  </MenuItem>
-                  <MenuItem onClick={() => changeMode("production")}>
-                    Live {mode === "production" && <Check size={15} aria-hidden />}
-                  </MenuItem>
-                </MenuPopup>
-              </Menu>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Prescriber settings"
-                disabled={working}
-                onClick={() => setSettingsOpen(true)}
-              >
-                <Settings size={19} />
-              </Button>
+              <span className="environment test">
+                <span className="mode-dot" />
+                Test mode
+              </span>
             </div>
           </header>
         )}
       />
-      {settingsOpen && (
-        <PrescriberSettings
-          key={`settings-${mode}`}
-          mode={mode}
-          profile={profile}
-          onSave={setProfile}
-          open={settingsOpen}
-          onOpenChange={setSettingsOpen}
-        />
-      )}
       <footer>
         <a
           href="https://docs.joinaffinityai.com/guides/reference/sdks/typescript/"
@@ -203,9 +78,13 @@ export function PrescribingApp({
         >
           SDK documentation <ExternalLink size={12} aria-hidden />
         </a>
-        <span>
-          Terminal: <code>bun run example</code>
-        </span>
+        <a
+          href="https://github.com/affinity-health/tanstack-start-example"
+          target="_blank"
+          rel="noreferrer"
+        >
+          View source <ExternalLink size={12} aria-hidden />
+        </a>
       </footer>
     </>
   );

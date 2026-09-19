@@ -1,114 +1,97 @@
-function cookieSettings(request: Request) {
-  const url = new URL(request.url);
-  const localHttp =
-    url.protocol === "http:" &&
-    ["localhost", "127.0.0.1"].includes(url.hostname) &&
-    !(request as WorkerRequest).runtime?.cloudflare;
-  return { name: localHttp ? "demo-session-local" : "__Host-demo-session", secure: !localHttp };
-}
-const sessionSeconds = 12 * 60 * 60;
-const encoder = new TextEncoder();
+import { createServerFn } from "@tanstack/react-start";
+import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
+import { createAffinity } from "../affinity/client";
+import { sessionStore, takeQuota } from "./store";
+import { cookieName, newVisitor, sessionCookie, signVisitor, verifyVisitor } from "./token";
 
-type WorkerRequest = Request & {
-  runtime?: {
-    cloudflare?: {
-      env: { PIN_ATTEMPTS?: { limit: (input: { key: string }) => Promise<{ success: boolean }> } };
-    };
-  };
-};
-
-function localDevelopment(request: Request) {
-  return (
-    !process.env.DEMO_PIN &&
-    !(request as WorkerRequest).runtime?.cloudflare &&
-    ["localhost", "127.0.0.1"].includes(new URL(request.url).hostname)
-  );
-}
-
-async function signingKey() {
-  const secret = process.env.DEMO_SESSION_SECRET;
-  if (!secret || secret.length < 32) throw new Error("Demo access is not configured.");
-  // Including the PIN invalidates existing sessions when it changes.
-  return crypto.subtle.importKey(
-    "raw",
-    encoder.encode(`${secret}:${process.env.DEMO_PIN}`),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"],
-  );
-}
-
-export async function hasSession(request: Request): Promise<boolean> {
-  if (localDevelopment(request)) return true;
-  if (!process.env.DEMO_PIN || !process.env.DEMO_SESSION_SECRET) return false;
-  const cookieName = cookieSettings(request).name;
+async function visitor(request: Request) {
   const token = request.headers
     .get("cookie")
-    ?.split("; ")
-    .find((part) => part.startsWith(`${cookieName}=`))
-    ?.slice(cookieName.length + 1);
-  if (!token) return false;
-  const [expires, signature, extra] = token.split(".");
-  if (extra || !/^\d+$/.test(expires) || !/^[a-f0-9]{64}$/.test(signature ?? "")) return false;
-  const remaining = Number(expires) - Math.floor(Date.now() / 1000);
-  if (remaining <= 0 || remaining > sessionSeconds) return false;
-  try {
-    return await crypto.subtle.verify(
-      "HMAC",
-      await signingKey(),
-      Uint8Array.from(signature.match(/../g)!, (byte) => parseInt(byte, 16)),
-      encoder.encode(expires),
-    );
-  } catch {
-    return false;
-  }
+    ?.split(";")
+    .map((s) => s.trim())
+    .find((s) => s.startsWith(cookieName(request) + "="))
+    ?.split("=")[1];
+  if (!token) return null;
+  return verifyVisitor(token, process.env.DEMO_SESSION_SECRET ?? "");
+}
+export const prepareVisitor = createServerFn({ method: "GET" }).handler(async () => {
+  const request = getRequest();
+  setResponseHeader("Cache-Control", "private, no-store");
+  if (await visitor(request)) return;
+  const token = await signVisitor(newVisitor(), process.env.DEMO_SESSION_SECRET ?? "");
+  setResponseHeader("Set-Cookie", sessionCookie(request, token));
+});
+export async function getSession(request: Request) {
+  const user = await visitor(request);
+  if (!user) return null;
+  const practiceId = await (await sessionStore()).practice(user.id);
+  return practiceId ? { ...user, practiceId } : null;
+}
+export async function hasSession(request: Request) {
+  return !!(await getSession(request));
 }
 
 export async function unlock(request: Request): Promise<Response> {
-  const url = new URL(request.url);
   const headers = { "Cache-Control": "private, no-store" };
-  if (request.headers.get("origin") !== url.origin)
-    return new Response("Cross-origin request rejected.", { status: 403, headers });
-  const pin = process.env.DEMO_PIN;
-  if (!pin || !process.env.DEMO_SESSION_SECRET)
-    return new Response("Demo access is not configured.", { status: 503, headers });
-  const limiter = (request as WorkerRequest).runtime?.cloudflare?.env.PIN_ATTEMPTS;
-  if (!limiter && !["localhost", "127.0.0.1"].includes(url.hostname))
-    return new Response("Demo access is not configured.", { status: 503, headers });
-  if (
-    limiter &&
-    !(await limiter.limit({ key: request.headers.get("cf-connecting-ip") ?? "unknown" })).success
-  )
-    return new Response("Too many attempts. Try again in a minute.", {
-      status: 429,
-      headers: { ...headers, "Retry-After": "60" },
-    });
-  if (Number(request.headers.get("content-length") ?? 0) > 1024)
-    return new Response("Request too large.", { status: 413, headers });
-  const submitted = (await request.formData()).get("pin");
-  const key = await signingKey();
-  const expected = await crypto.subtle.sign("HMAC", key, encoder.encode(pin));
-  const valid =
-    typeof submitted === "string" &&
-    submitted.length <= 128 &&
-    (await crypto.subtle.verify("HMAC", key, expected, encoder.encode(submitted)));
-  if (!valid)
+  const failure = (error: string, status: number) => Response.json({ error }, { status, headers });
+  if (request.headers.get("origin") !== new URL(request.url).origin)
+    return failure("Cross-origin request rejected.", 403);
+  const user = await visitor(request);
+  if (!user)
+    return new Response(null, { status: 303, headers: { ...headers, Location: "/unlock" } });
+  if (await getSession(request))
+    return new Response(null, { status: 303, headers: { ...headers, Location: "/" } });
+  try {
+    const text = await request.text();
+    if (text.length > 1024) return failure("Request too large.", 413);
+    const form = new URLSearchParams(text);
+    if (form.get("synthetic") !== "yes")
+      return failure("Confirm that this is a synthetic Test workspace.", 400);
+    const db = await sessionStore();
+    const ip = request.headers.get("cf-connecting-ip") ?? "local";
+    // Salt the IP before storing a daily quota key. Never store visitor addresses.
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(process.env.DEMO_SESSION_SECRET + ip),
+    );
+    const ipHash = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join(
+      "",
+    );
+    if (
+      !(await takeQuota(db, "start:" + ipHash, 5, 86400)) ||
+      !(await takeQuota(db, "starts", 100, 86400))
+    )
+      return failure("Today's demo creation limit has been reached. Try again tomorrow.", 429);
+    const affinity = createAffinity();
+    const practice = await affinity.practices.create(
+      {
+        name: "Demo Practice " + user.id.slice(0, 8),
+        externalId: "public-demo-" + user.id,
+        address: {
+          line1: "100 Test Street",
+          city: "San Francisco",
+          state: "CA",
+          postalCode: "94107",
+          country: "US",
+        },
+        supportEmail: "demo@example.test",
+        supportPhone: "+14155550100",
+        attestations: {
+          authorizedPracticeRelationship: true,
+          authorizedPhiTransfer: true,
+          minimumNecessaryPhi: true,
+          providerDataAccuracy: true,
+        },
+      },
+      { idempotencyKey: "demo-practice-" + user.id },
+    );
+    if (practice.livemode || practice.liveEnabled) throw new Error("Unexpected practice mode.");
+    await db.save(user.id, practice.id, user.expires);
+    return new Response(null, { status: 303, headers: { ...headers, Location: "/" } });
+  } catch {
     return new Response(null, {
       status: 303,
-      headers: { ...headers, Location: "/unlock?error=pin" },
+      headers: { ...headers, Location: "/unlock?error=setup" },
     });
-  const expires = String(Math.floor(Date.now() / 1000) + sessionSeconds);
-  const cookie = cookieSettings(request);
-  const signature = Array.from(
-    new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(expires))),
-    (byte) => byte.toString(16).padStart(2, "0"),
-  ).join("");
-  return new Response(null, {
-    status: 303,
-    headers: {
-      ...headers,
-      Location: "/",
-      "Set-Cookie": `${cookie.name}=${expires}.${signature}; Path=/; HttpOnly;${cookie.secure ? " Secure;" : ""} SameSite=Strict; Max-Age=${sessionSeconds}`,
-    },
-  });
+  }
 }

@@ -1,189 +1,117 @@
-# Affinity prescribing demo
+# Affinity EMR demo
 
-A small TanStack Start website and API running on Bun for trying the [Affinity TypeScript SDK](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/).
-It uses `@affinity-health/sdk` **1.9.0-beta.4**, the `next` release from
-[affinity-typescript](https://github.com/affinity-health/affinity-typescript). The stable 1.8.0 release does not include prescribing defaults or previews.
+[Try the demo](https://demo-emr.joinaffinityai.com) · [TypeScript SDK](https://github.com/affinity-health/affinity-typescript)
 
-## Run
+A standalone TanStack Start application using `@affinity-health/sdk@1.10.0`.
+This repository owns the runnable demo and its independent Alchemy deployment.
 
-```sh
-bun install
-cp .env.example .env.dev # Skip if .env.dev already exists.
-# Set AFFINITY_TEST_API_KEY to a current sk_test_ key.
-bun run dev
-```
+## Try it
 
-Open http://localhost:3001.
+1. Confirm you will use synthetic data, then select **Start Test demo**.
+2. The server creates your own Test practice. Choose a sample patient and medication.
+3. Review the populated directions, quantity, days supply, shipping, and prices.
+4. Confirm the allergy and prescription review, then save a draft or sign and send.
+5. Open **Orders** to inspect drafts and simulator fulfillment.
 
-1. Practices and the first medication page load on the server before the form renders. Select a practice in the header dropdown; use the toolbar to switch Test or Live.
-2. Select an EMR patient, then search for a medication in the Coss command picker. Medication defaults load when you select it.
-3. Open the header settings cog and save a prescriber name and NPI for each destination state. Live also requires your email, phone, practice address, for each patient state. License details are optional. Settings are stored in this browser separately for Test and Live.
-4. Select a medication. Supplies such as alcohol pads cannot be prescribed on their own. If the pharmacy requires a compounding reason, select its category and enter the patient-specific context.
-5. Click **Review prescription**. Affinity validates the defaults and opens the review dialog with directions, quantity, pharmacy, patient, and shipping information.
-6. Choose **Create draft**, or confirm the allergy and prescription review and click **Sign and send to pharmacy**. The saved NPI is selected by the patient's state. If the created prescription differs from the preview, review the saved draft and confirm again. A failed submission can be retried without signing again.
+No account, shared PIN, or API key is needed in the browser. The synthetic Test Prescriber
+uses NPI `1234567893`. The application creates an unsigned draft, then supplies the NPI
+when signing. Affinity resolves the prescriber. Signing requires an explicit attestation
+and the exact prescription versions. Submission is separate so a failed send can be retried
+without signing again.
 
-Open **Orders** in the header to see the selected practice’s saved orders. The **Drafts** filter includes orders waiting for a prescriber signature. Open an order to review every prescription and sign and send it using your saved state-specific prescriber. Orders are loaded from Affinity and paginated, so they remain available after reloading. If an order changed since you opened it, the app requires another review before signing.
+The public UI currently handles one prescription per order. It does not yet have an OTC
+cart or a multi-prescription editor. The SDK supports those independently.
 
-An NPI identifies the prescriber; signing uses
-the registered user ID and matching actor external ID. Affinity enforces practice access and prescribing authority.
-Use Affinity Test NPI `1234567893` for the synthetic patients in this demo. Other random or real
-NPIs are rejected in Test mode. The server supplies a synthetic `.test` email for registration.
+## Isolation and limits
 
-The Test key needs permissions for practices, catalog, patients, team, order creation/read, `orders:sign`, and order submission permissions.
-A 401 means the key is missing or invalid; a 403 may indicate missing scopes or access.
-API errors appear beside the relevant action. Full order details are available in the review dialog.
+Each anonymous browser session has one Test practice, a signed HttpOnly cookie, and a
+12-hour expiry. Returning in that browser resumes the workspace until expiry.
+There is no recovery or sharing of an anonymous session.
 
-## Environments
+All requests are server-side SDK calls. Practice requests must match the session.
+Order reads, signing, and submission check order ownership before proceeding.
+Patient requests use the session's practice. Inline patients and arbitrary prescribers
+are not accepted by the demo. Live mode is rejected server-side, and no Live key is bound.
 
-Test uses only `AFFINITY_TEST_API_KEY`; Production uses only `AFFINITY_PRODUCTION_API_KEY`.
-Development and `bun run example` load only `.env.dev`. `bun run start` and `bun run deploy`
-load only `.env.prod`. The old `.env` is not used. Restart the server after editing a file.
-The client checks the key prefix against the selected
-mode; Affinity authenticates each SDK request. There is no separate key-validation request or
-credential fallback. Signing sets the registered prescriber's actor explicitly.
+The dedicated demo platform has Live access disabled. Its Test key cannot access Harbor's
+platform directory. Affinity Test orders route only to simulators.
 
-`AFFINITY_API_URL` selects the API server in each file, for example
-`https://affinity.harbr.run/api/v1` for development or `https://api.joinaffinityai.com/v1`
-for deployment. The SDK adds `/v1`, so the client removes that suffix from its base URL
-while preserving `/api`. When unset, the URL defaults to `https://api.joinaffinityai.com/v1`.
-The Test/Live switch selects the matching key on that server, not a different API URL.
+Limits are 5 starts per IP per UTC day, 100 starts globally per UTC day,
+120 API requests per session per minute, and 30 order-creation attempts per session per
+UTC day. Retries count toward these abuse limits. Quotas use atomic Durable Object
+transactions. IPs are salted and hashed before becoming quota keys. Durable Object alarms
+remove expired session mappings and quota counters. Synthetic records in Affinity remain
+for audit history; session expiry is not clinical-record deletion.
 
-For a Devbox-protected development URL, set `DEVBOX_API_KEY` in `.env.dev` to your Devbox
-personal API key. The SDK sends it server-side as `X-Api-Key`; Affinity's key stays in
-`Authorization`. Devbox verifies the key owner's access to the requested environment.
-The header is omitted when unset. The production Affinity server does not need it. Deployment uploads it only when explicitly supplied; otherwise it preserves the existing Worker secret. Use a personal key, not a workspace automation credential.
-Redirects are rejected so credentials are not forwarded to a login page.
+Cross-origin and missing-Origin writes are rejected. Mutation keys are namespaced by
+session. A pending browser mutation retains its key until the result is known.
+The public deployment has no shared webhook inbox, prescriber-management endpoint, or
+authenticated image proxy. The signed webhook helper remains as reference code only.
 
-Both modes create or reuse records from `src/data/patients.ts` by external ID. Replace the shipped sample
-records with your own EMR data before using Production. Switching environments clears patient,
-prescriber, preview, draft, and signing state. Live requests have been verified on development with synthetic records and simulator fulfillment. No production Affinity requests were made.
+## Develop and check
 
-Controls are copied from the official [Coss UI registry](https://coss.com/ui/), built on Base UI.
-Tailwind is bundled by Vite. TanStack Start serves the page and file-based API routes; Nitro builds the Bun server.
-
-## Standalone TypeScript
+Use Bun. The app uses Vite 8 through Vite+, TypeScript native preview, Oxlint, and Oxfmt.
 
 ```sh
-bun run example
+bun install --frozen-lockfile
+bun run check
+bun test
+bun run build
 ```
 
-Edit [example.ts](./example.ts) and use `createAffinity("test")` or `createAffinity("production")`.
-The current example retrieves API-key access information and prints its request time.
-It needs no running website. Patient-resolution helpers are available in `src/server/affinity/patients.ts`.
-
-## Code
-
-- `example.ts`: standalone SDK calls.
-- `src/routes/`: TanStack Start page, document shell, and API endpoints.
-- `src/features/prescribing/`: prescribing screen, feature components, and SDK-derived types.
-- `src/server/`: request handling and server-only Affinity client, pagination, and patient helpers.
-- `src/data/patients.ts`: editable EMR sample records.
-- `src/components/ui/`: shared Coss controls.
-- `src/styles/` and `src/lib/`: app styles and shared UI utilities.
-- `vite.config.ts`: development server and production build.
-
-`src/routeTree.gen.ts` is generated by development or build and is not committed.
-
-## API
-
-| Method | Endpoint                                       | Purpose                                   |
-| ------ | ---------------------------------------------- | ----------------------------------------- |
-| GET    | `/api/health`                                  | Health check                              |
-| GET    | `/api/practices`                               | All accessible practices                  |
-| GET    | `/api/catalog`                                 | Search catalog; 25 results per page       |
-| GET    | `/api/options?practiceId=...&medicationId=...` | Prescribing defaults                      |
-| POST   | `/api/patient`                                 | Create or reuse by EMR external ID        |
-| POST   | `/api/allergies`                               | Explicit no-known-allergies review        |
-| POST   | `/api/prescriber`                              | Register or reuse a prescriber            |
-| POST   | `/api/preview`                                 | Resolve defaults and validate input       |
-| GET    | `/api/orders?practiceId=...`                   | List orders or drafts, 25 per page        |
-| POST   | `/api/orders`                                  | Create a draft and retrieve it for review |
-| GET    | `/api/order?practiceId=...&orderId=...`        | Retrieve a draft for review               |
-| POST   | `/api/submit`                                  | Submit the signed order to the pharmacy   |
-| POST   | `/api/sign`                                    | Sign the explicitly reviewed versions     |
-
-The catalog route accepts `query`, `practiceId`, and `startingAfter`. Search runs through
-`affinity.catalog.list({ query })`, with a 75 ms debounce and stale-response protection.
-Medication rows show `imageUrl` when available, or a pill icon when missing or unavailable.
-
-POST requests use `Idempotency-Key`. Pending request keys survive reloads in the same browser tab.
-Only request digests and random keys are stored; patient and prescription fields are not stored.
-A confirmed success clears the key so a new prescription can use identical parameters.
-A confirmed submission rejection permits a new-key retry of the existing order, including after
-a partial batch release. Network failures and in-progress responses retain the original key.
-Closing the tab clears this recovery state. A real EMR must persist operation keys on its backend
-and reconcile order status after uncertain outcomes. Preview creates no persistent order.
-
-Local development binds to loopback. Hosted pages, server functions, and API routes require a
-PIN session. Cross-origin writes are rejected, and API keys stay out of browser code.
-
-## Checks
+The website requires its Worker session binding. Run the local Worker through Alchemy
+with an isolated Test key and session secret supplied in the child environment:
 
 ```sh
-bun run build   # Generate routes and build into .output/
-bun run check   # Lint, formatting, TypeScript
-bun test src/server/webhooks.test.ts
-bun run start   # Run without development mode
+doppler run --project affinity --config stg -- bun run dev
 ```
 
-Set `PORT` to change port 3001. No database or Cloudflare account is required.
+Local development binds to loopback at port 3001. Do not publish a development server
+or point this app at Live credentials. The deploy graph fixes the hosted Affinity API
+to `https://api.joinaffinityai.com`.
 
-## Verification notes
+For standalone SDK experiments without a website, copy `.env.example` to the ignored
+`.env.dev`, set your own Test key, and run `bun run example`.
+Never put hosted secrets in environment files.
 
-Verified September 19, 2026 against development in Live mode using synthetic records and an Affinity pharmacy simulator. The deployed Worker resolved a patient, recorded allergy review, registered the synthetic clinician with contact and license data, retrieved prescribing defaults, previewed, created, signed, and submitted an order. The order reached delivered with simulated tracking. The Worker received signed events from creation through delivery.
+## Deploy
 
-The broader API acceptance run covered patient and address operations, draft cancellation, idempotent retries, external references, and signing rejection for missing scope, wrong actor, stale versions, and the wrong mode. See [the integration handoff](./HANDOFF.md) for boundaries and setup.
+The canonical stack is `affinity-emr-demo`, stage `demo`, in this repository's
+`alchemy.run.ts`. It owns Worker `affinity-emr-demo`, its session Durable Object binding,
+and `demo-emr.joinaffinityai.com`.
 
-## Responsiveness and Worker builds
+Operator and runtime secrets come from Doppler `affinity/stg` for this independent demo:
 
-TanStack Start resolves practices and the first catalog page before rendering the form.
-Hydration reuses those results. This avoids leaving a disabled shell when deferred loader data does not reach a Worker response. Read-only practices, catalog searches, and prescribing options share
-a browser-memory cache: 60 seconds, at most 100 entries, keyed by environment and full request
-parameters. Concurrent reads share one request, and errors are not cached.
+- `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`: deployment only.
+- `AFFINITY_DEMO_API_KEY`: dedicated demo platform Test key.
+- `AFFINITY_DEMO_SESSION_SECRET`: cookie signing key.
 
-Highlighting a medication for 100 ms prefetches its defaults. Search keeps previous results visible
-but disables them until the new query completes. Reopening a picker or switching back to an environment
-reuses fresh cached reads. Patient writes, previews, order retrieval, and signing are never prefetched
-or served from this cache. Preview still validates the medication revision with Affinity.
-The response inspector formats its JSON only when opened.
+Alchemy binds only the last two secrets to the Worker, under
+`AFFINITY_TEST_API_KEY` and `DEMO_SESSION_SECRET`. The demo key needs
+`catalog:read`, `practices:read`, `practices:write`, `patients:read`,
+`patients:write`, `orders:read`, `orders:write`, `orders:sign`, and `team:write`.
+The provisioned key expires after 90 days and must be rotated before expiry.
+Rotating the session secret invalidates existing cookies.
 
 ```sh
-bun run build:worker
+doppler run --project affinity --config stg -- bun run preview:demo
+doppler run --project affinity --config stg -- bun run deploy
+doppler run --project affinity --config stg -- bun run preview:demo
 ```
 
-This builds the Cloudflare Worker and generates `.output/server/wrangler.json`.
-Hashed assets use a one-year immutable cache; HTML and API data stay private and uncached.
-`bun run build` still produces the local Bun server. Both builds are checked in CI.
+Review the plan and require a no-op after deployment. Preserve this checkout's ignored
+`.alchemy` state. Do not deploy from a second empty state or use Wrangler as a parallel
+deployment path. This graph does not redeploy the Affinity API or dashboards.
 
-## Deploy to Harbor
+The older `affinity-prescribing-demo` and `affinity-sdk-emr-example` Workers are separate
+private deployments. This stack does not delete, adopt, or expose them.
 
-```sh
-bun run deploy
-```
+## Main code paths
 
-Deploys to https://affinity-prescribing-demo.harborrun.workers.dev in the Harbor account.
-Wrangler must be authenticated. Copy `.env.example` to `.env.prod` and configure it first.
-The script builds the Worker and uploads `AFFINITY_API_URL`, `AFFINITY_TEST_API_KEY`,
-`AFFINITY_PRODUCTION_API_KEY`, `DEMO_PIN`, and `DEMO_SESSION_SECRET` from `.env.prod`
-as encrypted Worker secrets. An empty Production key disables that mode and clears any
-previously deployed Production credential. Other Worker secrets are preserved.
-
-On first deployment, the script generates a 10-digit PIN and a random session secret and saves
-both in your ignored `.env.prod`. Share the PIN with demo users. They enter it once per 12-hour session;
-no email or account is needed. The cookie is signed, HttpOnly, and SameSite=Strict. Hosted HTTPS uses a Secure cookie;
-local HTTP uses a separate cookie so the PIN flow works on localhost too.
-Cloudflare limits PIN attempts to five per minute per IP at each Cloudflare location.
-Changing either PIN or session secret and redeploying invalidates existing sessions.
-
-Local development skips the gate when `DEMO_PIN` is unset. Hosted access fails closed if its secrets
-or login rate-limit binding are missing. Hashed static assets are public and contain no credentials.
-Preview deployment URLs are disabled so there is one supported demo address.
-This shared PIN grants access to everyone who knows it; it is not individual prescriber identity.
-
-Medication images from the configured development API origin under `/cdn/` load through the PIN-protected `/api/medication-image` route. It adds `X-Api-Key` from `DEVBOX_API_KEY` on the server, refuses redirects and external targets, and leaves public CDN images unchanged. Production does not require this key.
-
-## Webhook receiver
-
-Register `POST /api/webhooks/affinity` as an Affinity webhook endpoint. It is exempt from the shared PIN and verifies the raw request bytes with the official SDK before accepting an event. Configure `AFFINITY_WEBHOOK_SECRET`, `AFFINITY_WEBHOOK_ORGANIZATION_ID`, and `AFFINITY_WEBHOOK_LIVEMODE`. Set the last value explicitly to `true` for Live or `false` for Test.
-
-The `WEBHOOK_RECEIPTS` KV binding stores event ID, type, mode, resource ID, and creation time for seven days. Replays replace the same event key. The PIN-protected `GET /api/webhook-events` shows recent receipts. KV is eventually consistent and this receiver performs no clinical or billing side effects. A production EMR needs a transactional inbox keyed by event ID before performing such effects. Return a success response only after durable acceptance.
+- `src/server/auth/`: signed sessions, ownership, quota storage.
+- `src/server/api-handler.ts`: request scope and CSRF checks.
+- `src/server/bootstrap.ts`: only the current session's practice and catalog.
+- `src/routes/api/`: server-side SDK calls.
+- `src/features/prescribing/`: existing prescribing and order review UI.
+- `src/data/patients.ts`: synthetic patient fixtures.
+- `alchemy.run.ts`: independent Worker deployment.
