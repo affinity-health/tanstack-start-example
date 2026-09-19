@@ -117,12 +117,12 @@ input {
   caret-color: var(--primary);
 }
 .toolbar {
-  height: 76px;
+  height: 60px;
   display: grid;
-  grid-template-columns: minmax(0, auto) auto minmax(44px, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   padding: 0 32px;
-  gap: 32px;
+  gap: 20px;
   background: white;
   border-bottom: 1px solid #ededed;
 }
@@ -968,7 +968,7 @@ footer code {
   display: flex;
   align-items: stretch;
   align-self: stretch;
-  justify-self: start;
+  justify-self: center;
   gap: 24px;
 }
 .header-links a {
@@ -1024,10 +1024,10 @@ footer code {
 @media (max-width: 760px) {
   .toolbar {
     height: auto;
-    min-height: 116px;
-    padding: 12px 16px 0;
+    min-height: 96px;
+    padding: 4px 16px 0;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 12px 8px;
+    gap: 4px 8px;
   }
   .toolbar .brand {
     flex: 1;
@@ -1091,7 +1091,6 @@ footer code {
 }
 @media (min-width: 761px) and (max-width: 1100px) {
   .toolbar {
-    grid-template-columns: minmax(0, 1fr) auto auto;
     padding-inline: 20px;
   }
 }
