@@ -89,6 +89,7 @@ export function PrescriberSettings({
           <DialogDescription>
             Save the prescriber identity for each patient state. License details are optional.{" "}
             {mode === "test" ? "Test" : "Live"} settings stay in this browser.
+            {mode === "test" && " Use Affinity Test NPI 1234567893 for synthetic prescriptions."}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>

@@ -26,7 +26,8 @@ Open **Orders** in the header to see the selected practice’s saved orders. The
 
 An NPI identifies the prescriber; signing uses
 the registered user ID and matching actor external ID. Affinity enforces practice access and prescribing authority.
-Use a Test NPI issued for your Affinity Test setup, with authority for the selected patient's state.
+Use Affinity Test NPI `1234567893` for the synthetic patients in this demo. Other random or real
+NPIs are rejected in Test mode. The server supplies a synthetic `.test` email for registration.
 
 The Test key needs permissions for practices, catalog, patients, team, order creation/read, `orders:sign`, and order submission permissions.
 A 401 means the key is missing or invalid; a 403 may indicate missing scopes or access.
@@ -105,9 +106,13 @@ The catalog route accepts `query`, `practiceId`, and `startingAfter`. Search run
 `affinity.catalog.list({ query })`, with a 75 ms debounce and stale-response protection.
 Medication rows show `imageUrl` when available, or a pill icon when missing or unavailable.
 
-POST requests use `Idempotency-Key`. The website reuses keys for identical requests within the
-current page session, so an uncertain response can be retried. Reloading clears this local state;
-inspect Affinity before recreating an order after a reload. Preview itself creates no persistent order.
+POST requests use `Idempotency-Key`. Pending request keys survive reloads in the same browser tab.
+Only request digests and random keys are stored; patient and prescription fields are not stored.
+A confirmed success clears the key so a new prescription can use identical parameters.
+A confirmed submission rejection permits a new-key retry of the existing order, including after
+a partial batch release. Network failures and in-progress responses retain the original key.
+Closing the tab clears this recovery state. A real EMR must persist operation keys on its backend
+and reconcile order status after uncertain outcomes. Preview creates no persistent order.
 
 Local development binds to loopback. Hosted pages, server functions, and API routes require a
 PIN session. Cross-origin writes are rejected, and API keys stay out of browser code.

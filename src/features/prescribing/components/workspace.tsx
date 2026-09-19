@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { read, peekRead, seedRead, catalogPath, optionsPath, type Bootstrap } from "../data/reads";
 import { patients } from "../../../data/patients";
 import { requireBrowserSession } from "../../../lib/session";
+import { createMutationClient } from "../data/mutations";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
 import {
@@ -102,8 +103,6 @@ export function Workspace({
     };
   }, [error]);
 
-  // A retry of an identical mutation reuses its key, including after a network error.
-  const [keys] = useState(() => new Map<string, string>());
   function clearOrder() {
     setPreview(undefined);
     setPrescriber(undefined);
@@ -119,22 +118,12 @@ export function Workspace({
 
       return data;
     }
-    const fingerprint = mode + path + JSON.stringify(body);
-    if (!keys.has(fingerprint)) keys.set(fingerprint, crypto.randomUUID());
-    const response = await fetch(
-      `/api/${path}${path.includes("?") ? "&" : "?"}mode=${mode}`,
-      body
-        ? {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Idempotency-Key": keys.get(fingerprint)!,
-            },
-            body: JSON.stringify(body),
-          }
-        : undefined,
-    );
-    const data = await response.json();
+    const { response, data } = body
+      ? await createMutationClient(sessionStorage)(mode, path, body)
+      : await (async () => {
+          const response = await fetch(`/api/${path}${path.includes("?") ? "&" : "?"}mode=${mode}`);
+          return { response, data: await response.json() };
+        })();
     requireBrowserSession(data);
 
     if (!response.ok) throw new Error(data.details?.detail ?? data.error ?? "Request failed.");

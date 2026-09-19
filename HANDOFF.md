@@ -62,6 +62,9 @@ secret and is preserved by deploy when not explicitly supplied.
 4. Capture explicit signing intent and send the matching registered actor, attestation, and every
    exact prescription version. Changed prescriptions require another review.
 5. Submit the signed order. Persist idempotency keys across retries and process restarts.
+   After a confirmed submission rejection, retrieve the order and retry the existing order with
+   a new key. A multi-prescription order may already have some fulfillments queued; do not create
+   a replacement order. Reuse the original key when the outcome is uncertain or still in progress.
 6. Verify raw webhook bytes with the SDK and the endpoint's signing secret. Check owner and mode.
    Use a transactional event inbox before side effects. Reconcile order state through retrieval;
    do not assume events arrive once or in order.
