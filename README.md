@@ -5,6 +5,8 @@
 A standalone TanStack Start application using `@affinity-health/sdk@1.10.0`.
 This repository owns the runnable demo and its independent Alchemy deployment.
 
+Licensed under the [MIT License](LICENSE).
+
 ## Try it
 
 1. Confirm you will use synthetic data, then select **Start Test demo**.

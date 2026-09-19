@@ -1,6 +1,7 @@
 {
   "name": "tanstack-start-example",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "alchemy dev --stage local",
