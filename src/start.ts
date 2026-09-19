@@ -4,6 +4,8 @@ import { hasSession } from "./server/auth/session";
 
 const requireSession = createMiddleware().server(async ({ request, next, handlerType }) => {
   const url = new URL(request.url);
+  // Machine callbacks authenticate with Affinity's signature, not a browser PIN cookie.
+  if (url.pathname === "/api/webhooks/affinity" && request.method === "POST") return next();
   if (url.pathname === "/unlock" || (await hasSession(request))) return next();
   const headers = { "Cache-Control": "private, no-store" };
   if (handlerType === "serverFn") throw redirect({ href: "/unlock" });

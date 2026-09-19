@@ -20,6 +20,7 @@ export default defineConfig({
           compatibility_date: "2026-09-18",
           workers_dev: true,
           preview_urls: false,
+          kv_namespaces: [{ binding: "WEBHOOK_RECEIPTS", id: "aa97d08977554cb59a47ebf80fd1c539" }],
           ratelimits: [
             { name: "PIN_ATTEMPTS", namespace_id: "1001", simple: { limit: 5, period: 60 } },
           ],

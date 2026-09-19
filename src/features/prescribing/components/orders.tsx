@@ -160,6 +160,15 @@ export function OrdersView({
         npi: identity!.npi,
         name: identity!.name,
         email: profile.email,
+        phone: profile.phone,
+        address: profile.address,
+        licenses: [
+          {
+            state: order.patientState,
+            licenseNumber: profile.states[order.patientState]?.licenseNumber,
+            expiresAt: profile.states[order.patientState]?.expiresAt,
+          },
+        ],
         identityAttestation: true,
       });
       if (!signed) {
@@ -300,7 +309,7 @@ export function OrdersView({
             </DialogTitle>
             <DialogDescription>
               {order?.patientName} · {order?.patientState} ·{" "}
-              {mode === "test" ? "Test mode" : "Production"}
+              {mode === "test" ? "Test mode" : "Live"}
             </DialogDescription>
           </DialogHeader>
           <DialogPanel>

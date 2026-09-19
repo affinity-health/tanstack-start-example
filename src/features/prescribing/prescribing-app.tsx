@@ -36,14 +36,38 @@ export function PrescribingApp({
         const entries = Object.entries(saved.states).flatMap(([state, value]) => {
           const entry =
             typeof value === "string"
-              ? { npi: value, name: saved.name ?? "" }
-              : (value as { npi?: unknown; name?: unknown } | null);
+              ? { npi: value, name: saved.name ?? "", licenseNumber: "", expiresAt: "" }
+              : (value as {
+                  npi?: unknown;
+                  name?: unknown;
+                  licenseNumber?: unknown;
+                  expiresAt?: unknown;
+                } | null);
           return entry && typeof entry.npi === "string" && typeof entry.name === "string"
-            ? [[state, { npi: entry.npi, name: entry.name }]]
+            ? [
+                [
+                  state,
+                  {
+                    npi: entry.npi,
+                    name: entry.name,
+                    licenseNumber:
+                      typeof entry.licenseNumber === "string" ? entry.licenseNumber : "",
+                    expiresAt: typeof entry.expiresAt === "string" ? entry.expiresAt : "",
+                  },
+                ],
+              ]
             : [];
         });
         setProfile({
           email: saved.email,
+          phone: typeof saved.phone === "string" ? saved.phone : "",
+          address:
+            saved.address &&
+            ["line1", "city", "state", "postalCode"].every(
+              (key) => typeof saved.address[key] === "string",
+            )
+              ? { ...saved.address, country: "US" }
+              : emptyProfile.address,
           states: Object.fromEntries(entries),
           confirmed: saved.confirmed === true,
         });
@@ -78,7 +102,10 @@ export function PrescribingApp({
                 height={30}
                 alt=""
               />
-              <span>Affinity AI</span>
+              <span>
+                Affinity AI{" "}
+                <small className="demo-label">Prescribing demo · synthetic patients only</small>
+              </span>
               <Menu>
                 <MenuTrigger
                   disabled={working || pending || !practices.length}
@@ -133,7 +160,7 @@ export function PrescribingApp({
                   className={`environment ${mode}`}
                 >
                   <span className="mode-dot" />
-                  {mode === "test" ? "Test" : "Production"}
+                  {mode === "test" ? "Test" : "Live"}
                   <ChevronDown size={14} />
                 </MenuTrigger>
                 <MenuPopup align="end">
@@ -141,7 +168,7 @@ export function PrescribingApp({
                     Test {mode === "test" && <Check size={15} aria-hidden />}
                   </MenuItem>
                   <MenuItem onClick={() => changeMode("production")}>
-                    Production {mode === "production" && <Check size={15} aria-hidden />}
+                    Live {mode === "production" && <Check size={15} aria-hidden />}
                   </MenuItem>
                 </MenuPopup>
               </Menu>

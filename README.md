@@ -15,9 +15,9 @@ bun run dev
 
 Open http://localhost:3001.
 
-1. Practices and the first medication page load during streamed server rendering. Select a practice in the header dropdown; use the toolbar to switch Test or Production.
+1. Practices and the first medication page load during streamed server rendering. Select a practice in the header dropdown; use the toolbar to switch Test or Live.
 2. Select an EMR patient, then search for a medication in the Coss command picker. Medication defaults load when you select it.
-3. Open the header settings cog and save a prescriber name and NPI for each destination state. Production also requires your email. Settings are stored in this browser separately for Test and Production.
+3. Open the header settings cog and save a prescriber name and NPI for each destination state. Live also requires your email, phone, practice address, and a current license number and expiry for each patient state. Settings are stored in this browser separately for Test and Live.
 4. Select a medication. Supplies such as alcohol pads cannot be prescribed on their own. If the pharmacy requires a compounding reason, select its category and enter the patient-specific context.
 5. Click **Review prescription**. Affinity validates the defaults and opens the review dialog with directions, quantity, pharmacy, patient, and shipping information.
 6. Choose **Create draft**, or confirm the allergy and prescription review and click **Sign and send to pharmacy**. The saved NPI is selected by the patient's state. If the created prescription differs from the preview, review the saved draft and confirm again. A failed submission can be retried without signing again.
@@ -42,20 +42,20 @@ mode; Affinity authenticates each SDK request. There is no separate key-validati
 credential fallback. Signing sets the registered prescriber's actor explicitly.
 
 `AFFINITY_API_URL` selects the API server in each file, for example
-`https://affinity.harbor.run/api/v1` for development or `https://api.joinaffinityai.com/v1`
+`https://affinity.harbr.run/api/v1` for development or `https://api.joinaffinityai.com/v1`
 for deployment. The SDK adds `/v1`, so the client removes that suffix from its base URL
 while preserving `/api`. When unset, the URL defaults to `https://api.joinaffinityai.com/v1`.
-The Test/Production switch selects the matching key on that server, not a different API URL.
+The Test/Live switch selects the matching key on that server, not a different API URL.
 
 For a Devbox-protected development URL, set `DEVBOX_API_KEY` in `.env.dev` to your Devbox
 personal API key. The SDK sends it server-side as `X-Api-Key`; Affinity's key stays in
 `Authorization`. Devbox verifies the key owner's access to the requested environment.
-The header is omitted when unset. Production does not need it, and deployment never uploads it.
+The header is omitted when unset. The production Affinity server does not need it. Deployment uploads it only when explicitly supplied; otherwise it preserves the existing Worker secret. Use a personal key, not a workspace automation credential.
 Redirects are rejected so credentials are not forwarded to a login page.
 
 Both modes create or reuse records from `src/data/patients.ts` by external ID. Replace the shipped sample
 records with your own EMR data before using Production. Switching environments clears patient,
-prescriber, preview, draft, and signing state. No Production mutations were performed in verification.
+prescriber, preview, draft, and signing state. Live requests have been verified on development with synthetic records and simulator fulfillment. No production Affinity requests were made.
 
 Controls are copied from the official [Coss UI registry](https://coss.com/ui/), built on Base UI.
 Tailwind is bundled by Vite. TanStack Start serves the page and file-based API routes; Nitro builds the Bun server.
@@ -116,7 +116,8 @@ PIN session. Cross-origin writes are rejected, and API keys stay out of browser 
 
 ```sh
 bun run build   # Generate routes and build into .output/
-bun run check   # Lint, formatting, TypeScript; no unit tests
+bun run check   # Lint, formatting, TypeScript
+bun test src/server/webhooks.test.ts
 bun run start   # Run without development mode
 ```
 
@@ -124,13 +125,9 @@ Set `PORT` to change port 3001. No database or Cloudflare account is required.
 
 ## Verification notes
 
-Verified against the Affinity Test API on September 18, 2026: standalone script, patient creation and
-reuse, prescribing options, incomplete and complete previews, explicit allergy review, and draft
-creation. Test draft: `ord_7816d73pjs9dhvtajp1fy3209v`.
+Verified September 19, 2026 against development in Live mode using synthetic records and an Affinity pharmacy simulator. The deployed Worker resolved a patient, recorded allergy review, registered the synthetic clinician with contact and license data, retrieved prescribing defaults, previewed, created, signed, and submitted an order. The order reached delivered with simulated tracking. The Worker received signed events from creation through delivery.
 
-The review dialog, per-state prescriber settings, draft reopen, changed-draft re-review, and
-submission retry were verified with mocked API responses. Development API registration and
-idempotent replay were verified separately. No order was signed or submitted in live verification.
+The broader API acceptance run covered patient and address operations, draft cancellation, idempotent retries, external references, and signing rejection for missing scope, wrong actor, stale versions, and the wrong mode. See [the integration handoff](./HANDOFF.md) for boundaries and setup.
 
 ## Responsiveness and Worker builds
 
@@ -179,3 +176,9 @@ Preview deployment URLs are disabled so there is one supported demo address.
 This shared PIN grants access to everyone who knows it; it is not individual prescriber identity.
 
 Medication images from the configured development API origin under `/cdn/` load through the PIN-protected `/api/medication-image` route. It adds `X-Api-Key` from `DEVBOX_API_KEY` on the server, refuses redirects and external targets, and leaves public CDN images unchanged. Production does not require this key.
+
+## Webhook receiver
+
+Register `POST /api/webhooks/affinity` as an Affinity webhook endpoint. It is exempt from the shared PIN and verifies the raw request bytes with the official SDK before accepting an event. Configure `AFFINITY_WEBHOOK_SECRET`, `AFFINITY_WEBHOOK_ORGANIZATION_ID`, and `AFFINITY_WEBHOOK_LIVEMODE`. Set the last value explicitly to `true` for Live or `false` for Test.
+
+The `WEBHOOK_RECEIPTS` KV binding stores event ID, type, mode, resource ID, and creation time for seven days. Replays replace the same event key. The PIN-protected `GET /api/webhook-events` shows recent receipts. KV is eventually consistent and this receiver performs no clinical or billing side effects. A production EMR needs a transactional inbox keyed by event ID before performing such effects. Return a success response only after durable acceptance.

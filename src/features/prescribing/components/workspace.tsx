@@ -179,7 +179,16 @@ export function Workspace({
     /^\d{10}$/.test(npi) &&
     name.trim() &&
     profile.confirmed &&
-    (mode === "test" || !!profile.email.trim());
+    (mode === "test" ||
+      (!!profile.email.trim() &&
+        !!profile.phone.trim() &&
+        !!profile.address.line1.trim() &&
+        !!profile.address.city.trim() &&
+        !!profile.address.state.trim() &&
+        !!profile.address.postalCode.trim() &&
+        !!profile.states[localPatient.address.state]?.licenseNumber?.trim() &&
+        new Date(profile.states[localPatient.address.state]!.expiresAt + "T23:59:59Z").getTime() >
+          Date.now()));
   const requirements = options?.catalog.prescriptionRequirements;
   const reasonRequired =
     requirements?.compoundingReason === "required" ||
@@ -276,6 +285,15 @@ export function Workspace({
               npi,
               name,
               email: profile.email,
+              phone: profile.phone,
+              address: profile.address,
+              licenses: [
+                {
+                  state: localPatient.address.state,
+                  licenseNumber: profile.states[localPatient.address.state]?.licenseNumber,
+                  expiresAt: profile.states[localPatient.address.state]?.expiresAt,
+                },
+              ],
               identityAttestation: true,
             });
             setPrescriber(registered);
@@ -359,8 +377,8 @@ export function Workspace({
         </div>
         {mode === "production" && (
           <p className="production-note">
-            Production sends real prescriptions. Replace the sample EMR patients with your own
-            records before prescribing.
+            Live sends real prescriptions. Replace the sample EMR patients with your own records
+            before prescribing.
           </p>
         )}
         {error && !reviewOpen && !practices.length && (
@@ -499,7 +517,7 @@ export function Workspace({
               </DialogTitle>
               <DialogDescription>
                 {localPatient.name.first} {localPatient.name.last} · {localPatient.address.state} ·{" "}
-                {mode === "test" ? "Test mode" : "Production"}
+                {mode === "test" ? "Test mode" : "Live"}
               </DialogDescription>
             </DialogHeader>
             <DialogPanel>
