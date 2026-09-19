@@ -25,7 +25,7 @@ export default Alchemy.Stack(
           ? { DEMO_DEV_ORIGIN: "https://affinity.harbr.run" }
           : {}),
         DEMO_SESSIONS: Cloudflare.DurableObject("DemoSessions"),
-        AFFINITY_TEST_API_KEY: Config.redacted("AFFINITY_DEMO_API_KEY"),
+        AFFINITY_TEST_API_KEY: Config.redacted("AFFINITY_HARBOR_DEMO_API_KEY"),
         DEMO_SESSION_SECRET: Config.redacted("AFFINITY_DEMO_SESSION_SECRET"),
         AFFINITY_API_URL: "https://api.joinaffinityai.com",
       },

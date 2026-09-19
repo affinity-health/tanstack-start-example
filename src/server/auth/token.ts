@@ -47,7 +47,10 @@ export function newVisitor(): Visitor {
   return { id: crypto.randomUUID(), expires: Math.floor(Date.now() / 1000) + seconds };
 }
 export function cookieName(request: Request) {
-  return new URL(request.url).protocol === "https:" ? "__Host-demo-session" : "demo-session-local";
+  // The Harbor cutover starts a new workspace instead of reusing a practice owned by the old platform.
+  return new URL(request.url).protocol === "https:"
+    ? "__Host-demo-session-harbor"
+    : "demo-session-harbor-local";
 }
 export function sessionCookie(request: Request, token: string) {
   return `${cookieName(request)}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${seconds}${new URL(request.url).protocol === "https:" ? "; Secure" : ""}`;

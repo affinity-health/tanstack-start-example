@@ -37,8 +37,11 @@ Order reads, signing, and submission check order ownership before proceeding.
 Patient requests use the session's practice. Inline patients and arbitrary prescribers
 are not accepted by the demo. Live mode is rejected server-side, and no Live key is bound.
 
-The dedicated demo platform has Live access disabled. Its Test key cannot access Harbor's
-platform directory. Affinity Test orders route only to simulators.
+New demo practices belong to Harbor Platform. The demo uses a dedicated Test-only key;
+the browser receives only its own session's practice, never Harbor's platform directory.
+Affinity Test orders route only to simulators. Practices created before the Harbor cutover
+remain under Affinity Public EMR Demo. The cutover starts fresh browser sessions rather
+than moving those practices or their orders.
 
 Limits are 5 starts per IP per UTC day, 100 starts globally per UTC day,
 120 API requests per session per minute, and 30 order-creation attempts per session per
@@ -99,7 +102,7 @@ and `demo-emr.joinaffinityai.com`.
 Operator and runtime secrets come from Doppler `affinity/stg` for this independent demo:
 
 - `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`: deployment only.
-- `AFFINITY_DEMO_API_KEY`: dedicated demo platform Test key.
+- `AFFINITY_HARBOR_DEMO_API_KEY`: dedicated Harbor platform Test key for this demo.
 - `AFFINITY_DEMO_SESSION_SECRET`: cookie signing key.
 
 Alchemy binds only the last two secrets to the Worker, under

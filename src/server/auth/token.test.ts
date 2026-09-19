@@ -16,7 +16,7 @@ test("signed anonymous sessions reject tampering, expiry, and another signing ke
 test("visitors get independent IDs and HTTPS cookies are host-only, HttpOnly, and strict", async () => {
   expect(newVisitor().id).not.toBe(newVisitor().id);
   const cookie = sessionCookie(new Request("https://demo-emr.joinaffinityai.com"), "test");
-  expect(cookie).toContain("__Host-demo-session=");
+  expect(cookie).toContain("__Host-demo-session-harbor=");
   expect(cookie).toContain("HttpOnly");
   expect(cookie).toContain("SameSite=Strict");
   expect(cookie).toContain("Secure");
