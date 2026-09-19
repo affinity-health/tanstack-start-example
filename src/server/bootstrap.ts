@@ -11,7 +11,7 @@ export const requireSession = createServerFn({ method: "GET" }).handler(async ()
   if (!(await hasSession(getRequest()))) throw redirect({ href: "/unlock" });
 });
 
-// Returning this promise from the route loader lets Start stream the shell first.
+// Resolve before returning the loader data so Worker responses never strand the loading shell.
 export const loadWorkspace = createServerFn({ method: "GET" }).handler(
   async (): Promise<Bootstrap> => {
     const request = getRequest();

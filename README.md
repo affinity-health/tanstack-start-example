@@ -15,7 +15,7 @@ bun run dev
 
 Open http://localhost:3001.
 
-1. Practices and the first medication page load during streamed server rendering. Select a practice in the header dropdown; use the toolbar to switch Test or Live.
+1. Practices and the first medication page load on the server before the form renders. Select a practice in the header dropdown; use the toolbar to switch Test or Live.
 2. Select an EMR patient, then search for a medication in the Coss command picker. Medication defaults load when you select it.
 3. Open the header settings cog and save a prescriber name and NPI for each destination state. Live also requires your email, phone, practice address, and a current license number and expiry for each patient state. Settings are stored in this browser separately for Test and Live.
 4. Select a medication. Supplies such as alcohol pads cannot be prescribed on their own. If the pharmacy requires a compounding reason, select its category and enter the patient-specific context.
@@ -131,8 +131,8 @@ The broader API acceptance run covered patient and address operations, draft can
 
 ## Responsiveness and Worker builds
 
-TanStack Start streams the form shell while the server loads practices and the first catalog page.
-Hydration reuses those results. Read-only practices, catalog searches, and prescribing options share
+TanStack Start resolves practices and the first catalog page before rendering the form.
+Hydration reuses those results. This avoids leaving a disabled shell when deferred loader data does not reach a Worker response. Read-only practices, catalog searches, and prescribing options share
 a browser-memory cache: 60 seconds, at most 100 entries, keyed by environment and full request
 parameters. Concurrent reads share one request, and errors are not cached.
 
