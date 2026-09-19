@@ -1,10 +1,9 @@
-import { createServerFn } from "@tanstack/react-start";
-import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
+import { appPath } from "../../lib/app-path";
 import { createAffinity } from "../affinity/client";
 import { sessionStore, takeQuota } from "./store";
-import { cookieName, newVisitor, sessionCookie, signVisitor, verifyVisitor } from "./token";
+import { cookieName, verifyVisitor } from "./token";
 
-async function visitor(request: Request) {
+export async function visitor(request: Request) {
   const token = request.headers
     .get("cookie")
     ?.split(";")
@@ -14,13 +13,6 @@ async function visitor(request: Request) {
   if (!token) return null;
   return verifyVisitor(token, process.env.DEMO_SESSION_SECRET ?? "");
 }
-export const prepareVisitor = createServerFn({ method: "GET" }).handler(async () => {
-  const request = getRequest();
-  setResponseHeader("Cache-Control", "private, no-store");
-  if (await visitor(request)) return;
-  const token = await signVisitor(newVisitor(), process.env.DEMO_SESSION_SECRET ?? "");
-  setResponseHeader("Set-Cookie", sessionCookie(request, token));
-});
 export async function getSession(request: Request) {
   const user = await visitor(request);
   if (!user) return null;
@@ -38,9 +30,12 @@ export async function unlock(request: Request): Promise<Response> {
     return failure("Cross-origin request rejected.", 403);
   const user = await visitor(request);
   if (!user)
-    return new Response(null, { status: 303, headers: { ...headers, Location: "/unlock" } });
+    return new Response(null, {
+      status: 303,
+      headers: { ...headers, Location: appPath("/unlock") },
+    });
   if (await getSession(request))
-    return new Response(null, { status: 303, headers: { ...headers, Location: "/" } });
+    return new Response(null, { status: 303, headers: { ...headers, Location: appPath("/") } });
   try {
     const text = await request.text();
     if (text.length > 1024) return failure("Request too large.", 413);
@@ -87,11 +82,11 @@ export async function unlock(request: Request): Promise<Response> {
     );
     if (practice.livemode || practice.liveEnabled) throw new Error("Unexpected practice mode.");
     await db.save(user.id, practice.id, user.expires);
-    return new Response(null, { status: 303, headers: { ...headers, Location: "/" } });
+    return new Response(null, { status: 303, headers: { ...headers, Location: appPath("/") } });
   } catch {
     return new Response(null, {
       status: 303,
-      headers: { ...headers, Location: "/unlock?error=setup" },
+      headers: { ...headers, Location: appPath("/unlock?error=setup") },
     });
   }
 }

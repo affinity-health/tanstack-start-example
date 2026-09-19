@@ -1,3 +1,4 @@
+import { appPath } from "../../../lib/app-path";
 export type MutationFetch = (url: string, init: RequestInit) => Promise<Response>;
 
 type MutationStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -18,7 +19,7 @@ export function createMutationClient(storage: MutationStorage, send: MutationFet
     const key = storage.getItem(fingerprint) ?? crypto.randomUUID();
     // If persistence is unavailable, fail before starting an uncertain mutation.
     storage.setItem(fingerprint, key);
-    const response = await send(`/api/${path}?mode=${mode}`, {
+    const response = await send(appPath(`/api/${path}?mode=${mode}`), {
       method: "POST",
       headers: { "Content-Type": "application/json", "Idempotency-Key": key },
       body: serialized,

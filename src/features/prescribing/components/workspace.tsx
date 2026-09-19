@@ -1,4 +1,6 @@
+import { appPath } from "../../../lib/app-path";
 import { toast } from "sonner";
+import { resolvePrescriber } from "../demo-profile";
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { read, peekRead, seedRead, catalogPath, optionsPath, type Bootstrap } from "../data/reads";
@@ -118,7 +120,9 @@ export function Workspace({
     const { response, data } = body
       ? await createMutationClient(sessionStorage)(mode, path, body)
       : await (async () => {
-          const response = await fetch(`/api/${path}${path.includes("?") ? "&" : "?"}mode=${mode}`);
+          const response = await fetch(
+            appPath(`/api/${path}${path.includes("?") ? "&" : "?"}mode=${mode}`),
+          );
           return { response, data: await response.json() };
         })();
     requireBrowserSession(data);
@@ -159,18 +163,11 @@ export function Workspace({
     if (!pending && !starting.practices && !initial?.error) void load();
   }, [pending]);
   const localPatient = patients.find((p) => p.externalId === externalId)!;
-  const { npi, name } = profile.states[localPatient.address.state] ?? { npi: "", name: "" };
-  const profileReady =
-    /^\d{10}$/.test(npi) &&
-    name.trim() &&
-    profile.confirmed &&
-    (mode === "test" ||
-      (!!profile.email.trim() &&
-        !!profile.phone.trim() &&
-        !!profile.address.line1.trim() &&
-        !!profile.address.city.trim() &&
-        !!profile.address.state.trim() &&
-        !!profile.address.postalCode.trim()));
+  const {
+    npi,
+    name,
+    eligible: profileReady,
+  } = resolvePrescriber(profile, localPatient.address.state);
   const requirements = options?.catalog.prescriptionRequirements;
   const reasonRequired =
     requirements?.compoundingReason === "required" ||
@@ -493,7 +490,7 @@ export function Workspace({
                     ? `${name} · NPI ${npi}`
                     : `No NPI saved for ${localPatient.address.state}.`}
                 </p>
-                {!order && mode !== "test" && (
+                {!order && (
                   <Button variant="ghost" onClick={openSettings}>
                     {profileReady ? "Edit settings" : "Set up prescriber"}
                   </Button>

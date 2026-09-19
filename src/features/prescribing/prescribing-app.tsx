@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ExternalLink, Settings } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { PrescriberSettings, profileKey } from "./components/prescriber-settings";
 import { Workspace } from "./components/workspace";
-import { demoProfile } from "./demo-profile";
+import { demoProfile, parseProfile } from "./demo-profile";
 import type { Bootstrap } from "./data/reads";
 
 export function PrescribingApp({
@@ -12,6 +14,15 @@ export function PrescribingApp({
   pending?: boolean;
 }) {
   const [working, setWorking] = useState(false);
+  const [profile, setProfile] = useState(demoProfile);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  useEffect(() => {
+    try {
+      setProfile(parseProfile(localStorage.getItem(profileKey)));
+    } catch {
+      /* Defaults work without browser storage. */
+    }
+  }, []);
   return (
     <>
       <Workspace
@@ -19,8 +30,8 @@ export function PrescribingApp({
         onBusy={setWorking}
         initial={initial}
         pending={pending}
-        profile={demoProfile}
-        openSettings={() => {}}
+        profile={profile}
+        openSettings={() => setSettingsOpen(true)}
         renderHeader={({ practices, practiceId, onView, view }) => (
           <header className="toolbar">
             <div className="brand">
@@ -30,10 +41,11 @@ export function PrescribingApp({
                 height={30}
                 alt=""
               />
-              <span>
-                Affinity AI <small className="demo-label">EMR demo · synthetic patients only</small>
+              <span className="brand-name">
+                Affinity AI <small className="demo-label">EMR demo · Test only</small>
               </span>
-              <span className="practice-menu">
+              <span className="brand-separator" aria-hidden="true" />
+              <span className="practice-name">
                 {practices.find((p) => p.id === practiceId)?.name ?? "Loading practice…"}
               </span>
             </div>
@@ -62,14 +74,29 @@ export function PrescribingApp({
               </a>
             </nav>
             <div className="toolbar-actions">
-              <span className="environment test">
-                <span className="mode-dot" />
-                Test mode
-              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Prescriber settings"
+                className="header-settings"
+                title="Prescriber settings"
+                disabled={working}
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings size={24} />
+              </Button>
             </div>
           </header>
         )}
       />
+      {settingsOpen && (
+        <PrescriberSettings
+          profile={profile}
+          onSave={setProfile}
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+        />
+      )}
       <footer>
         <a
           href="https://docs.joinaffinityai.com/guides/reference/sdks/typescript/"

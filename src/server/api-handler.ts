@@ -50,7 +50,7 @@ export async function apiHandler<TBody = Record<string, string>>(
       return json({ error: "Too many requests. Try again in a minute." }, 429);
     if (
       request.method === "POST" &&
-      url.pathname === "/api/orders" &&
+      appPathname(url.pathname) === "/api/orders" &&
       !(await takeQuota(db, "orders:" + session.id, 30, 86400))
     )
       return json({ error: "This Test session has reached its order limit." }, 429);
@@ -103,3 +103,4 @@ export async function apiHandler<TBody = Record<string, string>>(
     );
   }
 }
+import { appPathname } from "../lib/app-path";

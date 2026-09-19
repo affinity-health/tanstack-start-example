@@ -1,4 +1,5 @@
 import type { SignOrderParams } from "@affinity-health/sdk";
+import { isTestNpi } from "../../features/prescribing/demo-profile";
 import { createFileRoute } from "@tanstack/react-router";
 import { apiHandler, json } from "../../server/api-handler";
 export const Route = createFileRoute("/api/sign")({
@@ -8,7 +9,7 @@ export const Route = createFileRoute("/api/sign")({
         apiHandler<SignOrderParams & { orderId: string; npi: string }>(
           request,
           async ({ affinity, body, options, practiceId }) => {
-            if (body.signatureAttestation !== true || body.npi !== "1234567893")
+            if (body.signatureAttestation !== true || !isTestNpi(body.npi))
               return json(
                 { error: "Review the order and confirm signing as the Test Prescriber." },
                 400,

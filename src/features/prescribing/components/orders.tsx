@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { resolvePrescriber } from "../demo-profile";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, RefreshCw } from "lucide-react";
 import { Button } from "../../../components/ui/button";
@@ -131,16 +132,9 @@ export function OrdersView({
       setNotice("");
     });
   }
-  const identity = order ? profile.states[order.patientState] : undefined;
-  const identityReady =
-    !!identity?.name.trim() &&
-    /^\d{10}$/.test(identity.npi) &&
-    profile.confirmed &&
-    (mode === "test" || !!profile.email.trim());
-  const identityMatches =
-    !order?.prescriberNpi ||
-    (identity?.npi === order.prescriberNpi &&
-      identity?.name.trim() === order.prescriberName?.trim());
+  const identity = order ? resolvePrescriber(profile, order.patientState) : undefined;
+  const identityReady = identity?.eligible;
+  const identityMatches = !order?.prescriberNpi || identity?.npi === order.prescriberNpi;
   const actionable = !!order && (canSign(order) || order.status === "ready" || signed) && !sent;
 
   async function send() {

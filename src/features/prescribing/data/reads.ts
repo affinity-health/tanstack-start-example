@@ -1,3 +1,4 @@
+import { appPath } from "../../../lib/app-path";
 import type { Catalog, Options, Practices } from "../types";
 import { requireBrowserSession } from "../../../lib/session";
 
@@ -9,7 +10,7 @@ const lifetime = 60_000;
 const limit = 100;
 
 export function readUrl(mode: Mode, path: string) {
-  const url = new URL("/api/" + path, "http://local");
+  const url = new URL(appPath("/api/" + path), "http://local");
   url.searchParams.set("mode", mode);
   url.searchParams.sort();
   return url.pathname + url.search;

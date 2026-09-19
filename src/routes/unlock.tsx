@@ -1,8 +1,10 @@
+import { appPath } from "../lib/app-path";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
-import { prepareVisitor, unlock } from "../server/auth/session";
+import { unlock } from "../server/auth/session";
+import { prepareVisitor } from "../server/auth/prepare-visitor";
 
 export const Route = createFileRoute("/unlock")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -35,7 +37,7 @@ function Welcome() {
         </p>
         <form
           method="post"
-          action="/unlock"
+          action={appPath("/unlock")}
           className="mt-8 space-y-5"
           onSubmit={() => setBusy(true)}
         >

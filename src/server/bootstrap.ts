@@ -1,3 +1,4 @@
+import { appPath } from "../lib/app-path";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
@@ -7,14 +8,14 @@ import { withMedicationImages } from "./affinity/images";
 import type { Bootstrap } from "../features/prescribing/data/reads";
 
 export const requireSession = createServerFn({ method: "GET" }).handler(async () => {
-  if (!(await hasSession(getRequest()))) throw redirect({ href: "/unlock" });
+  if (!(await hasSession(getRequest()))) throw redirect({ href: appPath("/unlock") });
 });
 
 // Resolve before returning the loader data so Worker responses never strand the loading shell.
 export const loadWorkspace = createServerFn({ method: "GET" }).handler(
   async (): Promise<Bootstrap> => {
     const request = getRequest();
-    const url = new URL("/api/practices?mode=test", request.url);
+    const url = new URL(appPath("/api/practices?mode=test"), request.url);
     const response = await apiHandler(
       new Request(url, { headers: request.headers }),
       async ({ affinity, practiceId }) => {

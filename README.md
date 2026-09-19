@@ -19,6 +19,10 @@ when signing. Affinity resolves the prescriber. Signing requires an explicit att
 and the exact prescription versions. Submission is separate so a failed send can be retried
 without signing again.
 
+The header's settings cog saves a default NPI and optional patient-state overrides in
+this browser. No name entry is required. Test NPI `1234567893` covers all states;
+`1111111112` covers CA, FL, NY, PA, and TX. Each order still requires signing review.
+
 The public UI currently handles one prescription per order. It does not yet have an OTC
 cart or a multi-prescription editor. The SDK supports those independently.
 
@@ -66,9 +70,21 @@ with an isolated Test key and session secret supplied in the child environment:
 doppler run --project affinity --config stg -- bun run dev
 ```
 
-Local development binds to loopback at port 3001. Do not publish a development server
+The local Worker binds to loopback at port 1337. Do not publish a development server
 or point this app at Live credentials. The deploy graph fixes the hosted Affinity API
 to `https://api.joinaffinityai.com`.
+
+On the Affinity Devbox, use the optional `emr-demo` service in the sibling Affinity
+repository. It runs this checkout with hot reload at the protected URL
+[affinity.harbr.run/emr-demo/](https://affinity.harbr.run/emr-demo/):
+
+```sh
+dt services start emr-demo --environment affinity
+dt services logs emr-demo --environment affinity
+```
+
+This service sets `VITE_BASE_PATH=/emr-demo/` and `PORT=3002`. Public builds retain `/`.
+Saving source files updates development only; it does not deploy the public demo.
 
 For standalone SDK experiments without a website, copy `.env.example` to the ignored
 `.env.dev`, set your own Test key, and run `bun run example`.
