@@ -27,9 +27,24 @@ These are development results, not pharmacy certification or production clinical
 
 ## Try it
 
-Unlock with the separately supplied PIN. Choose Live and the practice above. Open Orders to
-inspect the delivered example. To prepare a new synthetic prescription, choose the TX sample patient,
-then configure the synthetic clinician in Settings:
+Start in **Test** for a repeatable integration trial. Unlock with the separately supplied PIN,
+choose Ellis Clinic and Sam Example (TX), then set the TX prescriber in Settings to the existing
+synthetic identity:
+
+- Name: Dawson CA
+- NPI: 1234567893
+
+The name is the registered fixture name even when prescribing for the TX sample patient. Recheck
+the identity confirmation after editing settings and save. Select Enclomiphene, review the
+prescription, and confirm the review before signing and sending. Do not substitute a real NPI or
+rename this shared fixture; registration rejects a conflicting identity. Test registration supplies
+the synthetic email automatically. No license fields are required.
+
+After the SDK 1.9.2 deployment, this hosted Test flow created, signed, submitted, and delivered
+order `ord_19p0a23p2f962t4yrhy11fnedc` with simulator tracking. Use Orders to inspect it.
+
+To inspect the earlier development Live example, choose Live and the practice above. Preparing
+another Live example uses the TX sample patient and this synthetic clinician:
 
 - Name: Synthetic Demo Prescriber
 - NPI: 1999999968
@@ -76,7 +91,14 @@ actual allergy history instead of applying that assertion to everyone.
 
 Production requires production credentials, platform/practice Live authorization, current
 prescriber authority, applicable jurisdiction policy, and eligible pharmacy/product routing.
-No real prescription was transmitted and no production Affinity deployment was performed.
+Affinity has been deployed to staging and production, and SDK 1.9.2 is published. This demo still
+calls development Affinity. No real prescription was transmitted during these checks.
+
+The deployed SDK 1.9.2 webhook receiver also passed fresh signature/replay checks: valid repeated
+delivery returned 200 with one receipt; altered bodies and stale signatures returned 400; wrong
+account and mode returned 403. The receiver is configured for development Live events, so this
+Test-mode order does not deliver events to that Live endpoint. Configure a separate Test webhook
+endpoint and receiver when testing the telehealth company's own event processing.
 
 ## Webhook inspection
 
