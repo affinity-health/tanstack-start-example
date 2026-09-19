@@ -249,7 +249,7 @@ fieldset {
 .prescription-panel {
   min-width: 0;
 }
-section {
+.prescription-panel section {
   padding: 26px 0;
 }
 .prescription-panel section + section {
