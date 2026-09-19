@@ -377,8 +377,8 @@ export function Workspace({
         </div>
         {mode === "production" && (
           <p className="production-note">
-            Live sends real prescriptions. Replace the sample EMR patients with your own records
-            before prescribing.
+            Live uses the configured API server. On development, use synthetic records and simulator
+            pharmacies. A production API connection can send real prescriptions.
           </p>
         )}
         {error && !reviewOpen && !practices.length && (
