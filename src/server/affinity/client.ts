@@ -1,15 +1,11 @@
 import { Affinity } from "@affinity-health/sdk";
 
-export type AffinityMode = "test" | "production";
-
-export function createAffinity(mode: AffinityMode = "test") {
-  if (mode !== "test") throw new Error("This demo only supports Test mode.");
+export function createAffinity() {
   const variable = "AFFINITY_TEST_API_KEY";
   const apiKey = process.env[variable];
   if (!apiKey)
     throw new Error(`Set ${variable} in the active environment file and restart the server.`);
-  if (apiKey.startsWith("sk_test_") !== (mode === "test"))
-    throw new Error(`${variable} does not match the ${mode} environment.`);
+  if (!apiKey.startsWith("sk_test_")) throw new Error(`${variable} must be a Test API key.`);
 
   // The SDK appends /v1 to every endpoint; preserve prefixes such as /api.
   const url = new URL(process.env.AFFINITY_API_URL || "https://api.joinaffinityai.com/v1");

@@ -4,7 +4,7 @@ import { previewOrder, createDraft } from "../../../api/prescribing/functions";
 import { getOrder } from "../../../api/orders/functions";
 import { idempotent } from "../../../lib/idempotency";
 import { sendReviewedOrder } from "../../orders/order-workflow";
-import type { getWorkspace } from "../../../api/workspace/functions";
+import { useWorkspace } from "../../workspace/workspace-layout";
 import { toast } from "sonner";
 import { resolvePrescriber } from "../../workspace/demo-profile";
 import { useState, useEffect, useRef } from "react";
@@ -24,20 +24,10 @@ import {
 import { Choice } from "../../../components/choice";
 import { MedicationPicker } from "./medication-picker";
 import { OrderReview, matchesPreview } from "./order-review";
-import type { Profile } from "../../workspace/components/prescriber-settings";
 import type { Options, Preview, Order, Catalog } from "../../../api/types";
 
-export function PrescriptionForm({
-  onBusy,
-  initial,
-  profile,
-  openSettings,
-}: {
-  onBusy: (busy: boolean) => void;
-  initial: Awaited<ReturnType<typeof getWorkspace>>;
-  profile: Profile;
-  openSettings: () => void;
-}) {
+export function PrescriptionForm() {
+  const { onBusy, initial, profile, openSettings } = useWorkspace();
   const { sessionId, practice } = initial;
   const practiceId = practice.id;
   const queryClient = useQueryClient();
@@ -167,7 +157,7 @@ export function PrescriptionForm({
           );
           setOrder(draft);
           void queryClient.invalidateQueries({ queryKey: [sessionId, "orders"] });
-          if (send && !matchesPreview(draft, preview, npi, options!, localPatient)) {
+          if (send && !matchesPreview(draft, preview, npi, options, localPatient)) {
             setAttested(false);
             setNotice(
               "The saved prescription differs from the preview. Review the updated details and confirm again before signing.",
@@ -203,217 +193,214 @@ export function PrescriptionForm({
   }
   const canSave = preview?.status === "complete" && !busy && !submitted;
   return (
-    <>
-      <main>
-        <div className="page-heading">
-          <div>
-            <h1>New prescription</h1>
-            <p className="intro">Choose a patient and medication. Review, then send.</p>
-          </div>
+    <main>
+      <div className="page-heading">
+        <div>
+          <h1>New prescription</h1>
+          <p className="intro">Choose a patient and medication. Review, then send.</p>
         </div>
-        <fieldset disabled={!!busy || reviewOpen}>
-          <div className="workspace-grid">
-            <aside className="patient-panel">
-              <section>
-                <Choice
-                  label="EMR Patient"
-                  value={externalId}
-                  items={patients.map((p) => ({
-                    value: p.externalId,
-                    label: `${p.name.first} ${p.name.last} · ${p.address.state}`,
-                  }))}
-                  onChange={(value) => {
-                    setExternal(value);
-                    setReason("");
-                    setCategory("");
-                    clearOrder();
-                  }}
-                />
-                <div className="patient-caption">
-                  <span>
-                    Born{" "}
-                    {new Date(localPatient.dateOfBirth + "T00:00:00").toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span>
-                    {localPatient.address.city}, {localPatient.address.state}
-                  </span>
-                </div>
-              </section>
-            </aside>
-            <div className="prescription-panel">
-              <section>
-                <MedicationPicker
-                  key={practiceId}
-                  sessionId={sessionId}
-                  disabled={!!busy || !practiceId}
-                  onChange={(item) => void chooseMedication(item)}
-                />
-                {options && reasonRequired && (
-                  <div className="compounding-fields">
-                    {categories.length > 0 && (
-                      <Choice
-                        label="Compounding reason"
-                        value={category}
+      </div>
+      <fieldset disabled={!!busy || reviewOpen}>
+        <div className="workspace-grid">
+          <aside className="patient-panel">
+            <section>
+              <Choice
+                label="EMR Patient"
+                value={externalId}
+                items={patients.map((p) => ({
+                  value: p.externalId,
+                  label: `${p.name.first} ${p.name.last} · ${p.address.state}`,
+                }))}
+                onChange={(value) => {
+                  setExternal(value);
+                  setReason("");
+                  setCategory("");
+                  clearOrder();
+                }}
+              />
+              <div className="patient-caption">
+                <span>
+                  Born{" "}
+                  {new Date(localPatient.dateOfBirth + "T00:00:00").toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+                <span>
+                  {localPatient.address.city}, {localPatient.address.state}
+                </span>
+              </div>
+            </section>
+          </aside>
+          <div className="prescription-panel">
+            <section>
+              <MedicationPicker
+                key={practiceId}
+                sessionId={sessionId}
+                disabled={!!busy || !practiceId}
+                onChange={(item) => void chooseMedication(item)}
+              />
+              {options && reasonRequired && (
+                <div className="compounding-fields">
+                  {categories.length > 0 && (
+                    <Choice
+                      label="Compounding reason"
+                      value={category}
+                      disabled={!!order}
+                      items={categories.map((value) => ({
+                        value,
+                        label:
+                          requirements?.reasonCategoryLabels?.[value] ?? value.replaceAll("_", " "),
+                      }))}
+                      onChange={(value) => {
+                        setCategory(value);
+                        clearOrder();
+                      }}
+                    />
+                  )}
+                  {requirements?.compoundingReasonContext !== "not_supported" && (
+                    <label>
+                      Patient-specific reason
+                      <textarea
+                        rows={3}
+                        value={reason}
                         disabled={!!order}
-                        items={categories.map((value) => ({
-                          value,
-                          label:
-                            requirements?.reasonCategoryLabels?.[value] ??
-                            value.replaceAll("_", " "),
-                        }))}
-                        onChange={(value) => {
-                          setCategory(value);
+                        placeholder="Describe why this patient needs this compounded medication."
+                        onChange={(e) => {
+                          setReason(e.target.value);
                           clearOrder();
                         }}
                       />
-                    )}
-                    {requirements?.compoundingReasonContext !== "not_supported" && (
-                      <label>
-                        Patient-specific reason
-                        <textarea
-                          rows={3}
-                          value={reason}
-                          disabled={!!order}
-                          placeholder="Describe why this patient needs this compounded medication."
-                          onChange={(e) => {
-                            setReason(e.target.value);
-                            clearOrder();
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
-                )}
-                <Button
-                  ref={reviewButton}
-                  className="preview-button"
-                  disabled={!practiceId || !options || !reasonReady || !!busy}
-                  onClick={review}
-                >
-                  {busy === "Preparing review" ? "Preparing review…" : "Review prescription"}
-                  <ArrowRight size={16} aria-hidden />
-                </Button>
-              </section>
-            </div>
+                    </label>
+                  )}
+                </div>
+              )}
+              <Button
+                ref={reviewButton}
+                className="preview-button"
+                disabled={!practiceId || !options || !reasonReady || !!busy}
+                onClick={review}
+              >
+                {busy === "Preparing review" ? "Preparing review…" : "Review prescription"}
+                <ArrowRight size={16} aria-hidden />
+              </Button>
+            </section>
           </div>
-        </fieldset>
-        <Dialog
-          open={reviewOpen}
-          onOpenChange={(open) => {
-            if (!busy) setReviewOpen(open);
-          }}
+        </div>
+      </fieldset>
+      <Dialog
+        open={reviewOpen}
+        onOpenChange={(open) => {
+          if (!busy) setReviewOpen(open);
+        }}
+      >
+        <DialogPopup
+          className="prescription-dialog"
+          finalFocus={reviewButton}
+          closeProps={{ disabled: !!busy }}
         >
-          <DialogPopup
-            className="prescription-dialog"
-            finalFocus={reviewButton}
-            closeProps={{ disabled: !!busy }}
-          >
-            <DialogHeader>
-              <DialogTitle>
-                {submitted ? "Prescription submitted" : "Review prescription"}
-              </DialogTitle>
-              <DialogDescription>
-                {localPatient.name.first} {localPatient.name.last} · {localPatient.address.state} ·{" "}
-                Test mode
-              </DialogDescription>
-            </DialogHeader>
-            <DialogPanel>
-              <OrderReview
-                preview={preview}
-                order={order}
-                options={options}
-                patient={localPatient}
-                reason={reason}
-              />
-              <div className="review-prescriber">
-                <span className="hint">Prescriber</span>
-                <p>
-                  {profileReady
-                    ? `${name} · NPI ${npi}`
-                    : `No NPI saved for ${localPatient.address.state}.`}
-                </p>
-                {!signed && (
-                  <Button variant="ghost" onClick={openSettings}>
-                    {profileReady ? "Edit settings" : "Set up prescriber"}
+          <DialogHeader>
+            <DialogTitle>
+              {submitted ? "Prescription submitted" : "Review prescription"}
+            </DialogTitle>
+            <DialogDescription>
+              {localPatient.name.first} {localPatient.name.last} · {localPatient.address.state} ·{" "}
+              Test mode
+            </DialogDescription>
+          </DialogHeader>
+          <DialogPanel>
+            <OrderReview
+              preview={preview}
+              order={order}
+              options={options}
+              patient={localPatient}
+              reason={reason}
+            />
+            <div className="review-prescriber">
+              <span className="hint">Prescriber</span>
+              <p>
+                {profileReady
+                  ? `${name} · NPI ${npi}`
+                  : `No NPI saved for ${localPatient.address.state}.`}
+              </p>
+              {!signed && (
+                <Button variant="ghost" onClick={openSettings}>
+                  {profileReady ? "Edit settings" : "Set up prescriber"}
+                </Button>
+              )}
+            </div>
+            {preview?.issues.map((issue, i) => (
+              <p className="error" key={i}>
+                {issue.message}
+              </p>
+            ))}
+            {preview?.status === "complete" && !signed && (
+              <div className="review-confirmations">
+                <label className="check">
+                  <Checkbox disabled={!!busy} checked={attested} onCheckedChange={setAttested} />I
+                  reviewed this patient's history and prescription, confirm no known allergies, and
+                  authorize signing as the prescriber shown above.
+                </label>
+              </div>
+            )}
+            {notice && (
+              <p className="review-notice" role="status">
+                {notice}
+              </p>
+            )}
+            {error && (
+              <div className="review-notice">
+                {signed && !submitted && (
+                  <p>
+                    The prescription is signed. Retry sending below; it will not be signed again.
+                  </p>
+                )}
+                {order && !signed && (
+                  <Button
+                    variant="outline"
+                    disabled={!!busy}
+                    onClick={() => {
+                      setAttested(false);
+                      void run("Refreshing draft", async () => {
+                        const refreshed = await getOrder({ data: { orderId: order.id } });
+                        setOrder(refreshed);
+                      });
+                    }}
+                  >
+                    Refresh draft for review
                   </Button>
                 )}
               </div>
-              {preview?.issues.map((issue, i) => (
-                <p className="error" key={i}>
-                  {issue.message}
-                </p>
-              ))}
-              {preview?.status === "complete" && !signed && (
-                <div className="review-confirmations">
-                  <label className="check">
-                    <Checkbox disabled={!!busy} checked={attested} onCheckedChange={setAttested} />I
-                    reviewed this patient's history and prescription, confirm no known allergies,
-                    and authorize signing as the prescriber shown above.
-                  </label>
-                </div>
-              )}
-              {notice && (
-                <p className="review-notice" role="status">
-                  {notice}
-                </p>
-              )}
-              {error && (
-                <div className="review-notice">
-                  {signed && !submitted && (
-                    <p>
-                      The prescription is signed. Retry sending below; it will not be signed again.
-                    </p>
-                  )}
-                  {order && !signed && (
-                    <Button
-                      variant="outline"
-                      disabled={!!busy}
-                      onClick={() => {
-                        setAttested(false);
-                        void run("Refreshing draft", async () => {
-                          const refreshed = await getOrder({ data: { orderId: order.id } });
-                          setOrder(refreshed);
-                        });
-                      }}
-                    >
-                      Refresh draft for review
-                    </Button>
-                  )}
-                </div>
-              )}
-            </DialogPanel>
-            <DialogFooter>
-              {submitted ? (
-                <Button onClick={() => setReviewOpen(false)}>Done</Button>
-              ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    disabled={!canSave || !attested || !!order || signed}
-                    onClick={() => save(false)}
-                  >
-                    {order ? "Draft saved" : "Create draft"}
-                  </Button>
-                  <Button
-                    disabled={!canSave || !profileReady || (!signed && !attested)}
-                    onClick={() => save(true)}
-                  >
-                    {busy
-                      ? `${busy}…`
-                      : signed
-                        ? "Retry sending to pharmacy"
-                        : "Sign and send to pharmacy"}
-                  </Button>
-                </>
-              )}
-            </DialogFooter>
-          </DialogPopup>
-        </Dialog>
-      </main>
-    </>
+            )}
+          </DialogPanel>
+          <DialogFooter>
+            {submitted ? (
+              <Button onClick={() => setReviewOpen(false)}>Done</Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  disabled={!canSave || !attested || !!order || signed}
+                  onClick={() => save(false)}
+                >
+                  {order ? "Draft saved" : "Create draft"}
+                </Button>
+                <Button
+                  disabled={!canSave || !profileReady || (!signed && !attested)}
+                  onClick={() => save(true)}
+                >
+                  {busy
+                    ? `${busy}…`
+                    : signed
+                      ? "Retry sending to pharmacy"
+                      : "Sign and send to pharmacy"}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogPopup>
+      </Dialog>
+    </main>
   );
 }

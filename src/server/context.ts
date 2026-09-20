@@ -3,9 +3,9 @@ import { redirect } from "@tanstack/react-router";
 import { AffinityError } from "@affinity-health/sdk";
 import { createAffinity } from "./affinity/client";
 import { getSession } from "./auth/session";
-import { sessionStore, takeQuota } from "./auth/store";
+import { sessionStore } from "./auth/store";
 
-export async function workspaceContext() {
+async function workspaceContext() {
   const request = getRequest();
   setResponseHeader("Cache-Control", "private, no-store");
   if (request.method === "POST" && request.headers.get("origin") !== new URL(request.url).origin)
@@ -13,7 +13,7 @@ export async function workspaceContext() {
   const session = await getSession(request);
   if (!session) throw redirect({ to: "/unlock" });
   const store = await sessionStore();
-  if (!(await takeQuota(store, "requests:" + session.id, 120, 60)))
+  if (!(await store.quota("requests:" + session.id, 120, 60)))
     throw new Error("Too many requests. Try again in a minute.");
   return { ...session, affinity: createAffinity(), store };
 }

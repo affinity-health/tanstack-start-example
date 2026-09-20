@@ -3,7 +3,6 @@ import { z } from "zod";
 import { withWorkspace } from "../../server/context";
 import { previewPrescription } from "../../server/affinity/prescriptions";
 import { prescriptionInput } from "./schema";
-import { takeQuota } from "../../server/auth/store";
 
 export const getCatalog = createServerFn({ method: "GET" })
   .validator(
@@ -39,7 +38,7 @@ export const createDraft = createServerFn({ method: "POST" })
   )
   .handler(({ data }) =>
     withWorkspace(async (context) => {
-      if (!(await takeQuota(context.store, "orders:" + context.id, 30, 86400)))
+      if (!(await context.store.quota("orders:" + context.id, 30, 86400)))
         throw new Error("This Test session has reached its order limit.");
       const preview = await previewPrescription(context, data.prescription);
       if (preview.status !== "complete")

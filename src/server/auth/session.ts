@@ -1,6 +1,6 @@
 import { createAffinity } from "../affinity/client";
 import { getAuth } from "./auth";
-import { sessionStore, takeQuota } from "./store";
+import { sessionStore } from "./store";
 
 export async function getSession(request: Request) {
   const auth = await getAuth(request);
@@ -26,10 +26,7 @@ export async function startDemo(request: Request) {
     ),
   );
   const ip = Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join("");
-  if (
-    !(await takeQuota(store, "start:" + ip, 5, 86400)) ||
-    !(await takeQuota(store, "starts", 100, 86400))
-  )
+  if (!(await store.quota("start:" + ip, 5, 86400)) || !(await store.quota("starts", 100, 86400)))
     throw new Error("Today's demo creation limit has been reached. Try again tomorrow.");
   const auth = await getAuth(request);
   const session = await auth.api.getSession({ headers: request.headers });

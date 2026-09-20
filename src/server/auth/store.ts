@@ -34,6 +34,3 @@ export async function sessionStore(): Promise<SessionStore> {
     },
   };
 }
-export async function takeQuota(store: SessionStore, key: string, limit: number, seconds: number) {
-  return store.quota(key, limit, seconds);
-}
