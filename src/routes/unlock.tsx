@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
-import { beginDemo } from "../server/auth/session.functions";
+import { beginDemo } from "../api/auth/functions";
 
 export const Route = createFileRoute("/unlock")({
   headers: () => ({ "Cache-Control": "private, no-store" }),

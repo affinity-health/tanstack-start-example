@@ -2,10 +2,10 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, RefreshCw } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import { ordersQuery } from "../queries";
-import { useWorkspace } from "../prescribing-app";
+import { ordersQuery } from "../../../api/orders/queries";
+import { useWorkspace } from "../../workspace/workspace-layout";
 
-export function OrdersView({
+export function OrderList({
   filter,
   onFilter,
 }: {

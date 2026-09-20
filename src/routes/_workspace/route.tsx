@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getWorkspace } from "../features/prescribing/prescribing.functions";
-import { WorkspaceLayout } from "../features/prescribing/prescribing-app";
-import { Button } from "../components/ui/button";
+import { getWorkspace } from "../../api/workspace/functions";
+import { WorkspaceLayout } from "../../features/workspace/workspace-layout";
+import { Button } from "../../components/ui/button";
 
 export const Route = createFileRoute("/_workspace")({
   loader: () => getWorkspace(),

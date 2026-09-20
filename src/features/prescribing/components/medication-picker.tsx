@@ -10,8 +10,8 @@ import {
   AutocompleteItem,
 } from "../../../components/ui/autocomplete";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { catalogQuery, optionsQuery } from "../queries";
-import type { Catalog } from "../types";
+import { catalogQuery, optionsQuery } from "../../../api/prescribing/queries";
+import type { Catalog } from "../../../api/types";
 
 type Medication = Catalog["data"][number];
 

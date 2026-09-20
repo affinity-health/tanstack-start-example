@@ -2,8 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { withWorkspace, ownedOrder } from "../../server/context";
 import { listDrafts } from "../../server/affinity/orders";
-import { mutationKey } from "./prescription-input";
-import { isTestNpi } from "./demo-profile";
+import { isTestNpi } from "../../features/workspace/demo-profile";
 import { AffinityError } from "@affinity-health/sdk";
 const orderId = z.string().startsWith("ord_").max(100);
 export const getOrders = createServerFn({ method: "GET" })
@@ -35,7 +34,7 @@ export const signOrder = createServerFn({ method: "POST" })
   .validator(
     z.object({
       orderId,
-      key: mutationKey,
+      key: z.string().uuid(),
       npi: z.string().refine(isTestNpi, "Choose a supported Test NPI."),
       attested: z.literal(true),
       expectedVersions: z
@@ -77,7 +76,7 @@ export const signOrder = createServerFn({ method: "POST" })
     }),
   );
 export const submitOrder = createServerFn({ method: "POST" })
-  .validator(z.object({ orderId, key: mutationKey }))
+  .validator(z.object({ orderId, key: z.string().uuid() }))
   .handler(({ data }) =>
     withWorkspace(async (context) => {
       await ownedOrder(context, data.orderId);

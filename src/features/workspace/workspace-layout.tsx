@@ -5,7 +5,7 @@ import { PrescriberSettings, profileKey } from "./components/prescriber-settings
 import { Link, Outlet } from "@tanstack/react-router";
 import type { Profile } from "./demo-profile";
 import { demoProfile, parseProfile } from "./demo-profile";
-import type { getWorkspace } from "./prescribing.functions";
+import type { getWorkspace } from "../../api/workspace/functions";
 const WorkspaceContext = createContext<null | {
   initial: Awaited<ReturnType<typeof getWorkspace>>;
   profile: Profile;

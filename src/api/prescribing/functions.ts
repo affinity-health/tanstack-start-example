@@ -2,15 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { withWorkspace } from "../../server/context";
 import { previewPrescription } from "../../server/affinity/prescriptions";
-import { prescriptionInput, mutationKey } from "./prescription-input";
+import { prescriptionInput } from "./schema";
 import { takeQuota } from "../../server/auth/store";
 
-export const getWorkspace = createServerFn({ method: "GET" }).handler(() =>
-  withWorkspace(async ({ affinity, practiceId, id }) => ({
-    practice: await affinity.practices.retrieve(practiceId),
-    sessionId: id,
-  })),
-);
 export const getCatalog = createServerFn({ method: "GET" })
   .validator(
     z.object({ query: z.string().max(200).default(""), cursor: z.string().max(200).optional() }),
@@ -39,7 +33,7 @@ export const createDraft = createServerFn({ method: "POST" })
   .validator(
     z.object({
       prescription: prescriptionInput,
-      key: mutationKey,
+      key: z.string().uuid(),
       allergiesReviewed: z.literal(true),
     }),
   )

@@ -12,7 +12,7 @@ import {
   DialogPanel,
   DialogFooter,
 } from "../../../components/ui/dialog";
-import { Choice } from "./choice";
+import { Choice } from "../../../components/choice";
 import { isTestNpi, states, type Profile } from "../demo-profile";
 export type { Profile } from "../demo-profile";
 export const profileKey = "affinity-demo-prescriber-v2";

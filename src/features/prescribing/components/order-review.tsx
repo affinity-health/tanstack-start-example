@@ -1,5 +1,5 @@
 import type { patients } from "../../../data/patients";
-import type { Options, Order, Preview } from "../types";
+import type { Options, Order, Preview } from "../../../api/types";
 
 // Optional nulls and object key order have no clinical meaning.
 function canonical(value: unknown): unknown {

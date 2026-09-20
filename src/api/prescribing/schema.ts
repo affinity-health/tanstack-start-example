@@ -7,4 +7,3 @@ export const prescriptionInput = z.object({
   category: z.string().max(100).default(""),
 });
 export type PrescriptionInput = z.infer<typeof prescriptionInput>;
-export const mutationKey = z.string().uuid();

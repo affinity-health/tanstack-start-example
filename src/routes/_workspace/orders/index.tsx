@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { OrdersView } from "../features/prescribing/components/orders";
-export const Route = createFileRoute("/_workspace/orders")({
+import { OrderList } from "../../../features/orders/components/order-list";
+export const Route = createFileRoute("/_workspace/orders/")({
   validateSearch: (search: Record<string, unknown>): { filter?: "draft" } => ({
     filter: search.filter === "draft" ? "draft" : undefined,
   }),
@@ -14,7 +14,7 @@ function OrdersPage() {
       <div className="page-heading">
         <h1>Orders</h1>
       </div>
-      <OrdersView
+      <OrderList
         filter={filter ?? "all"}
         onFilter={(filter) =>
           void navigate({

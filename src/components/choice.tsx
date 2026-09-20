@@ -1,11 +1,5 @@
 import { useId } from "react";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectPopup,
-  SelectItem,
-} from "../../../components/ui/select";
+import { Select, SelectTrigger, SelectValue, SelectPopup, SelectItem } from "./ui/select";
 export function Choice({
   label,
   value,

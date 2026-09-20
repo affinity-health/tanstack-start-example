@@ -1,6 +1,6 @@
-import { getOrder, signOrder, submitOrder } from "./orders.functions";
+import { getOrder, signOrder, submitOrder } from "../../api/orders/functions";
 import { idempotent } from "../../lib/idempotency";
-import type { Order } from "./types";
+import type { Order } from "../../api/types";
 
 export async function sendReviewedOrder(
   sessionId: string,

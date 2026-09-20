@@ -4,11 +4,11 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
-import { useWorkspace } from "../prescribing-app";
-import { orderQuery } from "../queries";
-import { resolvePrescriber } from "../demo-profile";
+import { useWorkspace } from "../../workspace/workspace-layout";
+import { orderQuery } from "../../../api/orders/queries";
+import { resolvePrescriber } from "../../workspace/demo-profile";
 import { sendReviewedOrder } from "../order-workflow";
-import type { Order } from "../types";
+import type { Order } from "../../../api/types";
 
 export function OrderDetail({ orderId }: { orderId: string }) {
   const {

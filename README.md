@@ -1,150 +1,67 @@
 # Affinity EMR demo
 
-[Try the demo](https://demo-emr.joinaffinityai.com) · [TypeScript SDK](https://github.com/affinity-health/affinity-typescript)
+A small EMR built with TanStack Start and the [Affinity TypeScript SDK](https://github.com/affinity-health/affinity-typescript).
 
-A standalone TanStack Start application using `@affinity-health/sdk@1.10.0`.
-This repository owns the runnable demo and its independent Alchemy deployment.
-
-Licensed under the [MIT License](LICENSE).
+[Try the demo](https://demo-emr.joinaffinityai.com) · [SDK docs](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/) · [MIT license](LICENSE)
 
 ## Try it
 
-1. Confirm you will use synthetic data, then select **Start Test demo**.
-2. The server creates your own Test practice. Choose a sample patient and medication.
-3. Review the populated directions, quantity, days supply, shipping, and prices.
-4. Confirm the allergy and prescription review, then save a draft or sign and send.
-5. Open **Orders** to inspect drafts and simulator fulfillment.
+Start a private Test workspace. Choose a sample patient and medication, review the
+prefilled prescription, then save a draft or sign and send it. Open Orders to follow
+its progress.
 
-No account, shared PIN, or API key is needed in the browser. The synthetic Test Prescriber
-uses NPI `1234567893`. The application creates an unsigned draft, then supplies the NPI
-when signing. Affinity resolves the prescriber. Signing requires an explicit attestation
-and the exact prescription versions. Submission is separate so a failed send can be retried
-without signing again.
+No account or API key needed in the browser. Everything runs in Test mode:
+synthetic patients, simulated pharmacies, nothing filled or shipped.
 
-The header's settings cog saves a default NPI and optional patient-state overrides in
-this browser. No name entry is required. Test NPI `1234567893` covers all states;
-`1111111112` covers CA, FL, NY, PA, and TX. Each order still requires signing review.
+The settings button lets you choose a Test prescriber by NPI. The default works
+across all states. No separate prescriber-registration step is needed.
 
-The public UI currently handles one prescription per order. It does not yet have an OTC
-cart or a multi-prescription editor. The SDK supports those independently.
+## Run locally
 
-## Isolation and limits
-
-Better Auth stores anonymous users and sessions in a demo-owned D1 database. Each browser
-has one Test practice, an HttpOnly session cookie, and a fixed 12-hour expiry. Returning in that browser resumes the workspace until expiry.
-There is no recovery or sharing of an anonymous session.
-
-The UI uses typed TanStack Start server functions and TanStack Query. SDK calls stay on
-the server. Practice IDs come from the session, not browser input.
-Order reads, signing, and submission check order ownership before proceeding.
-Patient requests use the session's practice. Inline patients and arbitrary prescribers
-are not accepted by the demo. Live mode is rejected server-side, and no Live key is bound.
-
-New demo practices belong to Harbor Platform. The demo uses a dedicated Test-only key;
-the browser receives only its own session's practice, never Harbor's platform directory.
-Affinity Test orders route only to simulators. Practices created before the Harbor cutover
-remain under Affinity Public EMR Demo. The cutover starts fresh browser sessions rather
-than moving those practices or their orders.
-
-Limits are 5 starts per IP per UTC day, 100 starts globally per UTC day,
-120 API requests per session per minute, and 30 order-creation attempts per session per
-UTC day. Retries count toward these abuse limits. Quotas use atomic Durable Object
-transactions. IPs are salted and hashed before becoming quota keys. Durable Object alarms
-remove expired session mappings and quota counters. Synthetic records in Affinity remain
-for audit history; session expiry is not clinical-record deletion.
-
-Cross-origin and missing-Origin writes are rejected. Mutation keys are namespaced by
-session. A pending browser mutation retains its key until the result is known.
-The public deployment has no shared webhook inbox, prescriber-management endpoint, or
-authenticated image proxy. Unused proxy and webhook handlers are removed.
-
-## Develop and check
-
-Use Bun. The app uses Vite 8 through Vite+, TypeScript native preview, Oxlint, and Oxfmt.
+Requires Bun and the credentials listed in the [development guide](docs/development.md#deploy).
+Alchemy supplies the local Worker, D1 database, and Durable Object bindings.
 
 ```sh
 bun install --frozen-lockfile
+bun run dev
+```
+
+The local Worker runs at [localhost:1337](http://localhost:1337).
+For Affinity's protected Devbox setup and deployment commands, see the
+[development guide](docs/development.md).
+
+```sh
 bun run check
 bun test
 bun run build
 ```
 
-The website requires its Worker D1 and Durable Object bindings. Run the local Worker through Alchemy
-with an isolated Test key and session secret supplied in the child environment:
+## Find your way around
 
-```sh
-doppler run --project affinity --config stg -- bun run dev
+```text
+src/
+├── routes/
+│   └── _workspace/     # /prescribe, /orders, /orders/:orderId
+├── api/                # Server functions, queries, and input schemas
+│   ├── auth/
+│   ├── workspace/
+│   ├── prescribing/
+│   └── orders/
+├── features/           # Workspace, prescribing, and orders UI
+├── components/         # Shared controls
+├── server/             # Auth, authorization, and server-side SDK helpers
+├── data/               # Synthetic patients
+└── lib/                # Small shared utilities
 ```
 
-The local Worker binds to loopback at port 1337. Do not publish a development server
-or point this app at Live credentials. The deploy graph fixes the hosted Affinity API
-to `https://api.joinaffinityai.com`.
+Routes own navigation. Features own UI. Server functions call the SDK with the
+current session's practice. API keys never reach the browser.
 
-On the Affinity Devbox, use the optional `emr-demo` service in the sibling Affinity
-repository. It runs this checkout with hot reload at the protected URL
-[affinity.harbr.run/emr-demo/](https://affinity.harbr.run/emr-demo/):
+Better Auth stores anonymous sessions in D1. Each session gets one private Test
+practice and lasts 12 hours. Signing uses the exact prescription versions reviewed;
+submission can be retried without signing again.
 
-```sh
-dt services start emr-demo --environment affinity
-dt services logs emr-demo --environment affinity
-```
+This example handles one prescription per order. The SDK also supports
+multi-prescription and OTC orders; those editors are not included here.
 
-This service sets `VITE_BASE_PATH=/emr-demo/` and `PORT=3002`. Public builds retain `/`.
-Saving source files updates development only; it does not deploy the public demo.
-
-For standalone SDK experiments without a website, copy `.env.example` to the ignored
-`.env.dev`, set your own Test key, and run `bun run example`.
-Never put hosted secrets in environment files.
-
-## Deploy
-
-The canonical stack is `affinity-emr-demo`, stage `demo`, in this repository's
-`alchemy.run.ts`. It owns Worker `affinity-emr-demo`, its Better Auth D1 database, ownership/quota Durable Object binding,
-and `demo-emr.joinaffinityai.com`.
-
-Operator and runtime secrets come from Doppler `affinity/stg` for this independent demo:
-
-- `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_EMR_DEMO_API_TOKEN`: deployment only.
-  The dedicated token needs Workers deployment, domain, and Account → D1 → Edit permissions.
-  `scripts/alchemy.ts` maps it to Alchemy's token variable only in the child process.
-- `AFFINITY_HARBOR_DEMO_API_KEY`: dedicated Harbor platform Test key for this demo.
-- `AFFINITY_DEMO_SESSION_SECRET`: Better Auth signing/encryption secret.
-
-Alchemy binds only the last two secrets to the Worker, under
-`AFFINITY_TEST_API_KEY` and `DEMO_SESSION_SECRET`. The demo key needs
-`catalog:read`, `practices:read`, `practices:write`, `patients:read`,
-`patients:write`, `orders:read`, `orders:write`, `orders:sign`, and `team:write`.
-The provisioned key expires after 90 days and must be rotated before expiry.
-Rotating the session secret invalidates existing cookies.
-
-```sh
-doppler run --project affinity --config stg -- bun run preview:demo
-doppler run --project affinity --config stg -- bun run deploy
-doppler run --project affinity --config stg -- bun run preview:demo
-```
-
-Review the plan and require a no-op after deployment. Preserve this checkout's ignored
-`.alchemy` state. Do not deploy from a second empty state or use Wrangler as a parallel
-deployment path. This graph does not redeploy the Affinity API or dashboards.
-
-The older `affinity-prescribing-demo` and `affinity-sdk-emr-example` Workers are separate
-private deployments. This stack does not delete, adopt, or expose them.
-
-## Main code paths
-
-- `src/routes/`: real `/prescribe`, `/orders`, and `/orders/$orderId` pages.
-- `src/features/prescribing/*.functions.ts`: validated, session-scoped server functions.
-- `src/features/prescribing/queries.ts`: TanStack Query keys and pagination.
-- `src/features/prescribing/order-workflow.ts`: shared reviewed-version signing and submission.
-- `src/features/prescribing/components/`: medication picker, prescription review, orders, settings.
-- `src/server/context.ts`: workspace authorization, ownership, quotas, and error mapping.
-- `src/server/auth/`: Better Auth configuration and anonymous practice provisioning.
-- `src/server/affinity/`: server SDK client, synthetic patient resolution, preview composition.
-- `src/lib/idempotency.ts`: retry keys, persisting hashes rather than prescription data.
-- `migrations/auth/`: Better Auth SQL migrations, applied by Alchemy.
-- `src/data/patients.ts`: synthetic patient fixtures.
-- `alchemy.run.ts`: independent Worker and database deployment.
-
-Replacing the old custom session cookie starts a fresh anonymous workspace. Existing
-Affinity Test records remain intact; the new authentication does not adopt old cookies.
-D1 stores authentication data only. Patient and order records remain in Affinity.
+For a standalone SDK script, start with [example.ts](example.ts).

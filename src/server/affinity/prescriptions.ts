@@ -1,6 +1,6 @@
 import type { PreviewOrderParams } from "@affinity-health/sdk";
 import type { WorkspaceContext } from "../context";
-import type { PrescriptionInput } from "../../features/prescribing/prescription-input";
+import type { PrescriptionInput } from "../../api/prescribing/schema";
 import { resolvePatient } from "./patients";
 
 export async function previewPrescription(context: WorkspaceContext, input: PrescriptionInput) {

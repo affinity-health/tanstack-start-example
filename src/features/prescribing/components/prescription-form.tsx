@@ -1,12 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { optionsQuery } from "../queries";
-import { previewOrder, createDraft } from "../prescribing.functions";
-import { getOrder } from "../orders.functions";
+import { optionsQuery } from "../../../api/prescribing/queries";
+import { previewOrder, createDraft } from "../../../api/prescribing/functions";
+import { getOrder } from "../../../api/orders/functions";
 import { idempotent } from "../../../lib/idempotency";
-import { sendReviewedOrder } from "../order-workflow";
-import type { getWorkspace } from "../prescribing.functions";
+import { sendReviewedOrder } from "../../orders/order-workflow";
+import type { getWorkspace } from "../../../api/workspace/functions";
 import { toast } from "sonner";
-import { resolvePrescriber } from "../demo-profile";
+import { resolvePrescriber } from "../../workspace/demo-profile";
 import { useState, useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { patients } from "../../../data/patients";
@@ -21,13 +21,13 @@ import {
   DialogPanel,
   DialogFooter,
 } from "../../../components/ui/dialog";
-import { Choice } from "./choice";
+import { Choice } from "../../../components/choice";
 import { MedicationPicker } from "./medication-picker";
 import { OrderReview, matchesPreview } from "./order-review";
-import type { Profile } from "./prescriber-settings";
-import type { Options, Preview, Order, Catalog } from "../types";
+import type { Profile } from "../../workspace/components/prescriber-settings";
+import type { Options, Preview, Order, Catalog } from "../../../api/types";
 
-export function Workspace({
+export function PrescriptionForm({
   onBusy,
   initial,
   profile,
