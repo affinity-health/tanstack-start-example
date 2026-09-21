@@ -3,7 +3,7 @@ import { z } from "zod";
 import { withWorkspace, ownedOrder } from "../../server/context";
 import { listDrafts } from "../../server/affinity/orders";
 import { isTestNpi } from "../../features/workspace/demo-profile";
-import { AffinityError } from "@affinity-health/sdk";
+import { AffinityError, ResponseError, affinityErrorFromResponse } from "@affinity-health/sdk";
 const orderId = z.string().startsWith("ord_").max(100);
 export const getOrders = createServerFn({ method: "GET" })
   .validator(
@@ -87,7 +87,9 @@ export const submitOrder = createServerFn({ method: "POST" })
           { idempotencyKey: `${context.id}:${data.key}` },
         );
         return { ok: true as const };
-      } catch (error) {
+      } catch (cause) {
+        const error =
+          cause instanceof ResponseError ? await affinityErrorFromResponse(cause.response) : cause;
         if (
           error instanceof AffinityError &&
           error.statusCode &&

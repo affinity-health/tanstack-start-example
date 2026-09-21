@@ -1,6 +1,6 @@
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
-import { AffinityError } from "@affinity-health/sdk";
+import { AffinityError, ResponseError, affinityErrorFromResponse } from "@affinity-health/sdk";
 import { createAffinity } from "./affinity/client";
 import { getSession } from "./auth/session";
 import { sessionStore } from "./auth/store";
@@ -24,7 +24,9 @@ export async function withWorkspace<T>(
   const context = await workspaceContext();
   try {
     return await operation(context);
-  } catch (error) {
+  } catch (cause) {
+    const error =
+      cause instanceof ResponseError ? await affinityErrorFromResponse(cause.response) : cause;
     if (error instanceof AffinityError)
       throw new Error(
         (error.statusCode ?? 500) < 500

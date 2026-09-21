@@ -25,6 +25,13 @@ import { Choice } from "../../../components/choice";
 import { MedicationPicker } from "./medication-picker";
 import { OrderReview, matchesPreview } from "./order-review";
 import type { Options, Preview, Order, Catalog } from "../../../api/types";
+import { prescriptionInput } from "../../../api/prescribing/schema";
+import {
+  PrescriptionFields,
+  defaultFields,
+  fieldOverrides,
+  type PrescriptionFieldsValue,
+} from "./prescription-fields";
 
 export function PrescriptionForm() {
   const { onBusy, initial, profile, openSettings } = useWorkspace();
@@ -34,6 +41,8 @@ export function PrescriptionForm() {
   const [externalId, setExternal] = useState(patients[0].externalId);
   const [medicationId, setMedication] = useState("");
   const [options, setOptions] = useState<Options>();
+  const [fields, setFields] = useState<PrescriptionFieldsValue>();
+  const [fieldsExpanded, setFieldsExpanded] = useState(false);
   const [preview, setPreview] = useState<Preview>();
   const [reason, setReason] = useState("");
   const [category, setCategory] = useState("");
@@ -100,6 +109,8 @@ export function PrescriptionForm() {
   async function chooseMedication(item: Catalog["data"][number]) {
     setMedication(item.id);
     setOptions(undefined);
+    setFields(undefined);
+    setFieldsExpanded(false);
     setError("");
     setReason("");
     setCategory("");
@@ -112,9 +123,11 @@ export function PrescriptionForm() {
       setError("This medication is not currently available to order. Choose another medication.");
       return;
     }
-    await run("Loading defaults", async () =>
-      setOptions(await queryClient.fetchQuery(optionsQuery(sessionId, item.id))),
-    );
+    await run("Loading defaults", async () => {
+      const loaded = await queryClient.fetchQuery(optionsQuery(sessionId, item.id));
+      setOptions(loaded);
+      setFields(defaultFields(loaded));
+    });
   }
   async function review() {
     await run("Preparing review", async () => {
@@ -124,11 +137,27 @@ export function PrescriptionForm() {
         setReviewOpen(true);
         return;
       }
-      setPreview(
-        await previewOrder({
-          data: { externalId, medicationId, expectedRevision: options.revision, reason, category },
-        }),
-      );
+      const input = prescriptionInput.safeParse({
+        externalId,
+        medicationId,
+        expectedRevision: options.revision,
+        reason,
+        category,
+        ...(fields ? fieldOverrides(options, fields) : {}),
+      });
+      if (!input.success) {
+        const issue = input.error.issues[0];
+        const label =
+          issue.path[0] === "daysSupply"
+            ? "Days supply"
+            : issue.path[0] === "quantity"
+              ? "Quantity"
+              : issue.path[0] === "refills"
+                ? "Refills"
+                : "Directions";
+        throw new Error(`${label}: ${issue.message}`);
+      }
+      setPreview(await previewOrder({ data: input.data }));
       setAttested(false);
       setReviewOpen(true);
     });
@@ -149,6 +178,7 @@ export function PrescriptionForm() {
               expectedRevision: options.revision,
               reason,
               category,
+              ...(fields ? fieldOverrides(options, fields) : {}),
             },
             allergiesReviewed: true as const,
           };
@@ -215,6 +245,7 @@ export function PrescriptionForm() {
                   setExternal(value);
                   setReason("");
                   setCategory("");
+                  if (options) setFields(defaultFields(options));
                   clearOrder();
                 }}
               />
@@ -241,6 +272,19 @@ export function PrescriptionForm() {
                 disabled={!!busy || !practiceId}
                 onChange={(item) => void chooseMedication(item)}
               />
+              {options && fields && (
+                <PrescriptionFields
+                  options={options}
+                  value={fields}
+                  disabled={!!order || !!busy}
+                  expanded={fieldsExpanded}
+                  onExpandedChange={setFieldsExpanded}
+                  onChange={(next) => {
+                    setFields(next);
+                    clearOrder();
+                  }}
+                />
+              )}
               {options && reasonRequired && (
                 <div className="compounding-fields">
                   {categories.length > 0 && (
@@ -379,6 +423,18 @@ export function PrescriptionForm() {
               <Button onClick={() => setReviewOpen(false)}>Done</Button>
             ) : (
               <>
+                {preview?.status !== "complete" && (
+                  <Button
+                    variant="outline"
+                    disabled={!!busy}
+                    onClick={() => {
+                      setReviewOpen(false);
+                      setFieldsExpanded(true);
+                    }}
+                  >
+                    Edit prescription
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   disabled={!canSave || !attested || !!order || signed}

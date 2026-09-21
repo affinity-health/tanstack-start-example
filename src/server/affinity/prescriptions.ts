@@ -34,15 +34,24 @@ export async function previewPrescription(context: WorkspaceContext, input: Pres
         medicationId: input.medicationId,
         preset: "default",
         expectedRevision: input.expectedRevision,
-        ...(reasonRequired
-          ? {
-              overrides: {
+        overrides: {
+          ...(input.directions !== undefined
+            ? { sig: { format: "free_text", text: input.directions } }
+            : {}),
+          ...(input.quantity !== undefined ? { quantity: input.quantity } : {}),
+          ...(input.daysSupply !== undefined ? { daysSupply: input.daysSupply } : {}),
+          ...(input.refills !== undefined ? { refills: input.refills } : {}),
+          ...(input.shippingOptionId
+            ? { dispensing: { shippingOptionId: input.shippingOptionId } }
+            : {}),
+          ...(reasonRequired
+            ? {
                 clinical: {
                   compoundingReason: { context: input.reason, ...(category ? { category } : {}) },
                 },
-              },
-            }
-          : {}),
+              }
+            : {}),
+        },
       },
     ],
     shipping: { selection: "lowest_cost" },
