@@ -1,5 +1,4 @@
 import { Affinity } from "@affinity-health/sdk";
-import { withCatalogArtwork } from "./images";
 
 export function createAffinity() {
   const variable = "AFFINITY_TEST_API_KEY";
@@ -40,7 +39,7 @@ export function createAffinity() {
         throw new Error(
           `The Affinity API at ${url.hostname} returned HTML instead of JSON (HTTP ${response.status}). Check AFFINITY_API_URL and the remote server's access settings.`,
         );
-      return withCatalogArtwork(input, response);
+      return response;
     },
   });
 }
