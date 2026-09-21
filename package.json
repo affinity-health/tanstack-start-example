@@ -15,7 +15,7 @@
     "deploy": "bun scripts/alchemy.ts deploy --stage demo --yes"
   },
   "dependencies": {
-    "@affinity-health/sdk": "1.10.0",
+    "@affinity-health/sdk": "1.10.2",
     "@base-ui/react": "^1.8.0",
     "@tanstack/react-query": "^5.103.1",
     "@tanstack/react-router": "^1.170.38",

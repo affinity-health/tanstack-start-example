@@ -64,7 +64,7 @@ dt services start emr-demo --environment affinity
 dt services logs emr-demo --environment affinity
 ```
 
-This service sets `VITE_BASE_PATH=/emr-demo/` and `PORT=3002`. Public builds retain `/`.
+This service sets `VITE_BASE_PATH=/emr-demo/` and `PORT=1337`. Public builds retain `/`.
 Saving source files updates development only; it does not deploy the public demo.
 
 For standalone SDK experiments without a website, copy `.env.example` to the ignored
