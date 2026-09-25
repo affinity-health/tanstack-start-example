@@ -51,13 +51,13 @@ export const signOrder = createServerFn({ method: "POST" })
   .handler(({ data }) =>
     withWorkspace(async (context) => {
       const order = await ownedOrder(context, data.orderId);
-      const allergies = await context.affinity.patients.retrieveAllergies(
+      const allergies = await context.affinity.practices.patients.allergies.retrieve(
         context.practiceId,
         order.patientId,
       );
       if (allergies.allergies.length)
         throw new Error("This patient has recorded allergies. This demo will not clear them.");
-      await context.affinity.patients.replaceAllergies(
+      await context.affinity.practices.patients.allergies.update(
         context.practiceId,
         order.patientId,
         { reviewStatus: "no_known", allergies: [] },

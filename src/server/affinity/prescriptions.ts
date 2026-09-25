@@ -11,7 +11,7 @@ export async function previewPrescription(context: WorkspaceContext, input: Pres
     input.externalId,
     `${id}:patient:${input.externalId}`,
   );
-  const options = await affinity.catalog.retrievePrescribingOptions(input.medicationId, {
+  const options = await affinity.catalog.items.prescribingOptions.retrieve(input.medicationId, {
     practiceId,
   });
   if (options.revision !== input.expectedRevision)
@@ -56,5 +56,5 @@ export async function previewPrescription(context: WorkspaceContext, input: Pres
     ],
     shipping: { selection: "lowest_cost" },
   };
-  return affinity.orders.preview(body);
+  return affinity.orderPreviews.create(body);
 }

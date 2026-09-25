@@ -86,7 +86,7 @@ Operator and runtime secrets come from Doppler `affinity/stg` for this independe
 - `AFFINITY_DEMO_SESSION_SECRET`: Better Auth signing/encryption secret.
 
 Alchemy binds only the last two secrets to the Worker, under
-`AFFINITY_TEST_API_KEY` and `DEMO_SESSION_SECRET`. The demo key needs
+`AFFINITY_API_KEY` and `DEMO_SESSION_SECRET`. The demo key needs
 `catalog:read`, `practices:read`, `practices:write`, `patients:read`,
 `patients:write`, `orders:read`, `orders:write`, `orders:sign`, and `team:write`.
 The provisioned key expires after 90 days and must be rotated before expiry.

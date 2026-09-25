@@ -1,13 +1,11 @@
 import { Affinity } from "@affinity-health/sdk";
 
 export function createAffinity() {
-  const variable = "AFFINITY_TEST_API_KEY";
-  const apiKey = process.env[variable];
-  if (!apiKey)
-    throw new Error(`Set ${variable} in the active environment file and restart the server.`);
-  if (!apiKey.startsWith("sk_test_")) throw new Error(`${variable} must be a Test API key.`);
+  const apiKey = process.env.AFFINITY_API_KEY;
+  if (!apiKey) throw new Error("Set AFFINITY_API_KEY.");
+  if (!apiKey.startsWith("sk_test_")) throw new Error("AFFINITY_API_KEY must be a Test API key.");
 
-  // The SDK appends /v1 to every endpoint; preserve prefixes such as /api.
+  // The SDK appends /v1 to its base URL; preserve development proxy prefixes.
   const url = new URL(process.env.AFFINITY_API_URL || "https://api.joinaffinityai.com/v1");
   if (
     !["http:", "https:"].includes(url.protocol) ||
@@ -20,6 +18,7 @@ export function createAffinity() {
       "AFFINITY_API_URL must be an HTTP(S) API URL without credentials, query, or fragment.",
     );
   const baseUrl = url.href.replace(/\/+$/, "").replace(/\/v1$/, "");
+
   return new Affinity(apiKey, {
     baseUrl,
     // Devbox authenticates the proxy separately from Affinity's Authorization header.
@@ -32,12 +31,12 @@ export function createAffinity() {
         const location = response.headers.get("location");
         const destination = location ? new URL(location, baseUrl).hostname : "a login page";
         throw new Error(
-          `The Affinity API at ${url.hostname} redirected to ${destination}. Set DEVBOX_API_KEY in .env.dev to authenticate the remote development proxy.`,
+          `The Affinity API at ${url.hostname} redirected to ${destination}. Set DEVBOX_API_KEY to authenticate the development proxy.`,
         );
       }
       if (response.headers.get("content-type")?.includes("text/html"))
         throw new Error(
-          `The Affinity API at ${url.hostname} returned HTML instead of JSON (HTTP ${response.status}). Check AFFINITY_API_URL and the remote server's access settings.`,
+          `The Affinity API at ${url.hostname} returned HTML instead of JSON (HTTP ${response.status}). Check AFFINITY_API_URL and the server's access settings.`,
         );
       return response;
     },

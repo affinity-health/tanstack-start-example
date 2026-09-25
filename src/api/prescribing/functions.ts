@@ -10,7 +10,7 @@ export const getCatalog = createServerFn({ method: "GET" })
   )
   .handler(({ data }) =>
     withWorkspace(({ affinity, practiceId }) =>
-      affinity.catalog.list({
+      affinity.catalog.items.list({
         practiceId,
         query: data.query || undefined,
         startingAfter: data.cursor,
@@ -22,7 +22,7 @@ export const getPrescribingOptions = createServerFn({ method: "GET" })
   .validator(z.object({ medicationId: z.string().startsWith("cat_").max(100) }))
   .handler(({ data }) =>
     withWorkspace(({ affinity, practiceId }) =>
-      affinity.catalog.retrievePrescribingOptions(data.medicationId, { practiceId }),
+      affinity.catalog.items.prescribingOptions.retrieve(data.medicationId, { practiceId }),
     ),
   );
 export const previewOrder = createServerFn({ method: "POST" })
@@ -46,13 +46,13 @@ export const createDraft = createServerFn({ method: "POST" })
       const patientId =
         "patientId" in preview.orderInput ? preview.orderInput.patientId : undefined;
       if (!patientId) throw new Error("Patient is missing.");
-      const allergies = await context.affinity.patients.retrieveAllergies(
+      const allergies = await context.affinity.practices.patients.allergies.retrieve(
         context.practiceId,
         patientId,
       );
       if (allergies.allergies.length)
         throw new Error("This patient has recorded allergies. This demo will not clear them.");
-      await context.affinity.patients.replaceAllergies(
+      await context.affinity.practices.patients.allergies.update(
         context.practiceId,
         patientId,
         { reviewStatus: "no_known", allergies: [] },

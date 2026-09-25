@@ -9,14 +9,14 @@ export async function resolvePatient(
 ) {
   const patient = patients.find((patient) => patient.externalId === externalId);
   if (!patient) throw new Error("Choose a patient from the demo EMR.");
-  const existing = await affinity.patients.list(practiceId, { externalId, limit: 1 });
+  const existing = await affinity.practices.patients.list(practiceId, { externalId, limit: 1 });
   if (existing.data[0])
     return {
-      patient: await affinity.patients.retrieve(practiceId, existing.data[0].id),
+      patient: await affinity.practices.patients.retrieve(practiceId, existing.data[0].id),
       reused: true,
     };
   return {
-    patient: await affinity.patients.create(practiceId, patient, { idempotencyKey }),
+    patient: await affinity.practices.patients.create(practiceId, patient, { idempotencyKey }),
     reused: false,
   };
 }
