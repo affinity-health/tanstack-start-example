@@ -18,7 +18,7 @@ export default {
     );
     headers.set("X-Frame-Options", "DENY");
     headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    headers.set("Referrer-Policy", "no-referrer");
     if (new URL(request.url).protocol === "https:")
       headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     return new Response(response.body, {
