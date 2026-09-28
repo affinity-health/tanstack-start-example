@@ -15,7 +15,7 @@ export type PrescriptionFieldsValue = {
 export function defaultFields(options: Options): PrescriptionFieldsValue {
   const preset = options.presets.find((entry) => entry.id === options.defaultPresetId);
   return {
-    directions: preset?.directions ?? options._default?.directions ?? "",
+    directions: preset?.directions ?? options.default?.directions ?? "",
     quantity: String(preset?.quantity?.value ?? ""),
     unit: preset?.quantity?.unit ?? options.catalog.unit ?? "",
     daysSupply: String(preset?.daysSupply ?? ""),

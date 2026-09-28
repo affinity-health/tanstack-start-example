@@ -10,7 +10,7 @@ export const getCatalog = createServerFn({ method: "GET" })
   )
   .handler(({ data }) =>
     withWorkspace(({ affinity, practiceId }) =>
-      affinity.catalog.items.list({
+      affinity.catalog.listCatalogItems({
         practiceId,
         query: data.query || undefined,
         startingAfter: data.cursor,
@@ -22,7 +22,7 @@ export const getPrescribingOptions = createServerFn({ method: "GET" })
   .validator(z.object({ medicationId: z.string().startsWith("cat_").max(100) }))
   .handler(({ data }) =>
     withWorkspace(({ affinity, practiceId }) =>
-      affinity.catalog.items.prescribingOptions.retrieve(data.medicationId, { practiceId }),
+      affinity.catalog.retrievePrescribingOptions({ catalogItemId: data.medicationId, practiceId }),
     ),
   );
 export const previewOrder = createServerFn({ method: "POST" })
@@ -41,26 +41,28 @@ export const createDraft = createServerFn({ method: "POST" })
       if (!(await context.store.quota("orders:" + context.id, 30, 86400)))
         throw new Error("This Test session has reached its order limit.");
       const preview = await previewPrescription(context, data.prescription);
-      if (preview.status !== "complete")
+      if (preview.status !== "complete" || !preview.orderInput)
         throw new Error("Complete the prescription before creating a draft.");
       const patientId =
         "patientId" in preview.orderInput ? preview.orderInput.patientId : undefined;
       if (!patientId) throw new Error("Patient is missing.");
-      const allergies = await context.affinity.practices.patients.allergies.retrieve(
-        context.practiceId,
+      const allergies = await context.affinity.patients.getPatientAllergies({
+        practiceId: context.practiceId,
         patientId,
-      );
+      });
       if (allergies.allergies.length)
         throw new Error("This patient has recorded allergies. This demo will not clear them.");
-      await context.affinity.practices.patients.allergies.update(
-        context.practiceId,
+      await context.affinity.patients.replacePatientAllergies({
+        practiceId: context.practiceId,
         patientId,
-        { reviewStatus: "no_known", allergies: [] },
-        { idempotencyKey: `${context.id}:${data.key}:allergies` },
-      );
-      const created = await context.affinity.orders.create(preview.orderInput, {
-        idempotencyKey: `${context.id}:${data.key}`,
+        reviewStatus: "no_known",
+        allergies: [],
+        "Idempotency-Key": `${context.id}:${data.key}:allergies`,
       });
-      return context.affinity.orders.retrieve(created.id);
+      const created = await context.affinity.orders.createOrder({
+        ...preview.orderInput,
+        "Idempotency-Key": `${context.id}:${data.key}`,
+      });
+      return context.affinity.orders.getOrder({ orderId: created.id });
     }),
   );

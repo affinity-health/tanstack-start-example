@@ -1,4 +1,4 @@
-import type { PreviewOrderParams } from "@affinity-health/sdk";
+import type { AffinityApi } from "@affinity-health/sdk";
 import type { WorkspaceContext } from "../context";
 import type { PrescriptionInput } from "../../api/prescribing/schema";
 import { resolvePatient } from "./patients";
@@ -11,7 +11,8 @@ export async function previewPrescription(context: WorkspaceContext, input: Pres
     input.externalId,
     `${id}:patient:${input.externalId}`,
   );
-  const options = await affinity.catalog.items.prescribingOptions.retrieve(input.medicationId, {
+  const options = await affinity.catalog.retrievePrescribingOptions({
+    catalogItemId: input.medicationId,
     practiceId,
   });
   if (options.revision !== input.expectedRevision)
@@ -26,7 +27,7 @@ export async function previewPrescription(context: WorkspaceContext, input: Pres
   const reasonRequired =
     requirements?.compoundingReason === "required" ||
     requirements?.compoundingReasonContext === "required";
-  const body: PreviewOrderParams = {
+  const body: AffinityApi.PreviewOrderRequest = {
     practiceId,
     patientId: patient.id,
     prescriptions: [
@@ -56,5 +57,5 @@ export async function previewPrescription(context: WorkspaceContext, input: Pres
     ],
     shipping: { selection: "lowest_cost" },
   };
-  return affinity.orderPreviews.create(body);
+  return affinity.orders.previewOrder(body);
 }

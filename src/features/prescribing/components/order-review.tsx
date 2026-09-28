@@ -44,18 +44,20 @@ export function matchesPreview(
   options: Options,
   patient: (typeof patients)[number],
 ) {
+  const orderInput = preview.orderInput;
   if (
+    !orderInput ||
     preview.status !== "complete" ||
-    !("patientId" in preview.orderInput) ||
-    order.patientId !== preview.orderInput.patientId ||
-    order.practiceId !== preview.orderInput.practiceId ||
+    !("patientId" in orderInput) ||
+    order.patientId !== orderInput.patientId ||
+    order.practiceId !== orderInput.practiceId ||
     (order.prescriberNpi != null && order.prescriberNpi !== npi) ||
     order.prescriptions.length !== preview.prescriptions.length
   )
     return false;
   return order.prescriptions.every((rx, i) => {
     const expected = preview.prescriptions[i];
-    const input = preview.orderInput.prescriptions[i];
+    const input = orderInput.prescriptions[i];
     const clinical = input.clinical;
     return (
       rx.patientSnapshot.legalName === `${patient.name.first} ${patient.name.last}` &&

@@ -1,7 +1,7 @@
-import type { Affinity } from "@affinity-health/sdk";
+import type { AffinityApiClient } from "@affinity-health/sdk";
 export type Options = Awaited<
-  ReturnType<Affinity["catalog"]["items"]["prescribingOptions"]["retrieve"]>
+  ReturnType<AffinityApiClient["catalog"]["retrievePrescribingOptions"]>
 >;
-export type Preview = Awaited<ReturnType<Affinity["orderPreviews"]["create"]>>;
-export type Order = Awaited<ReturnType<Affinity["orders"]["retrieve"]>>;
-export type Catalog = Awaited<ReturnType<Affinity["catalog"]["items"]["list"]>>;
+export type Preview = Awaited<ReturnType<AffinityApiClient["orders"]["previewOrder"]>>;
+export type Order = Awaited<ReturnType<AffinityApiClient["orders"]["getOrder"]>>;
+export type Catalog = Awaited<ReturnType<AffinityApiClient["catalog"]["listCatalogItems"]>>;

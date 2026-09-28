@@ -9,7 +9,10 @@ Better Auth stores anonymous users and sessions in a demo-owned D1 database. Eac
 has one Test practice, an HttpOnly session cookie, and a fixed 12-hour expiry. Returning in that browser resumes the workspace until expiry.
 There is no recovery or sharing of an anonymous session.
 
-The UI uses typed TanStack Start server functions and TanStack Query. SDK calls stay on
+The UI uses typed TanStack Start server functions and TanStack Query.
+`AffinityApiClient` from SDK 1.14.0 sends API version `2026-09-28`.
+Generated request objects include path/query fields and wire-named idempotency headers.
+The server normalizes API JSON before returning it through TanStack Start. SDK calls stay on
 the server. Practice IDs come from the session, not browser input.
 Order reads, signing, and submission check order ownership before proceeding.
 Patient requests use the session's practice. Inline patients and arbitrary prescribers
