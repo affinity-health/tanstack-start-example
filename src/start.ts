@@ -6,7 +6,8 @@ import { isRedirect } from "@tanstack/react-router";
 const sessionMiddleware = createMiddleware().server(async ({ request, next, handlerType }) => {
   // Every protected server function resolves its own workspace. beginDemo is public.
   const pathname = appPathname(new URL(request.url).pathname);
-  if (handlerType === "serverFn" || pathname === "/unlock") return next();
+  if (handlerType === "serverFn" || pathname === "/unlock" || pathname === "/api/health")
+    return next();
   if (await hasSession(request)) return next();
   return new Response(null, {
     status: 302,
