@@ -16,6 +16,22 @@ synthetic patients, simulated pharmacies, nothing filled or shipped.
 The settings button lets you choose a Test prescriber by NPI. The default works
 across all states. No separate prescriber-registration step is needed.
 
+## Start integrating
+
+The small [example.ts](example.ts) script verifies your own Test API key without running
+the website. Keep the key on your server and use synthetic data only.
+
+```sh
+bun install --frozen-lockfile
+cp .env.example .env.dev
+# Set AFFINITY_API_KEY in the ignored .env.dev file to your Test key.
+bun run example
+```
+
+The script reports the key's mode and scopes. See the
+[TypeScript SDK guide](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/)
+for API calls and explore this application's source for the prescribing workflow.
+
 ## Run locally
 
 Requires Bun and the credentials listed in the [development guide](docs/development.md#deploy).
@@ -63,5 +79,3 @@ submission can be retried without signing again.
 
 This example handles one prescription per order. The SDK also supports
 multi-prescription and OTC orders; those editors are not included here.
-
-For a standalone SDK script, start with [example.ts](example.ts).
