@@ -12,6 +12,7 @@ import {
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { catalogQuery, optionsQuery } from "../../../api/prescribing/queries";
 import type { Catalog } from "../../../api/types";
+import { availableForPatient } from "../medication-availability";
 
 type Medication = Catalog["data"][number];
 
@@ -30,10 +31,12 @@ function MedicationImage({ medication }: { medication: Medication }) {
 
 export function MedicationPicker({
   sessionId,
+  patientState,
   disabled,
   onChange,
 }: {
   sessionId: string;
+  patientState: string;
   disabled: boolean;
   onChange: (item: Medication) => void;
 }) {
@@ -47,7 +50,10 @@ export function MedicationPicker({
   }, [query]);
   const queryClient = useQueryClient();
   const catalog = useInfiniteQuery(catalogQuery(sessionId, settledQuery));
-  const items = catalog.data?.pages.flatMap((page) => page.data) ?? [];
+  const items =
+    catalog.data?.pages.flatMap((page) =>
+      page.data.filter((item) => availableForPatient(item, patientState)),
+    ) ?? [];
   const loading = catalog.isFetching || query !== settledQuery;
   const hasMore = catalog.hasNextPage;
   const error = catalog.error?.message;
@@ -131,7 +137,7 @@ export function MedicationPicker({
               </div>
             ) : items.length === 0 ? (
               <p role="status" className="medication-message">
-                No medications found. Try another name.
+                No medications available for this patient in {patientState}. Try another name.
               </p>
             ) : null}
             <AutocompleteList>

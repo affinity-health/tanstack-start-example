@@ -243,9 +243,11 @@ export function PrescriptionForm() {
                 }))}
                 onChange={(value) => {
                   setExternal(value);
+                  setMedication("");
+                  setOptions(undefined);
+                  setFields(undefined);
                   setReason("");
                   setCategory("");
-                  if (options) setFields(defaultFields(options));
                   clearOrder();
                 }}
               />
@@ -267,8 +269,9 @@ export function PrescriptionForm() {
           <div className="prescription-panel">
             <section>
               <MedicationPicker
-                key={practiceId}
+                key={`${practiceId}:${externalId}`}
                 sessionId={sessionId}
+                patientState={localPatient.address.state}
                 disabled={!!busy || !practiceId}
                 onChange={(item) => void chooseMedication(item)}
               />
