@@ -32,7 +32,8 @@ authenticated image proxy. Unused proxy and webhook handlers are removed.
 
 ## Develop and check
 
-Use Bun. The app uses Vite 8 through Vite+, TypeScript native preview, Oxlint, and Oxfmt.
+Use Bun. Vite+ runs Vite 8, formatting, linting, and TypeScript checks from
+`vite.config.ts`.
 
 ```sh
 bun install --frozen-lockfile

@@ -4,6 +4,33 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  lint: {
+    plugins: ["typescript", "unicorn", "oxc"],
+    categories: { correctness: "error" },
+    rules: {
+      "typescript/await-thenable": "off",
+      "typescript/no-base-to-string": "off",
+      "typescript/restrict-template-expressions": "off",
+    },
+    ignorePatterns: [
+      "node_modules/**",
+      ".output/**",
+      ".tanstack/**",
+      "dist/**",
+      "src/routeTree.gen.ts",
+    ],
+    env: { builtin: true },
+    options: { typeAware: true, typeCheck: true },
+  },
+  fmt: {
+    ignorePatterns: [
+      "node_modules/**",
+      ".output/**",
+      ".tanstack/**",
+      "dist/**",
+      "src/routeTree.gen.ts",
+    ],
+  },
   envDir: false,
   // Keep the Worker dev optimizer separate from standalone Vite processes.
   cacheDir: `node_modules/.vite-${process.env.PORT ?? "standalone"}`,
