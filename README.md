@@ -1,25 +1,18 @@
-# Affinity EMR demo
+# Affinity EMR example
 
-A small EMR built with TanStack Start and the [Affinity TypeScript SDK](https://github.com/affinity-health/affinity-typescript).
+A Test-mode prescribing app built with TanStack Start and the [Affinity TypeScript SDK](https://github.com/affinity-health/affinity-typescript). It creates a private practice for each demo session, previews prescriptions, saves drafts, and sends signed orders to simulated pharmacies.
 
-[Try the demo](https://demo-emr.joinaffinityai.com) · [SDK docs](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/) · [MIT license](LICENSE)
+[Try the demo](https://demo-emr.joinaffinityai.com) · [TypeScript SDK guide](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/) · [MIT license](LICENSE)
 
-## Try it
+## Try the demo
 
-Start a private Test workspace. Choose a sample patient and medication, review the
-prefilled prescription, then save a draft or sign and send it. Open Orders to follow
-its progress.
+Open the demo, confirm you will use synthetic data, and choose a sample patient. Search for a medication available in that patient's state, review the prescription, then save a draft or sign and send it. Orders shows the result.
 
-No account or API key needed in the browser. Everything runs in Test mode:
-synthetic patients, simulated pharmacies, nothing filled or shipped.
+The public demo needs no login or API key in your browser. It uses Test mode only. Nothing is filled or shipped.
 
-The settings button lets you choose a Test prescriber by NPI. The default works
-across all states. No separate prescriber-registration step is needed.
+## Use your own Test key
 
-## Start integrating
-
-The small [example.ts](example.ts) script verifies your own Test API key without running
-the website. Keep the key on your server and use synthetic data only.
+The [standalone script](example.ts) checks your API key's mode and scopes without starting the website. Keep the key on your server.
 
 ```sh
 bun install --frozen-lockfile
@@ -28,23 +21,20 @@ cp .env.example .env.dev
 bun run example
 ```
 
-The script reports the key's mode and scopes. See the
-[TypeScript SDK guide](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/)
-for API calls and explore this application's source for the prescribing workflow.
+Read the [SDK guide](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/) for API calls. The app's [server functions](src/api) and [SDK helpers](src/server/affinity) show the full Test prescribing flow.
 
-## Run locally
+## Run the website locally
 
-Requires Bun and the credentials listed in the [development guide](docs/development.md#deploy).
-Alchemy supplies the local Worker, D1 database, and Durable Object bindings.
+The full website needs Cloudflare Worker, D1, and Durable Object bindings, plus an Affinity platform Test key and a session secret. Affinity operators supply these through Doppler and start the local Worker with:
 
 ```sh
 bun install --frozen-lockfile
-bun run dev
+doppler run --project affinity --config stg -- bun run dev
 ```
 
-The local Worker runs at [localhost:1337](http://localhost:1337).
-For Affinity's protected Devbox setup and deployment commands, see the
-[development guide](docs/development.md).
+The Worker listens on [localhost:1337](http://localhost:1337). See [development and deployment](docs/development.md) for the required scopes, local Devbox service, and hosted deployment commands. Platform developers can use the standalone script above without these operator credentials.
+
+Run the repository checks with:
 
 ```sh
 bun run check
@@ -52,30 +42,12 @@ bun test
 bun run build
 ```
 
-## Find your way around
+## Code map
 
-```text
-src/
-├── routes/
-│   └── _workspace/     # /prescribe, /orders, /orders/:orderId
-├── api/                # Server functions, queries, and input schemas
-│   ├── auth/
-│   ├── workspace/
-│   ├── prescribing/
-│   └── orders/
-├── features/           # Workspace, prescribing, and orders UI
-├── components/         # Shared controls
-├── server/             # Auth, authorization, and server-side SDK helpers
-├── data/               # Synthetic patients
-└── lib/                # Small shared utilities
-```
+- `src/routes`: prescribing and order pages.
+- `src/api`: server functions and input validation.
+- `src/server/affinity`: server-side SDK calls. API keys stay out of the browser.
+- `src/server/auth`: anonymous session and quota storage.
+- `src/data/patients.ts`: synthetic patients.
 
-Routes own navigation. Features own UI. Server functions call the SDK with the
-current session's practice. API keys never reach the browser.
-
-Better Auth stores anonymous sessions in D1. Each session gets one private Test
-practice and lasts 12 hours. Signing uses the exact prescription versions reviewed;
-submission can be retried without signing again.
-
-This example handles one prescription per order. The SDK also supports
-multi-prescription and OTC orders; those editors are not included here.
+The website demonstrates one prescription per order. The SDK also supports multi-prescription and OTC orders.

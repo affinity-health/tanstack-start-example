@@ -15,11 +15,8 @@ Order reads, signing, and submission check order ownership before proceeding.
 Patient requests use the session's practice. Inline patients and arbitrary prescribers
 are not accepted by the demo. Live mode is rejected server-side, and no Live key is bound.
 
-New demo practices belong to Harbor Platform. The demo uses a dedicated Test-only key;
-the browser receives only its own session's practice, never Harbor's platform directory.
-Affinity Test orders route only to simulators. Practices created before the Harbor cutover
-remain under Affinity Public EMR Demo. The cutover starts fresh browser sessions rather
-than moving those practices or their orders.
+The demo uses a dedicated platform Test key. The browser receives only its own session's
+practice, never the platform's practice directory. Affinity Test orders route to simulators.
 
 Limits are 5 starts per IP per UTC day, 100 starts globally per UTC day,
 120 API requests per session per minute, and 30 order-creation attempts per session per
@@ -101,6 +98,3 @@ doppler run --project affinity --config stg -- bun run preview:demo
 Review the plan and require a no-op after deployment. Preserve this checkout's ignored
 `.alchemy` state. Do not deploy from a second empty state or use Wrangler as a parallel
 deployment path. This graph does not redeploy the Affinity API or dashboards.
-
-The older `affinity-prescribing-demo` and `affinity-sdk-emr-example` Workers are separate
-private deployments. This stack does not delete, adopt, or expose them.
