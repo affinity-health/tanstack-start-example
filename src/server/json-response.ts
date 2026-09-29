@@ -7,8 +7,7 @@ export type JsonResponse<T> = unknown extends T
       ? { [K in keyof T]: JsonResponse<T[K]> }
       : T;
 
-// SDK metadata is typed as unknown. Materialize the JSON boundary before sending
-// API responses through TanStack Start, so those values are serializable too.
+// Materialize the JSON boundary before returning API responses through TanStack Start.
 export function jsonResponse<T>(value: T): JsonResponse<T> {
   return JSON.parse(JSON.stringify(value)) as JsonResponse<T>;
 }

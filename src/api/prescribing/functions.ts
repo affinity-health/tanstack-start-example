@@ -10,8 +10,7 @@ export const getCatalog = createServerFn({ method: "GET" })
   )
   .handler(({ data }) =>
     withWorkspace(({ affinity, practiceId }) =>
-      affinity.catalog.listCatalogItems({
-        practiceId,
+      affinity.forPractice(practiceId).catalog.items.list({
         query: data.query || undefined,
         startingAfter: data.cursor,
         limit: 25,
@@ -22,7 +21,7 @@ export const getPrescribingOptions = createServerFn({ method: "GET" })
   .validator(z.object({ medicationId: z.string().startsWith("cat_").max(100) }))
   .handler(({ data }) =>
     withWorkspace(({ affinity, practiceId }) =>
-      affinity.catalog.retrievePrescribingOptions({ catalogItemId: data.medicationId, practiceId }),
+      affinity.forPractice(practiceId).catalog.prescribingOptions.get(data.medicationId),
     ),
   );
 export const previewOrder = createServerFn({ method: "POST" })
@@ -46,23 +45,19 @@ export const createDraft = createServerFn({ method: "POST" })
       const patientId =
         "patientId" in preview.orderInput ? preview.orderInput.patientId : undefined;
       if (!patientId) throw new Error("Patient is missing.");
-      const allergies = await context.affinity.patients.getPatientAllergies({
-        practiceId: context.practiceId,
-        patientId,
-      });
+      const allergies = await context.practice.patients.allergies.get(patientId);
       if (allergies.allergies.length)
         throw new Error("This patient has recorded allergies. This demo will not clear them.");
-      await context.affinity.patients.replacePatientAllergies({
-        practiceId: context.practiceId,
+      await context.practice.patients.allergies.replace(
         patientId,
-        reviewStatus: "no_known",
-        allergies: [],
-        "Idempotency-Key": `${context.id}:${data.key}:allergies`,
+        { reviewStatus: "no_known", allergies: [] },
+        { idempotencyKey: `${context.id}:${data.key}:allergies` },
+      );
+      const { practiceId, ...params } = preview.orderInput;
+      if (practiceId !== context.practiceId) throw new Error("Unexpected preview practice.");
+      const created = await context.practice.orders.create(params, {
+        idempotencyKey: `${context.id}:${data.key}`,
       });
-      const created = await context.affinity.orders.createOrder({
-        ...preview.orderInput,
-        "Idempotency-Key": `${context.id}:${data.key}`,
-      });
-      return context.affinity.orders.getOrder({ orderId: created.id });
+      return context.practice.orders.get(created.id);
     }),
   );

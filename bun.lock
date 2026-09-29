@@ -5,7 +5,7 @@
     "": {
       "name": "tanstack-start-example",
       "dependencies": {
-        "@affinity-health/sdk": "1.14.0",
+        "@affinity-health/sdk": "1.15.0",
         "@base-ui/react": "^1.8.0",
         "@tanstack/react-query": "^5.103.1",
         "@tanstack/react-router": "^1.170.38",
@@ -42,7 +42,7 @@
     "@effect/platform-node-shared": "4.0.0-rc.112",
   },
   "packages": {
-    "@affinity-health/sdk": ["@affinity-health/sdk@1.14.0", "", {}, "sha512-Kt7EbS16srd7wUwaIcF/out8aUM/ih8ww7uRNxALsoog6imHg8Hy3UOYvPnSu48jcstmGPAtq/UV8xf1Qc86bA=="],
+    "@affinity-health/sdk": ["@affinity-health/sdk@1.15.0", "", {}, "sha512-Vp0t8JLwlE3F40t0bXJTM7vw/2eBtOcIosd8Eaz2NgIEEJfF/lU3wxxIZQiVyriR2fZEMb9/aZCplRKjkiVuOw=="],
 
     "@alcalzone/ansi-tokenize": ["@alcalzone/ansi-tokenize@0.2.5", "", { "dependencies": { "ansi-styles": "^6.2.1", "is-fullwidth-code-point": "^5.0.0" } }, "sha512-3NX/MpTdroi0aKz134A6RC2Gb2iXVECN4QaAXnvCIxxIm3C3AVB1mkUe8NaaiyvOpDfsrqWhYtj+Q6a62RrTsw=="],
 

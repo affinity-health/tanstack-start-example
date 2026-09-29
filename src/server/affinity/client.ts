@@ -1,4 +1,4 @@
-import { AffinityApiClient } from "@affinity-health/sdk";
+import { Affinity } from "@affinity-health/sdk";
 
 export function createAffinity() {
   const apiKey = process.env.AFFINITY_API_KEY;
@@ -19,17 +19,17 @@ export function createAffinity() {
     );
   const baseUrl = url.href.replace(/\/+$/, "").replace(/\/v1$/, "");
 
-  return new AffinityApiClient({
-    apiKey,
-    affinityVersion: "2026-09-28",
+  return new Affinity(apiKey, {
+    apiVersion: "2026-09-28",
     baseUrl,
-    // Devbox authenticates the proxy separately from Affinity's Authorization header.
-    headers: process.env.DEVBOX_API_KEY ? { "X-Api-Key": process.env.DEVBOX_API_KEY } : undefined,
-    timeoutInSeconds: 15,
-    maxRetries: 0,
+    timeout: 15_000,
+    maxNetworkRetries: 0,
     fetch: Object.assign(
       async (input: Parameters<typeof fetch>[0], init: Parameters<typeof fetch>[1]) => {
-        const response = await fetch(input, { ...init, redirect: "manual" });
+        const headers = new Headers(init?.headers);
+        // Devbox authenticates the proxy separately from Affinity's Authorization header.
+        if (process.env.DEVBOX_API_KEY) headers.set("X-Api-Key", process.env.DEVBOX_API_KEY);
+        const response = await fetch(input, { ...init, headers, redirect: "manual" });
         if (response.status >= 300 && response.status < 400) {
           const location = response.headers.get("location");
           const destination = location ? new URL(location, baseUrl).hostname : "a login page";

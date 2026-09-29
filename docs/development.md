@@ -10,8 +10,9 @@ has one Test practice, an HttpOnly session cookie, and a fixed 12-hour expiry. R
 There is no recovery or sharing of an anonymous session.
 
 The UI uses typed TanStack Start server functions and TanStack Query.
-`AffinityApiClient` from SDK 1.14.0 sends API version `2026-09-28`.
-Generated request objects include path/query fields and wire-named idempotency headers.
+`Affinity` from SDK 1.15.0 sends API version `2026-09-28`.
+A session-scoped `forPractice()` client handles patient, catalog, and order requests.
+Resource IDs come first, request data follows, and persisted idempotency keys use the final options argument.
 The server normalizes API JSON before returning it through TanStack Start. SDK calls stay on
 the server. Practice IDs come from the session, not browser input.
 Order reads, signing, and submission check order ownership before proceeding.

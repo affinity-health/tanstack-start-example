@@ -3,7 +3,7 @@ import { z } from "zod";
 import { withWorkspace, ownedOrder } from "../../server/context";
 import { listDrafts } from "../../server/affinity/orders";
 import { isTestNpi } from "../../features/workspace/demo-profile";
-import { AffinityApiError } from "@affinity-health/sdk";
+import { AffinityError } from "@affinity-health/sdk";
 const orderId = z.string().startsWith("ord_").max(100);
 export const getOrders = createServerFn({ method: "GET" })
   .validator(
@@ -17,8 +17,7 @@ export const getOrders = createServerFn({ method: "GET" })
       data.filter === "draft"
         ? listDrafts(affinity, practiceId, data.cursor)
         : {
-            ...(await affinity.orders.listOrders({
-              practiceId,
+            ...(await affinity.forPractice(practiceId).orders.list({
               startingAfter: data.cursor,
               limit: 25,
               sort: "newest",
@@ -51,27 +50,23 @@ export const signOrder = createServerFn({ method: "POST" })
   .handler(({ data }) =>
     withWorkspace(async (context) => {
       const order = await ownedOrder(context, data.orderId);
-      const allergies = await context.affinity.patients.getPatientAllergies({
-        practiceId: context.practiceId,
-        patientId: order.patientId,
-      });
+      const allergies = await context.practice.patients.allergies.get(order.patientId);
       if (allergies.allergies.length)
         throw new Error("This patient has recorded allergies. This demo will not clear them.");
-      await context.affinity.patients.replacePatientAllergies({
-        practiceId: context.practiceId,
-        patientId: order.patientId,
-        reviewStatus: "no_known",
-        allergies: [],
-        "Idempotency-Key": `${context.id}:${data.key}:allergies`,
-      });
-      return context.affinity.orders.signOrder({
-        orderId: data.orderId,
-        "Idempotency-Key": `${context.id}:${data.key}`,
-        practiceId: context.practiceId,
-        prescriber: { npi: data.npi },
-        signatureAttestation: true,
-        expectedVersions: data.expectedVersions,
-      });
+      await context.practice.patients.allergies.replace(
+        order.patientId,
+        { reviewStatus: "no_known", allergies: [] },
+        { idempotencyKey: `${context.id}:${data.key}:allergies` },
+      );
+      return context.practice.orders.sign(
+        data.orderId,
+        {
+          prescriber: { npi: data.npi },
+          signatureAttestation: true,
+          expectedVersions: data.expectedVersions,
+        },
+        { idempotencyKey: `${context.id}:${data.key}` },
+      );
     }),
   );
 export const submitOrder = createServerFn({ method: "POST" })
@@ -80,26 +75,22 @@ export const submitOrder = createServerFn({ method: "POST" })
     withWorkspace(async (context) => {
       await ownedOrder(context, data.orderId);
       try {
-        await context.affinity.orders.submitOrder({
-          orderId: data.orderId,
-          practiceId: context.practiceId,
-          "Idempotency-Key": `${context.id}:${data.key}`,
+        await context.practice.orders.submit(data.orderId, {
+          idempotencyKey: `${context.id}:${data.key}`,
         });
         return { ok: true as const };
       } catch (cause) {
         const error = cause;
         if (
-          error instanceof AffinityApiError &&
+          error instanceof AffinityError &&
           error.statusCode &&
           error.statusCode >= 400 &&
           error.statusCode < 500 &&
-          !String((error.body as { code?: string } | undefined)?.code).startsWith("idempotency_")
+          !error.code.startsWith("idempotency_")
         )
           return {
             ok: false as const,
-            message:
-              (error.body as { detail?: string } | undefined)?.detail ??
-              "The order could not be submitted.",
+            message: error.problem?.detail ?? "The order could not be submitted.",
           };
         throw error;
       }

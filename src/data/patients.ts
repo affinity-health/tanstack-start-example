@@ -1,4 +1,4 @@
-import type { CreatePatientParams } from "@affinity-health/sdk";
+import type { PatientCreateParams } from "@affinity-health/sdk";
 
 // These records belong to the demo EMR. Affinity IDs are resolved by externalId.
 export const patients = [
@@ -30,4 +30,4 @@ export const patients = [
       country: "US",
     },
   },
-] satisfies CreatePatientParams[];
+] satisfies PatientCreateParams[];

@@ -4,7 +4,7 @@ A Test-mode prescribing app built with TanStack Start and the [Affinity TypeScri
 
 [Try the demo](https://demo-emr.joinaffinityai.com) · [TypeScript SDK guide](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/) · [MIT license](LICENSE)
 
-The app uses `@affinity-health/sdk@1.14.0` and its generated `AffinityApiClient`, targeting
+The app uses `@affinity-health/sdk@1.15.0` and the `Affinity` client, targeting
 API version `2026-09-28`. SDK calls stay in server functions.
 
 ## Try the demo

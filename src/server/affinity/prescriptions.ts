@@ -1,20 +1,17 @@
-import type { AffinityApi } from "@affinity-health/sdk";
+import type { OrderPreviewParams } from "@affinity-health/sdk";
 import type { WorkspaceContext } from "../context";
 import type { PrescriptionInput } from "../../api/prescribing/schema";
 import { resolvePatient } from "./patients";
 
 export async function previewPrescription(context: WorkspaceContext, input: PrescriptionInput) {
-  const { affinity, practiceId, id } = context;
+  const { affinity, practice, practiceId, id } = context;
   const { patient } = await resolvePatient(
     affinity,
     practiceId,
     input.externalId,
     `${id}:patient:${input.externalId}`,
   );
-  const options = await affinity.catalog.retrievePrescribingOptions({
-    catalogItemId: input.medicationId,
-    practiceId,
-  });
+  const options = await practice.catalog.prescribingOptions.get(input.medicationId);
   if (options.revision !== input.expectedRevision)
     throw new Error(
       "Prescribing defaults changed. Select the medication again and review the updated defaults.",
@@ -27,8 +24,7 @@ export async function previewPrescription(context: WorkspaceContext, input: Pres
   const reasonRequired =
     requirements?.compoundingReason === "required" ||
     requirements?.compoundingReasonContext === "required";
-  const body: AffinityApi.PreviewOrderRequest = {
-    practiceId,
+  const body: OrderPreviewParams = {
     patientId: patient.id,
     prescriptions: [
       {
@@ -57,5 +53,5 @@ export async function previewPrescription(context: WorkspaceContext, input: Pres
     ],
     shipping: { selection: "lowest_cost" },
   };
-  return affinity.orders.previewOrder(body);
+  return practice.orders.preview(body);
 }

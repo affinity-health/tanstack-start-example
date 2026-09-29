@@ -1,8 +1,8 @@
-import type { AffinityApiClient } from "@affinity-health/sdk";
+import type { Affinity } from "@affinity-health/sdk";
 
 // Affinity distinguishes unassigned drafts from drafts awaiting their prescriber's signature.
 // Merge the two ordered streams without skipping records at a page boundary.
-export async function listDrafts(affinity: AffinityApiClient, practiceId: string, cursor = "") {
+export async function listDrafts(affinity: Affinity, practiceId: string, cursor = "") {
   const statuses = ["draft", "requires_provider_signature"] as const;
   let positions: Record<string, string> = {};
   if (cursor) {
@@ -21,8 +21,7 @@ export async function listDrafts(affinity: AffinityApiClient, practiceId: string
   }
   const pages = await Promise.all(
     statuses.map((status) =>
-      affinity.orders.listOrders({
-        practiceId,
+      affinity.forPractice(practiceId).orders.list({
         status,
         startingAfter: positions[status] || undefined,
         limit: 25,

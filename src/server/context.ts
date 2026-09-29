@@ -1,6 +1,6 @@
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
-import { AffinityApiError } from "@affinity-health/sdk";
+import { AffinityError } from "@affinity-health/sdk";
 import { createAffinity } from "./affinity/client";
 import { getSession } from "./auth/session";
 import { sessionStore } from "./auth/store";
@@ -16,7 +16,8 @@ async function workspaceContext() {
   const store = await sessionStore();
   if (!(await store.quota("requests:" + session.id, 120, 60)))
     throw new Error("Too many requests. Try again in a minute.");
-  return { ...session, affinity: createAffinity(), store };
+  const affinity = createAffinity();
+  return { ...session, affinity, practice: affinity.forPractice(session.practiceId), store };
 }
 export type WorkspaceContext = Awaited<ReturnType<typeof workspaceContext>>;
 export async function withWorkspace<T>(
@@ -27,17 +28,17 @@ export async function withWorkspace<T>(
     return jsonResponse(await operation(context));
   } catch (cause) {
     const error = cause;
-    if (error instanceof AffinityApiError)
+    if (error instanceof AffinityError)
       throw new Error(
         (error.statusCode ?? 500) < 500
-          ? `${(error.body as { detail?: string } | undefined)?.detail ?? "The request could not be completed."}${error.requestId ? ` (request ${error.requestId})` : ""}`
+          ? `${error.problem?.detail ?? "The request could not be completed."}${error.requestId ? ` (request ${error.requestId})` : ""}`
           : "Affinity is temporarily unavailable. Retry this action.",
       );
     throw error;
   }
 }
 export async function ownedOrder(context: WorkspaceContext, orderId: string) {
-  const order = await context.affinity.orders.getOrder({ orderId });
+  const order = await context.practice.orders.get(orderId);
   if (order.practiceId !== context.practiceId) throw new Error("Order not found.");
   return order;
 }
