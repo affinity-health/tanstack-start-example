@@ -12,7 +12,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: stylesheet },
-      { rel: "preconnect", href: "https://cdn.joinaffinityai.com" },
+      { rel: "preconnect", href: "https://cdn.affinityrx.com" },
     ],
   }),
   component: Root,

@@ -41,7 +41,7 @@ export function WorkspaceLayout({
         <header className="toolbar">
           <div className="brand">
             <img
-              src="https://cdn.joinaffinityai.com/logos/affinity/mark-blue.v2.webp"
+              src="https://cdn.affinityrx.com/logos/affinity/mark-blue.v2.webp"
               width={30}
               height={30}
               alt=""
@@ -86,7 +86,7 @@ export function WorkspaceLayout({
       )}
       <footer>
         <a
-          href="https://docs.joinaffinityai.com/guides/reference/sdks/typescript/"
+          href="https://docs.affinityrx.com/guides/reference/sdks/typescript/"
           target="_blank"
           rel="noreferrer"
         >

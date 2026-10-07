@@ -6,7 +6,7 @@ export function createAffinity() {
   if (!apiKey.startsWith("sk_test_")) throw new Error("AFFINITY_API_KEY must be a Test API key.");
 
   // The SDK appends /v1 to its base URL; preserve development proxy prefixes.
-  const url = new URL(process.env.AFFINITY_API_URL || "https://api.joinaffinityai.com/v1");
+  const url = new URL(process.env.AFFINITY_API_URL || "https://api.affinityrx.com/v1");
   if (
     !["http:", "https:"].includes(url.protocol) ||
     url.username ||

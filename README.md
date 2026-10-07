@@ -2,7 +2,7 @@
 
 A Test-mode prescribing app built with TanStack Start and the [Affinity TypeScript SDK](https://github.com/affinity-health/affinity-typescript). It creates a private practice for each demo session, previews prescriptions, saves drafts, and sends signed orders to simulated pharmacies.
 
-[Try the demo](https://demo-emr.joinaffinityai.com) · [TypeScript SDK guide](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/) · [MIT license](LICENSE)
+[Try the demo](https://demo-emr.affinityrx.com) · [TypeScript SDK guide](https://docs.affinityrx.com/guides/reference/sdks/typescript/) · [MIT license](LICENSE)
 
 The app uses `@affinity-health/sdk@1.15.0` and the `Affinity` client, targeting
 API version `2026-09-28`. SDK calls stay in server functions.
@@ -24,7 +24,7 @@ cp .env.example .env.dev
 bun run example
 ```
 
-Read the [SDK guide](https://docs.joinaffinityai.com/guides/reference/sdks/typescript/) for API calls. The app's [server functions](src/api) and [SDK helpers](src/server/affinity) show the full Test prescribing flow.
+Read the [SDK guide](https://docs.affinityrx.com/guides/reference/sdks/typescript/) for API calls. The app's [server functions](src/api) and [SDK helpers](src/server/affinity) show the full Test prescribing flow.
 
 ## Run the website locally
 

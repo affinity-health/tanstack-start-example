@@ -18,7 +18,7 @@ function Welcome() {
     <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-96">
         <img
-          src="https://cdn.joinaffinityai.com/logos/affinity/mark-blue.v2.webp"
+          src="https://cdn.affinityrx.com/logos/affinity/mark-blue.v2.webp"
           alt="Affinity"
           width={40}
           height={40}

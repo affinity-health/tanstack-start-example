@@ -55,7 +55,7 @@ doppler run --project affinity --config stg -- bun run dev
 
 The local Worker binds to loopback at port 1337. Do not publish a development server
 or point this app at Live credentials. The deploy graph fixes the hosted Affinity API
-to `https://api.joinaffinityai.com`.
+to `https://api.affinityrx.com`.
 
 On the Affinity Devbox, use the optional `emr-demo` service in the sibling Affinity
 repository. It runs this checkout with hot reload at the protected URL
@@ -77,7 +77,7 @@ Never put hosted secrets in environment files.
 
 The canonical stack is `affinity-emr-demo`, stage `demo`, in this repository's
 `alchemy.run.ts`. It owns Worker `affinity-emr-demo`, its Better Auth D1 database, ownership/quota Durable Object binding,
-and `demo-emr.joinaffinityai.com`.
+and `demo-emr.affinityrx.com`. The old `demo-emr.joinaffinityai.com` hostname redirects to it.
 
 Operator and runtime secrets come from Doppler `affinity/stg` for this independent demo:
 

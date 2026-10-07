@@ -22,7 +22,10 @@ export default Alchemy.Stack(
       rootDir: ".",
       main: "./src/server.ts",
       dev: stage === "local" ? { port: 1337, host: "127.0.0.1", strictPort: true } : undefined,
-      domain: stage === "demo" ? "demo-emr.joinaffinityai.com" : undefined,
+      domain:
+        stage === "demo"
+          ? { name: "demo-emr.affinityrx.com", redirects: ["demo-emr.joinaffinityai.com"] }
+          : undefined,
       compatibility: { flags: ["nodejs_compat", "nodejs_compat_populate_process_env"] },
       env: {
         AUTH_DATABASE: authDatabase,
@@ -32,7 +35,7 @@ export default Alchemy.Stack(
         DEMO_SESSIONS: Cloudflare.DurableObject("DemoSessions"),
         AFFINITY_API_KEY: Config.redacted("AFFINITY_HARBOR_DEMO_API_KEY"),
         DEMO_SESSION_SECRET: Config.redacted("AFFINITY_DEMO_SESSION_SECRET"),
-        AFFINITY_API_URL: "https://api.joinaffinityai.com",
+        AFFINITY_API_URL: "https://api.affinityrx.com",
       },
     });
     return { url: site.url };
