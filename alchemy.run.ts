@@ -24,7 +24,7 @@ export default Alchemy.Stack(
       dev: stage === "local" ? { port: 1337, host: "127.0.0.1", strictPort: true } : undefined,
       domain:
         stage === "demo"
-          ? { name: "demo-emr.affinityrx.com", redirects: ["demo-emr.joinaffinityai.com"] }
+          ? { name: "demo-emr.affinityrx.com", aliases: ["demo-emr.joinaffinityai.com"] }
           : undefined,
       compatibility: { flags: ["nodejs_compat", "nodejs_compat_populate_process_env"] },
       env: {

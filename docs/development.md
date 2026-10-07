@@ -77,7 +77,8 @@ Never put hosted secrets in environment files.
 
 The canonical stack is `affinity-emr-demo`, stage `demo`, in this repository's
 `alchemy.run.ts`. It owns Worker `affinity-emr-demo`, its Better Auth D1 database, ownership/quota Durable Object binding,
-and `demo-emr.affinityrx.com`. The old `demo-emr.joinaffinityai.com` hostname redirects to it.
+and `demo-emr.affinityrx.com`. Alchemy retains `demo-emr.joinaffinityai.com` as an alias;
+the Worker redirects it to the new hostname with HTTP 308, preserving paths and queries.
 
 Operator and runtime secrets come from Doppler `affinity/stg` for this independent demo:
 

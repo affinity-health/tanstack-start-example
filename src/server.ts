@@ -3,6 +3,12 @@ export { DemoSessions } from "./server/auth/ledger";
 const handler = createStartHandler(defaultStreamHandler);
 export default {
   async fetch(request: Request) {
+    const canonicalUrl = new URL(request.url);
+    if (canonicalUrl.hostname === "demo-emr.joinaffinityai.com") {
+      canonicalUrl.protocol = "https:";
+      canonicalUrl.hostname = "demo-emr.affinityrx.com";
+      return Response.redirect(canonicalUrl, 308);
+    }
     // The protected dev gateway terminates HTTPS before the loopback Worker.
     // Use an explicit development origin, never trust caller-supplied forwarding headers.
     const origin = import.meta.env.DEV ? process.env.DEMO_DEV_ORIGIN : undefined;
