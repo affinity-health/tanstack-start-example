@@ -1,14 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { optionsQuery } from "../../../api/prescribing/queries";
-import { previewOrder, createDraft } from "../../../api/prescribing/functions";
-import { getOrder } from "../../../api/orders/functions";
-import { idempotent } from "../../../lib/idempotency";
-import { sendReviewedOrder } from "../../orders/order-workflow";
-import { useWorkspace } from "../../workspace/workspace-layout";
+import { useState, useRef, useEffect } from "react";
+import type { OrderCreateParams } from "@affinity-health/sdk";
 import { toast } from "sonner";
+import { optionsQuery } from "../../../api/prescribing/queries";
+import { createOrder } from "../../../api/prescribing/functions";
+import { prescriptionInput, type PrescriptionInput } from "../../../api/prescribing/schema";
+import { buildOrderInput } from "../../../server/affinity/prescriptions";
+import { idempotent, pendingInput } from "../../../lib/idempotency";
+import { useWorkspace } from "../../workspace/workspace-layout";
 import { resolvePrescriber } from "../../workspace/demo-profile";
-import { useState, useEffect, useRef } from "react";
-import { ArrowRight } from "lucide-react";
 import { patients } from "../../../data/patients";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
@@ -23,205 +23,136 @@ import {
 } from "../../../components/ui/dialog";
 import { Choice } from "../../../components/choice";
 import { MedicationPicker } from "./medication-picker";
-import { OrderReview, matchesPreview } from "./order-review";
-import type { Options, Preview, Order, Catalog } from "../../../api/types";
-import { prescriptionInput } from "../../../api/prescribing/schema";
+import { OrderReview } from "./order-review";
+import type { Options, Catalog, Order } from "../../../api/types";
 import {
   PrescriptionFields,
   defaultFields,
-  fieldOverrides,
+  fieldInput,
   type PrescriptionFieldsValue,
 } from "./prescription-fields";
 
+type Review = {
+  prescription: PrescriptionInput;
+  npi: string;
+  input: OrderCreateParams;
+  options: Options;
+};
 export function PrescriptionForm() {
-  const { onBusy, initial, profile, openSettings } = useWorkspace();
-  const { sessionId, practice } = initial;
-  const practiceId = practice.id;
+  const {
+    onBusy,
+    initial: { sessionId, practice },
+    profile,
+    openSettings,
+  } = useWorkspace();
   const queryClient = useQueryClient();
   const [externalId, setExternal] = useState(patients[0].externalId);
-  const [medicationId, setMedication] = useState("");
   const [options, setOptions] = useState<Options>();
   const [fields, setFields] = useState<PrescriptionFieldsValue>();
-  const [fieldsExpanded, setFieldsExpanded] = useState(false);
-  const [preview, setPreview] = useState<Preview>();
   const [reason, setReason] = useState("");
-  const [category, setCategory] = useState("");
+  const [review, setReview] = useState<Review>();
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [notice, setNotice] = useState("");
-  const [order, setOrder] = useState<Order>();
   const [attested, setAttested] = useState(false);
-  const [signed, setSigned] = useState(false);
-  const [busy, setBusy] = useState("");
+  const [order, setOrder] = useState<Order>();
+  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const lock = useRef(false);
+  const localPatient = patients.find((p) => p.externalId === externalId)!;
+  const identity = resolvePrescriber(profile, localPatient.address.state);
   useEffect(() => {
-    if (error) toast.error(error, { id: "workspace-error", duration: 8000 });
-    else toast.dismiss("workspace-error");
-    return () => {
-      toast.dismiss("workspace-error");
-    };
-  }, [error]);
-
-  function clearOrder() {
-    setPreview(undefined);
-    setSubmitted(false);
-    setNotice("");
-    setOrder(undefined);
-    setAttested(false);
-    setSigned(false);
-  }
-  const inFlight = useRef(false);
-  const reviewButton = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    setAttested(false);
-  }, [profile]);
-  async function run(label: string, action: () => Promise<void>) {
-    if (inFlight.current) return;
-    inFlight.current = true;
-    setBusy(label);
+    try {
+      const saved = pendingInput<Review>(sessionId + ":create");
+      if (saved) {
+        setReview(saved);
+        setOptions(saved.options);
+        setExternal(saved.prescription.externalId);
+        setPending(true);
+        setReviewOpen(true);
+      }
+    } catch {
+      setError("The pending order could not be read from this browser's storage.");
+    }
+  }, [sessionId]);
+  async function run(action: () => Promise<void>) {
+    if (lock.current) return;
+    lock.current = true;
+    setBusy(true);
     onBusy(true);
     setError("");
     try {
       await action();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Request failed. Retry the action.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Request failed. Retry the action.");
     } finally {
-      inFlight.current = false;
-      setBusy("");
+      lock.current = false;
+      setBusy(false);
       onBusy(false);
     }
   }
-  const localPatient = patients.find((p) => p.externalId === externalId)!;
-  const {
-    npi,
-    name,
-    eligible: profileReady,
-  } = resolvePrescriber(profile, localPatient.address.state);
-  const requirements = options?.catalog.prescriptionRequirements;
-  const reasonRequired =
-    requirements?.compoundingReason === "required" ||
-    requirements?.compoundingReasonContext === "required";
-  const categories = requirements?.allowedReasonCategories ?? [];
-  const reasonReady =
-    !reasonRequired ||
-    ((requirements?.compoundingReasonContext === "not_supported" || !!reason.trim()) &&
-      (!categories.length || !!category));
   async function chooseMedication(item: Catalog["data"][number]) {
-    setMedication(item.id);
     setOptions(undefined);
     setFields(undefined);
-    setFieldsExpanded(false);
-    setError("");
     setReason("");
-    setCategory("");
-    clearOrder();
-    if (!item.ordering.requiresPrescription) {
-      setError("This item is a supply, not a prescription. Choose a prescription medication.");
-      return;
-    }
-    if (!item.isOrderable) {
-      setError("This medication is not currently available to order. Choose another medication.");
-      return;
-    }
-    await run("Loading defaults", async () => {
+    setReview(undefined);
+    setOrder(undefined);
+    await run(async () => {
       const loaded = await queryClient.fetchQuery(optionsQuery(sessionId, item.id));
       setOptions(loaded);
       setFields(defaultFields(loaded));
     });
   }
-  async function review() {
-    await run("Preparing review", async () => {
-      if (!options) return;
-      // Reopening an existing draft must preserve its ID and signing progress.
-      if (preview) {
-        setReviewOpen(true);
-        return;
-      }
-      const input = prescriptionInput.safeParse({
-        externalId,
-        medicationId,
-        expectedRevision: options.revision,
-        reason,
-        category,
-        ...(fields ? fieldOverrides(options, fields) : {}),
-      });
-      if (!input.success) {
-        const issue = input.error.issues[0];
-        const label =
-          issue.path[0] === "daysSupply"
-            ? "Days supply"
-            : issue.path[0] === "quantity"
-              ? "Quantity"
-              : issue.path[0] === "refills"
-                ? "Refills"
-                : "Directions";
-        throw new Error(`${label}: ${issue.message}`);
-      }
-      setPreview(await previewOrder({ data: input.data }));
-      setAttested(false);
+  function prepareReview() {
+    if (pending && review) {
       setReviewOpen(true);
+      return;
+    }
+    if (!options || !fields) return;
+    const parsed = prescriptionInput.safeParse({
+      externalId,
+      medicationId: options.id,
+      ...fieldInput(fields),
+      ...(reason.trim() ? { compoundingReason: reason.trim() } : {}),
+    });
+    if (!parsed.success) {
+      setError(parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
+      return;
+    }
+    if (options.requirements.includes("compoundingReason") && !reason.trim()) {
+      setError("Choose or enter the patient-specific compounding reason.");
+      return;
+    }
+    setReview({
+      prescription: parsed.data,
+      npi: identity.npi,
+      input: buildOrderInput(practice.id, parsed.data, identity.npi),
+      options,
+    });
+    setOrder(undefined);
+    setAttested(false);
+    setError("");
+    setReviewOpen(true);
+  }
+  async function send() {
+    if (!review || !attested || order) return;
+    await run(async () => {
+      // Freeze this reviewed input after the first attempt, including an uncertain response.
+      setPending(true);
+      const input = { prescription: review.prescription, npi: review.npi, attested: true as const };
+      const created = await idempotent(sessionId + ":create", review, (key) =>
+        createOrder({ data: { ...input, key } }),
+      );
+      setPending(false);
+      if (!created.ok) {
+        setAttested(false);
+        setReviewOpen(false);
+        throw new Error(created.message);
+      }
+      setOrder(created.order);
+      void queryClient.invalidateQueries({ queryKey: [sessionId, "orders"] });
+      toast.success("Prescription sent to the pharmacy.");
     });
   }
-  async function save(send: boolean) {
-    await run(
-      signed ? "Sending to pharmacy" : send ? "Signing prescription" : "Creating draft",
-      async () => {
-        if (preview?.status !== "complete" || !options || (send && !profileReady)) return;
-        if (!signed && !attested)
-          throw new Error("Confirm the patient history and prescription review before saving.");
-        let draft = order;
-        if (!draft) {
-          const input = {
-            prescription: {
-              externalId,
-              medicationId,
-              expectedRevision: options.revision,
-              reason,
-              category,
-              ...(fields ? fieldOverrides(options, fields) : {}),
-            },
-            allergiesReviewed: true as const,
-          };
-          draft = await idempotent(sessionId + ":create", input, (key) =>
-            createDraft({ data: { ...input, key } }),
-          );
-          setOrder(draft);
-          void queryClient.invalidateQueries({ queryKey: [sessionId, "orders"] });
-          if (send && !matchesPreview(draft, preview, npi, options, localPatient)) {
-            setAttested(false);
-            setNotice(
-              "The saved prescription differs from the preview. Review the updated details and confirm again before signing.",
-            );
-            return;
-          }
-        }
-        if (!send) {
-          toast.success("Draft created", { description: "Nothing has been sent to the pharmacy." });
-          setReviewOpen(false);
-          return;
-        }
-        const result = await sendReviewedOrder(sessionId, draft, npi, (signedOrder) => {
-          setOrder(signedOrder);
-          setSigned(true);
-        });
-        setOrder(result.order);
-        if (result.status === "changed") {
-          setAttested(false);
-          setSigned(
-            result.order.status === "ready" || result.order.status === "partially_submitted",
-          );
-          setNotice("This order changed. Review its current details and confirm again.");
-          return;
-        }
-        void queryClient.invalidateQueries({ queryKey: [sessionId, "orders"] });
-        setSubmitted(true);
-        setSigned(true);
-        setNotice("");
-        toast.success("Prescription sent to the pharmacy.");
-      },
-    );
-  }
-  const canSave = preview?.status === "complete" && !busy && !submitted;
   return (
     <main>
       <div className="page-heading">
@@ -230,7 +161,12 @@ export function PrescriptionForm() {
           <p className="intro">Choose a patient and medication. Review, then send.</p>
         </div>
       </div>
-      <fieldset disabled={!!busy || reviewOpen}>
+      {error && (
+        <p role="alert" className="error">
+          {error}
+        </p>
+      )}
+      <fieldset disabled={busy || reviewOpen || pending}>
         <div className="workspace-grid">
           <aside className="patient-panel">
             <section>
@@ -239,27 +175,19 @@ export function PrescriptionForm() {
                 value={externalId}
                 items={patients.map((p) => ({
                   value: p.externalId,
-                  label: `${p.name.first} ${p.name.last} · ${p.address.state}`,
+                  label: `${p.firstName} ${p.lastName} · ${p.address.state}`,
                 }))}
                 onChange={(value) => {
                   setExternal(value);
-                  setMedication("");
                   setOptions(undefined);
                   setFields(undefined);
+                  setReview(undefined);
+                  setOrder(undefined);
                   setReason("");
-                  setCategory("");
-                  clearOrder();
                 }}
               />
               <div className="patient-caption">
-                <span>
-                  Born{" "}
-                  {new Date(localPatient.dateOfBirth + "T00:00:00").toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
+                <span>Born {localPatient.dateOfBirth}</span>
                 <span>
                   {localPatient.address.city}, {localPatient.address.state}
                 </span>
@@ -269,193 +197,105 @@ export function PrescriptionForm() {
           <div className="prescription-panel">
             <section>
               <MedicationPicker
-                key={`${practiceId}:${externalId}`}
+                key={externalId}
                 sessionId={sessionId}
                 patientState={localPatient.address.state}
-                disabled={!!busy || !practiceId}
+                disabled={busy || pending}
                 onChange={(item) => void chooseMedication(item)}
               />
               {options && fields && (
                 <PrescriptionFields
                   options={options}
                   value={fields}
-                  disabled={!!order || !!busy}
-                  expanded={fieldsExpanded}
-                  onExpandedChange={setFieldsExpanded}
-                  onChange={(next) => {
-                    setFields(next);
-                    clearOrder();
-                  }}
+                  disabled={busy || pending}
+                  onChange={setFields}
                 />
               )}
-              {options && reasonRequired && (
+              {options?.requirements.includes("compoundingReason") && (
                 <div className="compounding-fields">
-                  {categories.length > 0 && (
+                  {options.compoundingReasons.length > 0 ? (
                     <Choice
-                      label="Compounding reason"
-                      value={category}
-                      disabled={!!order}
-                      items={categories.map((value) => ({
-                        value,
-                        label:
-                          requirements?.reasonCategoryLabels?.[value] ?? value.replaceAll("_", " "),
-                      }))}
-                      onChange={(value) => {
-                        setCategory(value);
-                        clearOrder();
-                      }}
+                      label="Patient-specific compounding reason"
+                      value={reason}
+                      items={options.compoundingReasons.map((value) => ({ value, label: value }))}
+                      onChange={setReason}
                     />
-                  )}
-                  {requirements?.compoundingReasonContext !== "not_supported" && (
+                  ) : (
                     <label>
-                      Patient-specific reason
+                      Patient-specific compounding reason
                       <textarea
                         rows={3}
+                        maxLength={200}
                         value={reason}
-                        disabled={!!order}
-                        placeholder="Describe why this patient needs this compounded medication."
-                        onChange={(e) => {
-                          setReason(e.target.value);
-                          clearOrder();
-                        }}
+                        onChange={(e) => setReason(e.target.value)}
                       />
                     </label>
                   )}
                 </div>
               )}
-              <Button
-                ref={reviewButton}
-                className="preview-button"
-                disabled={!practiceId || !options || !reasonReady || !!busy}
-                onClick={review}
-              >
-                {busy === "Preparing review" ? "Preparing review…" : "Review prescription"}
-                <ArrowRight size={16} aria-hidden />
-              </Button>
             </section>
           </div>
         </div>
       </fieldset>
+      <div className="review-prescriber">
+        <p>
+          {identity.name} · NPI {identity.npi}
+        </p>
+        <Button variant="ghost" disabled={busy || pending} onClick={openSettings}>
+          Prescriber settings
+        </Button>
+      </div>
+      <Button
+        className="preview-button"
+        disabled={!options || busy || (!pending && !identity.eligible)}
+        onClick={prepareReview}
+      >
+        {pending ? "Review pending request" : "Review prescription"}
+      </Button>
       <Dialog
         open={reviewOpen}
         onOpenChange={(open) => {
           if (!busy) setReviewOpen(open);
         }}
       >
-        <DialogPopup
-          className="prescription-dialog"
-          finalFocus={reviewButton}
-          closeProps={{ disabled: !!busy }}
-        >
+        <DialogPopup className="prescription-dialog" closeProps={{ disabled: busy }}>
           <DialogHeader>
-            <DialogTitle>
-              {submitted ? "Prescription submitted" : "Review prescription"}
-            </DialogTitle>
-            <DialogDescription>
-              {localPatient.name.first} {localPatient.name.last} · {localPatient.address.state} ·{" "}
-              Test mode
-            </DialogDescription>
+            <DialogTitle>{order ? "Prescription submitted" : "Review prescription"}</DialogTitle>
+            <DialogDescription>Synthetic data · Test mode</DialogDescription>
           </DialogHeader>
           <DialogPanel>
-            <OrderReview
-              preview={preview}
-              order={order}
-              options={options}
-              patient={localPatient}
-              reason={reason}
-            />
-            <div className="review-prescriber">
-              <span className="hint">Prescriber</span>
-              <p>
-                {profileReady
-                  ? `${name} · NPI ${npi}`
-                  : `No NPI saved for ${localPatient.address.state}.`}
-              </p>
-              {!signed && (
-                <Button variant="ghost" onClick={openSettings}>
-                  {profileReady ? "Edit settings" : "Set up prescriber"}
-                </Button>
-              )}
-            </div>
-            {preview?.issues.map((issue, i) => (
-              <p className="error" key={i}>
-                {issue.message}
-              </p>
-            ))}
-            {preview?.status === "complete" && !signed && (
-              <div className="review-confirmations">
-                <label className="check">
-                  <Checkbox disabled={!!busy} checked={attested} onCheckedChange={setAttested} />I
-                  reviewed this patient's history and prescription, confirm no known allergies, and
-                  authorize signing as the prescriber shown above.
-                </label>
-              </div>
+            {review && <OrderReview input={review.input} options={review.options} />}
+            {!order && (
+              <label className="check">
+                <Checkbox disabled={busy} checked={attested} onCheckedChange={setAttested} />I
+                reviewed this patient's history and prescription, confirm no known allergies, and
+                authorize signing as the prescriber shown above.
+              </label>
             )}
-            {notice && (
-              <p className="review-notice" role="status">
-                {notice}
+            {pending && !busy && (
+              <p role="status">
+                The result is uncertain. Retry this exact reviewed request to retrieve or complete
+                the same order.
               </p>
             )}
             {error && (
-              <div className="review-notice">
-                {signed && !submitted && (
-                  <p>
-                    The prescription is signed. Retry sending below; it will not be signed again.
-                  </p>
-                )}
-                {order && !signed && (
-                  <Button
-                    variant="outline"
-                    disabled={!!busy}
-                    onClick={() => {
-                      setAttested(false);
-                      void run("Refreshing draft", async () => {
-                        const refreshed = await getOrder({ data: { orderId: order.id } });
-                        setOrder(refreshed);
-                      });
-                    }}
-                  >
-                    Refresh draft for review
-                  </Button>
-                )}
-              </div>
+              <p role="alert" className="error">
+                {error}
+              </p>
+            )}
+            {order && (
+              <p>
+                {order.id} · {order.status}
+              </p>
             )}
           </DialogPanel>
           <DialogFooter>
-            {submitted ? (
+            {order ? (
               <Button onClick={() => setReviewOpen(false)}>Done</Button>
             ) : (
-              <>
-                {preview?.status !== "complete" && (
-                  <Button
-                    variant="outline"
-                    disabled={!!busy}
-                    onClick={() => {
-                      setReviewOpen(false);
-                      setFieldsExpanded(true);
-                    }}
-                  >
-                    Edit prescription
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  disabled={!canSave || !attested || !!order || signed}
-                  onClick={() => save(false)}
-                >
-                  {order ? "Draft saved" : "Create draft"}
-                </Button>
-                <Button
-                  disabled={!canSave || !profileReady || (!signed && !attested)}
-                  onClick={() => save(true)}
-                >
-                  {busy
-                    ? `${busy}…`
-                    : signed
-                      ? "Retry sending to pharmacy"
-                      : "Sign and send to pharmacy"}
-                </Button>
-              </>
+              <Button disabled={busy || !attested} onClick={() => void send()}>
+                {busy ? "Sending…" : pending ? "Retry same order" : "Sign and send to pharmacy"}
+              </Button>
             )}
           </DialogFooter>
         </DialogPopup>

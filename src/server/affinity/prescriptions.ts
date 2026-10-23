@@ -1,57 +1,34 @@
-import type { OrderPreviewParams } from "@affinity-health/sdk";
-import type { WorkspaceContext } from "../context";
+import type { OrderCreateParams } from "@affinity-health/sdk";
 import type { PrescriptionInput } from "../../api/prescribing/schema";
-import { resolvePatient } from "./patients";
+import { patients } from "../../data/patients";
+import { isTestNpi, demoNpi } from "../../features/workspace/demo-profile";
 
-export async function previewPrescription(context: WorkspaceContext, input: PrescriptionInput) {
-  const { affinity, practice, practiceId, id } = context;
-  const { patient } = await resolvePatient(
-    affinity,
+export function buildOrderInput(
+  practiceId: string,
+  input: PrescriptionInput,
+  npi: string,
+): OrderCreateParams {
+  const patient = patients.find((patient) => patient.externalId === input.externalId);
+  if (!patient) throw new Error("Choose a patient from the demo EMR.");
+  if (!isTestNpi(npi)) throw new Error("Choose a supported Test NPI.");
+  return {
     practiceId,
-    input.externalId,
-    `${id}:patient:${input.externalId}`,
-  );
-  const options = await practice.catalog.prescribingOptions.get(input.medicationId);
-  if (options.revision !== input.expectedRevision)
-    throw new Error(
-      "Prescribing defaults changed. Select the medication again and review the updated defaults.",
-    );
-  const requirements = options.catalog.prescriptionRequirements;
-  const categories = requirements?.allowedReasonCategories ?? [];
-  const category = categories.find((value) => value === input.category);
-  if (input.category && !category)
-    throw new Error("Choose an allowed compounding reason category.");
-  const reasonRequired =
-    requirements?.compoundingReason === "required" ||
-    requirements?.compoundingReasonContext === "required";
-  const body: OrderPreviewParams = {
-    patientId: patient.id,
+    patient: { ...patient, allergies: [] }, // Only sent after the explicit no-known-allergies attestation.
+    prescriber: {
+      npi,
+      firstName: npi === demoNpi ? "Test" : "Riley",
+      lastName: npi === demoNpi ? "Prescriber" : "Five-State Test",
+    },
     prescriptions: [
       {
         medicationId: input.medicationId,
-        preset: "default",
-        expectedRevision: input.expectedRevision,
-        overrides: {
-          ...(input.directions !== undefined
-            ? { sig: { format: "free_text", text: input.directions } }
-            : {}),
-          ...(input.quantity !== undefined ? { quantity: input.quantity } : {}),
-          ...(input.daysSupply !== undefined ? { daysSupply: input.daysSupply } : {}),
-          ...(input.refills !== undefined ? { refills: input.refills } : {}),
-          ...(input.shippingOptionId
-            ? { dispensing: { shippingOptionId: input.shippingOptionId } }
-            : {}),
-          ...(reasonRequired
-            ? {
-                clinical: {
-                  compoundingReason: { context: input.reason, ...(category ? { category } : {}) },
-                },
-              }
-            : {}),
-        },
+        directions: input.directions,
+        quantity: input.quantity,
+        refills: input.refills,
+        ...(input.compoundingReason ? { compoundingReason: input.compoundingReason } : {}),
       },
     ],
-    shipping: { selection: "lowest_cost" },
+    shippingOptionId: input.shippingOptionId,
+    signatureAttestation: true,
   };
-  return practice.orders.preview(body);
 }

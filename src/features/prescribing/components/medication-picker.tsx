@@ -16,15 +16,10 @@ import { availableForPatient } from "../medication-availability";
 
 type Medication = Catalog["data"][number];
 
-function MedicationImage({ medication }: { medication: Medication }) {
-  const [failed, setFailed] = useState(false);
+function MedicationImage() {
   return (
     <span className="medication-image">
-      {medication.imageUrl && !failed ? (
-        <img src={medication.imageUrl} alt="" loading="lazy" onError={() => setFailed(true)} />
-      ) : (
-        <Pill aria-hidden="true" size={20} />
-      )}
+      <Pill aria-hidden="true" size={20} />
     </span>
   );
 }
@@ -78,7 +73,7 @@ export function MedicationPicker({
         items={error ? [] : items}
         onItemHighlighted={(item) => {
           clearTimeout(intentTimer.current);
-          if (item && !loading && item.ordering.requiresPrescription && item.isOrderable)
+          if (item && !loading)
             intentTimer.current = setTimeout(() => {
               void queryClient.prefetchQuery(optionsQuery(sessionId, item.id));
             }, 100);
@@ -89,8 +84,8 @@ export function MedicationPicker({
         onOpenChange={setOpen}
         openOnInputClick
         disabled={disabled}
-        itemToStringValue={(item: Medication) => `${item.name} ${item.strength}`}
-        value={open ? query : selected ? `${selected.name} ${selected.strength}` : query}
+        itemToStringValue={(item: Medication) => `${item.name} ${item.strength ?? ""}`}
+        value={open ? query : selected ? `${selected.name} ${selected.strength ?? ""}` : query}
         onValueChange={(value, details) => {
           if (details.reason === "item-press") return;
           setQuery(value);
@@ -102,7 +97,7 @@ export function MedicationPicker({
           data-selected={selected ? "" : undefined}
           data-disabled={disabled ? "" : undefined}
         >
-          {selected && <MedicationImage key={selected.id} medication={selected} />}
+          {selected && <MedicationImage />}
           <div className="medication-field-content">
             <AutocompleteInput
               id="medication-search"
@@ -118,7 +113,7 @@ export function MedicationPicker({
             />
             {selected && (
               <span id="medication-pharmacy" className="medication-pharmacy">
-                {open ? "Search to change medication" : selected.pharmacyName}
+                {open ? "Search to change medication" : selected.pharmacy.name}
               </span>
             )}
           </div>
@@ -154,19 +149,12 @@ export function MedicationPicker({
                     onChange(medication);
                   }}
                 >
-                  <MedicationImage medication={medication} />
+                  <MedicationImage />
                   <span className="medication-copy">
                     <span>
                       {medication.name} {medication.strength}
                     </span>
-                    <small>
-                      {medication.pharmacyName}
-                      {!medication.ordering.requiresPrescription
-                        ? " · Supply"
-                        : !medication.isOrderable
-                          ? " · Unavailable"
-                          : ""}
-                    </small>
+                    <small>{medication.pharmacy.name}</small>
                   </span>
                   {selected?.id === medication.id && <Check size={18} aria-label="Selected" />}
                 </AutocompleteItem>

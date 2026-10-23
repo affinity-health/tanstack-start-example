@@ -1,7 +1,7 @@
 import { afterEach, expect, spyOn, test } from "bun:test";
 import { AffinityError } from "@affinity-health/sdk";
 import { createAffinity } from "./client";
-import { resolvePatient } from "./patients";
+import { buildOrderInput } from "./prescriptions";
 
 const environment = {
   AFFINITY_API_KEY: process.env.AFFINITY_API_KEY,
@@ -15,7 +15,7 @@ afterEach(() => {
   }
 });
 
-test("new SDK preserves proxy paths, practice scope, and persisted signing keys", async () => {
+test("current contract preserves proxy paths, list cursors, inline identity, and the saved order key", async () => {
   process.env.AFFINITY_API_KEY = "sk_test_synthetic";
   process.env.AFFINITY_API_URL = "https://proxy.example.test/api/v1";
   process.env.DEVBOX_API_KEY = "synthetic-proxy-key";
@@ -25,55 +25,79 @@ test("new SDK preserves proxy paths, practice scope, and persisted signing keys"
       async (input: Parameters<typeof fetch>[0], init: Parameters<typeof fetch>[1]) => {
         const request = new Request(input, init);
         requests.push(request);
-        if (new URL(request.url).pathname.endsWith("/auth/access"))
+        if (request.method === "GET")
           return Response.json({
-            serviceAccount: { subjectType: "platform", subjectId: "acct_test" },
+            object: "list",
+            url: "/v1/medications",
+            data: [],
+            hasMore: true,
+            nextCursor: "opaque-page-2",
           });
-        if (new URL(request.url).pathname.endsWith("/patients") && request.method === "GET")
-          return Response.json({ data: [], hasMore: false });
-        if (request.method === "POST" && new URL(request.url).pathname.endsWith("/patients"))
-          return Response.json({ id: "pat_test" });
-        return Response.json({ orderId: "ord_test" });
+        return Response.json({ id: "ord_01j2y8m6jcc9tt24af5pw9x1bc", status: "submitted" });
       },
       { preconnect: globalThis.fetch.preconnect },
     ),
   );
   try {
     const api = createAffinity();
-    const result = await resolvePatient(api, "prac_test", "demo-emr-patient-ca", "patient-key");
-    expect(result.patient.id).toBe("pat_test");
-    const versions = [{ prescriptionId: "rx_test", version: 3 }];
-    await api.forPractice("prac_test").orders.sign(
-      "ord_test",
+    const page = await api.medications.list({ limit: "25" });
+    await api.medications.list({ limit: "25", startingAfter: page.nextCursor! });
+    expect(new URL(requests[1].url).searchParams.get("startingAfter")).toBe("opaque-page-2");
+    const body = buildOrderInput(
+      "prac_01j2y8m6jcc9tt24af5pw9x1bc",
       {
-        prescriber: { npi: "1234567893" },
-        signatureAttestation: true,
-        expectedVersions: versions,
+        externalId: "demo-emr-patient-ca",
+        medicationId: "med_01j2y8m6jcc9tt24af5pw9x1bc",
+        directions: "Synthetic test directions",
+        quantity: 1,
+        refills: 0,
+        shippingOptionId: "shp_01j2y8m6jcc9tt24af5pw9x1bc",
+        compoundingReason: "Synthetic patient-specific reason",
       },
-      { idempotencyKey: "persisted-signing-key" },
+      "1234567893",
     );
-    expect(requests.filter((r) => r.url.endsWith("/auth/access"))).toHaveLength(1);
-    expect(new URL(requests[1].url).pathname).toBe("/api/v1/practices/prac_test/patients");
-    expect(requests[2].headers.get("Idempotency-Key")).toBe("patient-key");
-    const signed = requests.at(-1)!;
-    expect(signed.headers.get("Idempotency-Key")).toBe("persisted-signing-key");
-    expect(await signed.json()).toEqual({
-      practiceId: "prac_test",
-      prescriber: { npi: "1234567893" },
+    const order = await api.orders.create(body, { idempotencyKey: "saved-order-key" });
+    expect(order.status).toBe("submitted");
+    expect(requests).toHaveLength(3);
+    const created = requests[2];
+    expect(new URL(created.url).pathname).toBe("/api/v1/orders");
+    expect(created.method).toBe("POST");
+    expect(created.headers.get("Idempotency-Key")).toBe("saved-order-key");
+    expect(await created.json()).toEqual({
+      practiceId: "prac_01j2y8m6jcc9tt24af5pw9x1bc",
+      patient: {
+        externalId: "demo-emr-patient-ca",
+        firstName: "Alex",
+        lastName: "Example",
+        gender: "unknown",
+        dateOfBirth: "1980-01-10",
+        email: "alex@example.test",
+        phone: "+14155550100",
+        address: {
+          line1: "100 Test Street",
+          city: "San Francisco",
+          state: "CA",
+          postalCode: "94107",
+        },
+        allergies: [],
+      },
+      prescriber: { npi: "1234567893", firstName: "Test", lastName: "Prescriber" },
+      prescriptions: [
+        {
+          medicationId: "med_01j2y8m6jcc9tt24af5pw9x1bc",
+          directions: "Synthetic test directions",
+          quantity: 1,
+          refills: 0,
+          compoundingReason: "Synthetic patient-specific reason",
+        },
+      ],
+      shippingOptionId: "shp_01j2y8m6jcc9tt24af5pw9x1bc",
       signatureAttestation: true,
-      expectedVersions: versions,
     });
-    await api.forPractice("prac_test").orders.submit("ord_test", {
-      idempotencyKey: "persisted-submission-key",
-    });
-    const submitted = requests.at(-1)!;
-    expect(new URL(submitted.url).pathname).toBe("/api/v1/orders/ord_test/submit");
-    expect(submitted.headers.get("Idempotency-Key")).toBe("persisted-submission-key");
-    expect(await submitted.json()).toEqual({ practiceId: "prac_test" });
     for (const request of requests) {
       expect(request.headers.get("Authorization")).toBe("Bearer sk_test_synthetic");
       expect(request.headers.get("X-Api-Key")).toBe("synthetic-proxy-key");
-      expect(request.headers.get("Affinity-Version")).toBe("2026-09-28");
+      expect(request.headers.get("Affinity-Version")).toBe("2026-10-20");
     }
   } finally {
     mock.mockRestore();

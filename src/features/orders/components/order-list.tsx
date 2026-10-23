@@ -1,51 +1,18 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, RefreshCw } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { ordersQuery } from "../../../api/orders/queries";
 import { useWorkspace } from "../../workspace/workspace-layout";
 
-export function OrderList({
-  filter,
-  onFilter,
-}: {
-  filter: "all" | "draft";
-  onFilter: (filter: "all" | "draft") => void;
-}) {
+export function OrderList() {
   const {
     initial: { sessionId },
   } = useWorkspace();
-  const query = useInfiniteQuery(ordersQuery(sessionId, filter));
+  const query = useInfiniteQuery(ordersQuery(sessionId));
   const orders = query.data?.pages.flatMap((page) => page.data) ?? [];
   return (
     <section className="orders-view" aria-label="Orders">
-      <div className="orders-controls">
-        <div className="view-switch" aria-label="Filter orders">
-          <Button
-            variant={filter === "all" ? "secondary" : "ghost"}
-            aria-pressed={filter === "all"}
-            onClick={() => onFilter("all")}
-          >
-            All orders
-          </Button>
-          <Button
-            variant={filter === "draft" ? "secondary" : "ghost"}
-            aria-pressed={filter === "draft"}
-            onClick={() => onFilter("draft")}
-          >
-            Drafts
-          </Button>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Refresh orders"
-          disabled={query.isFetching}
-          onClick={() => void query.refetch()}
-        >
-          <RefreshCw size={16} />
-        </Button>
-      </div>
       {query.error && (
         <div role="alert">
           <p>{query.error.message}</p>
@@ -59,9 +26,7 @@ export function OrderList({
           Loading orders…
         </p>
       )}
-      {query.isSuccess && !orders.length && (
-        <p className="orders-empty">{filter === "draft" ? "No drafts yet." : "No orders yet."}</p>
-      )}
+      {query.isSuccess && !orders.length && <p className="orders-empty">No orders yet.</p>}
       <div className="orders-list" aria-busy={query.isFetching}>
         {orders.map((item) => (
           <Link
@@ -71,10 +36,10 @@ export function OrderList({
             params={{ orderId: item.id }}
           >
             <span className="order-row-main">
-              <strong>{item.patientName}</strong>
+              <strong>{`${item.patient.firstName} ${item.patient.lastName}`}</strong>
               <span>
                 {item.prescriptions
-                  .map((rx) => `${rx.medicationName} ${rx.strength ?? ""}`)
+                  .map((rx) => `${rx.medication.name} ${rx.medication.strength ?? ""}`)
                   .join(", ")}
               </span>
               <small>
@@ -83,7 +48,7 @@ export function OrderList({
                   day: "numeric",
                   year: "numeric",
                 })}{" "}
-                · {item.patientState}
+                · {item.patient.address.state}
               </small>
             </span>
             <span className="order-row-status">

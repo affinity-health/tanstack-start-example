@@ -20,7 +20,7 @@ export function createAffinity() {
   const baseUrl = url.href.replace(/\/+$/, "").replace(/\/v1$/, "");
 
   return new Affinity(apiKey, {
-    apiVersion: "2026-09-28",
+    apiVersion: "2026-10-20",
     baseUrl,
     timeout: 15_000,
     maxNetworkRetries: 0,

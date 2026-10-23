@@ -11,6 +11,6 @@ export const catalogQuery = (sessionId: string, query = "") =>
     queryKey: [sessionId, "catalog", query],
     queryFn: ({ pageParam }) => getCatalog({ data: { query, cursor: pageParam } }),
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (last) => (last.hasMore ? last.data.at(-1)?.id : undefined),
+    getNextPageParam: (last) => (last.hasMore ? (last.nextCursor ?? undefined) : undefined),
     staleTime: 60_000,
   });

@@ -10,14 +10,14 @@ has one Test practice, an HttpOnly session cookie, and a fixed 12-hour expiry. R
 There is no recovery or sharing of an anonymous session.
 
 The UI uses typed TanStack Start server functions and TanStack Query.
-`Affinity` from SDK 1.15.0 sends API version `2026-09-28`.
-A session-scoped `forPractice()` client handles patient, catalog, and order requests.
+`Affinity` from SDK 2.0.0-beta.6 sends API version `2026-10-20`.
+The client reads medications and creates complete orders with the session-owned `practiceId`.
 Resource IDs come first, request data follows, and persisted idempotency keys use the final options argument.
 The server normalizes API JSON before returning it through TanStack Start. SDK calls stay on
 the server. Practice IDs come from the session, not browser input.
-Order reads, signing, and submission check order ownership before proceeding.
-Patient requests use the session's practice. Inline patients and arbitrary prescribers
-are not accepted by the demo. Live mode is rejected server-side, and no Live key is bound.
+Order reads check ownership before returning data. Order creation takes the practice from the session,
+passes the selected synthetic patient inline, and includes the selected Test NPI and name.
+Retired patient, preview, draft, sign, and submit routes are not used. Live mode is rejected server-side, and no Live key is bound.
 
 The demo uses a dedicated platform Test key. The browser receives only its own session's
 practice, never the platform's practice directory. Affinity Test orders route to simulators.
@@ -30,7 +30,8 @@ remove expired session mappings and quota counters. Synthetic records in Affinit
 for audit history; session expiry is not clinical-record deletion.
 
 Cross-origin and missing-Origin writes are rejected. Mutation keys are namespaced by
-session. A pending browser mutation retains its key until the result is known.
+session. A pending browser mutation saves its reviewed synthetic request and key in tab storage until the result is known,
+so a reload retries the same order. Real EMRs should persist reviewed requests server-side.
 The public deployment has no shared webhook inbox, prescriber-management endpoint, or
 authenticated image proxy. Unused proxy and webhook handlers are removed.
 
@@ -89,9 +90,7 @@ Operator and runtime secrets come from Doppler `affinity/stg` for this independe
 - `AFFINITY_DEMO_SESSION_SECRET`: Better Auth signing/encryption secret.
 
 Alchemy binds only the last two secrets to the Worker, under
-`AFFINITY_API_KEY` and `DEMO_SESSION_SECRET`. The demo key needs
-`catalog:read`, `practices:read`, `practices:write`, `patients:read`,
-`patients:write`, `orders:read`, `orders:write`, `orders:sign`, and `team:write`.
+`AFFINITY_API_KEY` and `DEMO_SESSION_SECRET`. The demo key acts for its platform and Test mode; current API keys have no permission scopes.
 The provisioned key expires after 90 days and must be rotated before expiry.
 Rotating the session secret invalidates existing cookies.
 

@@ -1,63 +1,59 @@
+import { AffinityError } from "@affinity-health/sdk";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { withWorkspace } from "../../server/context";
-import { previewPrescription } from "../../server/affinity/prescriptions";
 import { prescriptionInput } from "./schema";
+import { buildOrderInput } from "../../server/affinity/prescriptions";
+import { isTestNpi } from "../../features/workspace/demo-profile";
 
 export const getCatalog = createServerFn({ method: "GET" })
   .validator(
-    z.object({ query: z.string().max(200).default(""), cursor: z.string().max(200).optional() }),
+    z.object({ query: z.string().max(200).default(""), cursor: z.string().max(1000).optional() }),
   )
   .handler(({ data }) =>
-    withWorkspace(({ affinity, practiceId }) =>
-      affinity.forPractice(practiceId).catalog.items.list({
+    withWorkspace(({ affinity }) =>
+      affinity.medications.list({
         query: data.query || undefined,
         startingAfter: data.cursor,
-        limit: 25,
+        limit: "25",
       }),
     ),
   );
 export const getPrescribingOptions = createServerFn({ method: "GET" })
-  .validator(z.object({ medicationId: z.string().startsWith("cat_").max(100) }))
+  .validator(z.object({ medicationId: prescriptionInput.shape.medicationId }))
   .handler(({ data }) =>
-    withWorkspace(({ affinity, practiceId }) =>
-      affinity.forPractice(practiceId).catalog.prescribingOptions.get(data.medicationId),
-    ),
+    withWorkspace(({ affinity }) => affinity.medications.get(data.medicationId)),
   );
-export const previewOrder = createServerFn({ method: "POST" })
-  .validator(prescriptionInput)
-  .handler(({ data }) => withWorkspace((context) => previewPrescription(context, data)));
-export const createDraft = createServerFn({ method: "POST" })
+export const createOrder = createServerFn({ method: "POST" })
   .validator(
     z.object({
       prescription: prescriptionInput,
       key: z.string().uuid(),
-      allergiesReviewed: z.literal(true),
+      npi: z.string().refine(isTestNpi, "Choose a supported Test NPI."),
+      attested: z.literal(true),
     }),
   )
   .handler(({ data }) =>
     withWorkspace(async (context) => {
       if (!(await context.store.quota("orders:" + context.id, 30, 86400)))
         throw new Error("This Test session has reached its order limit.");
-      const preview = await previewPrescription(context, data.prescription);
-      if (preview.status !== "complete" || !preview.orderInput)
-        throw new Error("Complete the prescription before creating a draft.");
-      const patientId =
-        "patientId" in preview.orderInput ? preview.orderInput.patientId : undefined;
-      if (!patientId) throw new Error("Patient is missing.");
-      const allergies = await context.practice.patients.allergies.get(patientId);
-      if (allergies.allergies.length)
-        throw new Error("This patient has recorded allergies. This demo will not clear them.");
-      await context.practice.patients.allergies.replace(
-        patientId,
-        { reviewStatus: "no_known", allergies: [] },
-        { idempotencyKey: `${context.id}:${data.key}:allergies` },
-      );
-      const { practiceId, ...params } = preview.orderInput;
-      if (practiceId !== context.practiceId) throw new Error("Unexpected preview practice.");
-      const created = await context.practice.orders.create(params, {
-        idempotencyKey: `${context.id}:${data.key}`,
-      });
-      return context.practice.orders.get(created.id);
+      const body = buildOrderInput(context.practiceId, data.prescription, data.npi);
+      try {
+        const order = await context.affinity.orders.create(body, {
+          idempotencyKey: `${context.id}:${data.key}`,
+        });
+        return { ok: true as const, order };
+      } catch (error) {
+        // Only definitive refusals let the user edit. An uncertain write retains its body and key.
+        if (
+          error instanceof AffinityError &&
+          [400, 401, 403, 404, 422].includes(error.statusCode ?? 0)
+        )
+          return {
+            ok: false as const,
+            message: `${error.problem?.detail ?? "The order was rejected."}${error.requestId ? ` (request ${error.requestId})` : ""}`,
+          };
+        throw error;
+      }
     }),
   );

@@ -2,6 +2,8 @@ import { createAffinity } from "./src/server/affinity/client";
 
 // Run with your own Test key: bun run example.
 const affinity = createAffinity();
-const access = await affinity.apiKeys.getAccess();
-console.log(`Authenticated in ${access.livemode ? "Live" : "Test"} mode.`);
-console.log("Scopes:", access.scopes.join(", "));
+const account = await affinity.account.get();
+if (account.mode !== "test") throw new Error("This example requires a Test key.");
+const medications = await affinity.medications.list({ limit: "5" });
+console.log(`Authenticated as a ${account.type} in ${account.mode} mode.`);
+console.log(`Found ${medications.data.length} medications; more: ${medications.hasMore}.`);

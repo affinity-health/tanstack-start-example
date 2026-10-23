@@ -934,9 +934,6 @@ footer code {
   padding: 4px 7px;
   background: var(--muted);
 }
-.order-status[data-status="draft"] {
-  color: var(--foreground);
-}
 .orders-empty {
   padding: 36px 0;
   text-align: center;

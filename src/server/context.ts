@@ -17,7 +17,7 @@ async function workspaceContext() {
   if (!(await store.quota("requests:" + session.id, 120, 60)))
     throw new Error("Too many requests. Try again in a minute.");
   const affinity = createAffinity();
-  return { ...session, affinity, practice: affinity.forPractice(session.practiceId), store };
+  return { ...session, affinity, store };
 }
 export type WorkspaceContext = Awaited<ReturnType<typeof workspaceContext>>;
 export async function withWorkspace<T>(
@@ -38,7 +38,7 @@ export async function withWorkspace<T>(
   }
 }
 export async function ownedOrder(context: WorkspaceContext, orderId: string) {
-  const order = await context.practice.orders.get(orderId);
+  const order = await context.affinity.orders.get(orderId);
   if (order.practiceId !== context.practiceId) throw new Error("Order not found.");
   return order;
 }
