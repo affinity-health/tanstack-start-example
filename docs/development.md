@@ -39,6 +39,13 @@ authenticated image proxy. Unused proxy and webhook handlers are removed.
 
 ## Develop and check
 
+Dependencies are current except the Alchemy toolchain, which stays at `alchemy` 2.0.0-beta.76 with
+`effect`, `@effect/platform-bun` and `@effect/platform-node` 4.0.0-rc.112. `alchemy` 2.0.0-beta.84
+(the latest) starts its local Vite child with `bin/register-dev-mode.js`, which its published
+package does not include, so `bun run dev` fails; beta.76 also needs `effect`'s rc.112 module layout.
+`package.json` overrides patch vulnerable packages that only `alchemy`'s `@prisma/dev` uses; the
+deployed Worker includes none of them.
+
 Use Bun. Vite+ runs Vite 8, formatting, linting, and TypeScript checks from
 `vite.config.ts`.
 
