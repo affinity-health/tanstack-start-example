@@ -2,10 +2,10 @@
 
 A Test-mode prescribing app built with TanStack Start and the [Affinity TypeScript SDK](https://github.com/affinity-health/affinity-typescript). It creates a private practice for each demo session, lets you review prescriptions locally, and sends signed orders to simulated pharmacies.
 
-[Try the demo](https://demo-emr.affinityrx.com) · [TypeScript SDK guide](https://docs.affinityrx.com/guides/reference/sdks/typescript/) · [MIT license](LICENSE)
+[Try the demo](https://demo-emr.affinityrx.com) · [TypeScript SDK guide](https://github.com/affinity-health/affinity-typescript/blob/main/docs/guide.md) · [MIT license](LICENSE)
 
-The app uses `@affinity-health/sdk@2.0.0-beta.6` and the `Affinity` client, targeting
-API version `2026-10-20`. SDK calls stay in server functions.
+The app uses `@affinity-health/sdk@2.0.0-beta.8` and its `AffinityClient`, targeting
+API version `2026-10-28`. SDK calls stay in server functions.
 
 ## Try the demo
 
@@ -20,7 +20,7 @@ bun add @affinity-health/sdk@next
 # npm install @affinity-health/sdk@next
 ```
 
-This repository pins `2.0.0-beta.6` for repeatable installs. Use `@next` when adding the SDK to your own app. Bare installs still select `1.16.0`, which targets a retired API version.
+This repository pins `2.0.0-beta.8` for repeatable installs. Use `@next` when adding the SDK to your own app. Bare installs still select `1.16.0`, which targets a retired API version.
 
 ## Use your own Test key
 
@@ -39,7 +39,7 @@ The standalone script reads the ignored `.env.dev` file:
 - `AFFINITY_API_URL`: optional API base URL, default `https://api.affinityrx.com`. For local Devbox use `https://affinity.harbr.run/api`.
 - `DEVBOX_API_KEY`: needed only to authenticate a protected local Devbox proxy.
 
-Read the [SDK guide](https://docs.affinityrx.com/guides/reference/sdks/typescript/) for API calls. The app's [server functions](src/api) and [SDK helpers](src/server/affinity) show the full Test prescribing flow.
+Read the [SDK guide](https://github.com/affinity-health/affinity-typescript/blob/main/docs/guide.md) for API calls. The app's [server functions](src/api) and [SDK helpers](src/server/affinity) show the full Test prescribing flow.
 
 ## Run the website locally
 
@@ -74,10 +74,10 @@ The website demonstrates one prescription per order. The API supports 1–20 com
 
 ## Current order flow
 
-The server creates each session's practice with its required name, address, and phone. It lists `/v1/medications` and reads `/v1/medications/{medicationId}`. Lists use the `data`, `hasMore`, and `nextCursor` envelope; pagination passes `nextCursor` unchanged as `startingAfter`.
+The server creates each session's practice with its required name, address, and phone, with one idempotency key per demo user so a retried start reuses the practice. It reads the whole medication catalog from `/v1/medications` (the API has no medication search, so the picker filters the loaded catalog in the browser) and reads `/v1/medications/{medicationId}` for the chosen medication. Orders list one page at a time; the SDK passes each page's `nextCursor` unchanged as `startingAfter`.
 
-After the user reviews the complete request and explicitly confirms no known allergies and signing intent, the server sends one `POST /v1/orders` containing `practiceId`, inline `patient`, `prescriber` with NPI and name, complete `prescriptions`, `shippingOptionId`, and `signatureAttestation: true`. There are no patient, preview, draft, separate sign, or separate submit API calls. The demo accepts only its synthetic patients and Test prescribers. API keys have no permission scopes.
+After the user reviews the complete request and explicitly confirms no known allergies and signing intent, the server sends one `POST /v1/orders` containing `practiceId`, inline `patient`, `prescriber` with NPI and name, complete `prescriptions`, `shipping.optionId`, and `signatureAttestation: true`, with the saved key as `idempotencyKey`. There are no patient, preview, draft, separate sign, or separate submit API calls. The demo accepts only its synthetic patients and Test prescribers. API keys have no permission scopes.
 
-The tab saves the reviewed synthetic request and idempotency key before sending. An uncertain result freezes the review for retry with the same key and body, including after a reload. A real EMR must store its approved body and key in its server-side order record and authenticate its clinician; an NPI identifies a prescriber and does not authenticate them.
+The tab saves the reviewed synthetic request and idempotency key before sending. An uncertain result freezes the review for retry with the same key and body, including after a reload. The SDK's own retries are off (`maxRetries: 0`), so the user decides when to retry. A real EMR must store its approved body and key in its server-side order record and authenticate its clinician; an NPI identifies a prescriber and does not authenticate them.
 
 IDs come from API responses, including `prac_`, `med_`, `shp_`, and `ord_`. The app never converts private database IDs.

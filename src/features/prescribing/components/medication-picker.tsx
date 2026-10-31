@@ -9,12 +9,10 @@ import {
   AutocompleteList,
   AutocompleteItem,
 } from "../../../components/ui/autocomplete";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { catalogQuery, optionsQuery } from "../../../api/prescribing/queries";
-import type { Catalog } from "../../../api/types";
-import { availableForPatient } from "../medication-availability";
-
-type Medication = Catalog["data"][number];
+import type { Medication } from "../../../api/types";
+import { availableForPatient, matchesSearch } from "../medication-availability";
 
 function MedicationImage() {
   return (
@@ -38,19 +36,13 @@ export function MedicationPicker({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Medication>();
-  const [settledQuery, setSettledQuery] = useState("");
-  useEffect(() => {
-    const timer = setTimeout(() => setSettledQuery(query), query ? 100 : 0);
-    return () => clearTimeout(timer);
-  }, [query]);
   const queryClient = useQueryClient();
-  const catalog = useInfiniteQuery(catalogQuery(sessionId, settledQuery));
-  const items =
-    catalog.data?.pages.flatMap((page) =>
-      page.data.filter((item) => availableForPatient(item, patientState)),
-    ) ?? [];
-  const loading = catalog.isFetching || query !== settledQuery;
-  const hasMore = catalog.hasNextPage;
+  // The whole catalog loads once; typing filters it here, with no request per keystroke.
+  const catalog = useQuery(catalogQuery(sessionId));
+  const items = (catalog.data ?? []).filter(
+    (item) => availableForPatient(item, patientState) && matchesSearch(item, query),
+  );
+  const loading = catalog.isPending;
   const error = catalog.error?.message;
   useEffect(() => {
     if (error) toast.error(error, { id: "medication-search-error", duration: 8000 });
@@ -122,7 +114,7 @@ export function MedicationPicker({
           <div className="medication-results" aria-busy={loading}>
             {loading ? (
               <p role="status" className="sr-only">
-                Searching medications…
+                Loading medications…
               </p>
             ) : error ? (
               <div className="medication-message">
@@ -132,7 +124,8 @@ export function MedicationPicker({
               </div>
             ) : items.length === 0 ? (
               <p role="status" className="medication-message">
-                No medications available for this patient in {patientState}. Try another name.
+                No medications available for this patient in {patientState}
+                {query ? " match that search" : ""}.
               </p>
             ) : null}
             <AutocompleteList>
@@ -161,15 +154,6 @@ export function MedicationPicker({
               )}
             </AutocompleteList>
           </div>
-          {!loading && !error && hasMore && (
-            <Button
-              variant="ghost"
-              className="medication-more"
-              onClick={() => void catalog.fetchNextPage()}
-            >
-              Show more medications
-            </Button>
-          )}
         </AutocompletePopup>
       </Autocomplete>
     </div>

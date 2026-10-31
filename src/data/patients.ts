@@ -1,4 +1,4 @@
-import type { OrderCreateParams } from "@affinity-health/sdk";
+import type { Affinity } from "@affinity-health/sdk";
 
 // Synthetic demographics belong to this EMR and are sent inline with each order.
 export const patients = [
@@ -6,7 +6,7 @@ export const patients = [
     externalId: "demo-emr-patient-ca",
     firstName: "Alex",
     lastName: "Example",
-    gender: "unknown",
+    sex: "unknown",
     dateOfBirth: "1980-01-10",
     email: "alex@example.test",
     phone: "+14155550100",
@@ -21,7 +21,7 @@ export const patients = [
     externalId: "demo-emr-patient-tx",
     firstName: "Sam",
     lastName: "Example",
-    gender: "unknown",
+    sex: "unknown",
     dateOfBirth: "1990-05-15",
     email: "sam@example.test",
     phone: "+15125550100",
@@ -32,4 +32,4 @@ export const patients = [
       postalCode: "78701",
     },
   },
-] satisfies Omit<OrderCreateParams["patient"], "allergies">[];
+] satisfies Omit<Affinity.PatientInput, "allergies">[];

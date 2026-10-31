@@ -5,7 +5,10 @@ export const getOrders = createServerFn({ method: "GET" })
   .validator(z.object({ cursor: z.string().max(1000).optional() }))
   .handler(({ data }) =>
     withWorkspace(({ affinity, practiceId }) =>
-      affinity.orders.list({ practiceId, startingAfter: data.cursor, limit: "25" }),
+      // One page as the API sent it, so it can cross to the browser.
+      affinity.orders
+        .list({ practiceId, startingAfter: data.cursor, limit: 25 })
+        .then((page) => page.response),
     ),
   );
 export const getOrder = createServerFn({ method: "GET" })

@@ -1,11 +1,11 @@
-import { Affinity } from "@affinity-health/sdk";
+import { AffinityClient } from "@affinity-health/sdk";
 
 export function createAffinity() {
   const apiKey = process.env.AFFINITY_API_KEY;
   if (!apiKey) throw new Error("Set AFFINITY_API_KEY.");
   if (!apiKey.startsWith("sk_test_")) throw new Error("AFFINITY_API_KEY must be a Test API key.");
 
-  // The SDK appends /v1 to its base URL; preserve development proxy prefixes.
+  // Operation paths start with /v1, so the base URL ends before it; keep development proxy prefixes.
   const url = new URL(process.env.AFFINITY_API_URL || "https://api.affinityrx.com/v1");
   if (
     !["http:", "https:"].includes(url.protocol) ||
@@ -19,11 +19,13 @@ export function createAffinity() {
     );
   const baseUrl = url.href.replace(/\/+$/, "").replace(/\/v1$/, "");
 
-  return new Affinity(apiKey, {
-    apiVersion: "2026-10-20",
+  return new AffinityClient({
+    token: apiKey,
     baseUrl,
-    timeout: 15_000,
-    maxNetworkRetries: 0,
+    timeoutInSeconds: 15,
+    // A write that times out keeps its body and idempotency key in the browser, and the user retries
+    // it there; the SDK's own retries would repeat the same request with the same key.
+    maxRetries: 0,
     fetch: Object.assign(
       async (input: Parameters<typeof fetch>[0], init: Parameters<typeof fetch>[1]) => {
         const headers = new Headers(init?.headers);

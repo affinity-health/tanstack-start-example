@@ -37,19 +37,18 @@ export async function startDemo(request: Request) {
   const account = await affinity.account.get();
   if (account.mode !== "test" || account.type !== "platform")
     throw new Error("The demo requires a platform Test API key.");
-  const practice = await affinity.practices.create(
-    {
-      name: "Demo Practice " + user.id.slice(0, 8),
-      address: {
-        line1: "100 Test Street",
-        city: "San Francisco",
-        state: "CA",
-        postalCode: "94107",
-      },
-      phone: "+14155550100",
+  const practice = await affinity.practices.create({
+    // One key per demo user: a retried sign-in reuses the practice instead of creating another.
+    idempotencyKey: "demo-practice-" + user.id,
+    name: "Demo Practice " + user.id.slice(0, 8),
+    address: {
+      line1: "100 Test Street",
+      city: "San Francisco",
+      state: "CA",
+      postalCode: "94107",
     },
-    { idempotencyKey: "demo-practice-" + user.id },
-  );
+    phone: "+14155550100",
+  });
   if (practice.liveEnabled) throw new Error("Unexpected practice mode.");
   const expires = session?.session.expiresAt.getTime() ?? Date.now() + 12 * 60 * 60 * 1000;
   await store.save(user.id, practice.id, Math.floor(expires / 1000));

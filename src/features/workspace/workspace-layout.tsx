@@ -86,7 +86,7 @@ export function WorkspaceLayout({
       )}
       <footer>
         <a
-          href="https://docs.affinityrx.com/guides/reference/sdks/typescript/"
+          href="https://github.com/affinity-health/affinity-typescript/blob/main/docs/guide.md"
           target="_blank"
           rel="noreferrer"
         >

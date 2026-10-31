@@ -1,13 +1,16 @@
-import type { OrderCreateParams } from "@affinity-health/sdk";
+import type { Affinity } from "@affinity-health/sdk";
 import type { PrescriptionInput } from "../../api/prescribing/schema";
 import { patients } from "../../data/patients";
 import { isTestNpi, demoNpi } from "../../features/workspace/demo-profile";
+
+/** The reviewed order without its idempotency key, which the browser keeps with the review. */
+export type OrderBody = Omit<Affinity.OrderInput, "idempotencyKey">;
 
 export function buildOrderInput(
   practiceId: string,
   input: PrescriptionInput,
   npi: string,
-): OrderCreateParams {
+): OrderBody {
   const patient = patients.find((patient) => patient.externalId === input.externalId);
   if (!patient) throw new Error("Choose a patient from the demo EMR.");
   if (!isTestNpi(npi)) throw new Error("Choose a supported Test NPI.");
@@ -28,7 +31,7 @@ export function buildOrderInput(
         ...(input.compoundingReason ? { compoundingReason: input.compoundingReason } : {}),
       },
     ],
-    shippingOptionId: input.shippingOptionId,
+    shipping: { optionId: input.shippingOptionId },
     signatureAttestation: true,
   };
 }

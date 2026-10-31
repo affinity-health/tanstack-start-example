@@ -10,9 +10,11 @@ has one Test practice, an HttpOnly session cookie, and a fixed 12-hour expiry. R
 There is no recovery or sharing of an anonymous session.
 
 The UI uses typed TanStack Start server functions and TanStack Query.
-`Affinity` from SDK 2.0.0-beta.6 sends API version `2026-10-20`.
+`AffinityClient` from SDK 2.0.0-beta.8 sends API version `2026-10-28`.
 The client reads medications and creates complete orders with the session-owned `practiceId`.
-Resource IDs come first, request data follows, and persisted idempotency keys use the final options argument.
+Each SDK call takes one request object; every write carries its persisted `idempotencyKey` in it.
+List calls return the API's page (`data`, `hasMore`, `nextCursor`) to the browser. The medication
+catalog is read whole on the server and filtered in the browser, because the API has no search.
 The server normalizes API JSON before returning it through TanStack Start. SDK calls stay on
 the server. Practice IDs come from the session, not browser input.
 Order reads check ownership before returning data. Order creation takes the practice from the session,
@@ -55,20 +57,11 @@ doppler run --project affinity --config stg -- bun run dev
 ```
 
 The local Worker binds to loopback at port 1337. Do not publish a development server
-or point this app at Live credentials. The deploy graph fixes the hosted Affinity API
+or point this app at Live credentials. The deploy graph fixes the hosted demo's Affinity API
 to `https://api.affinityrx.com`.
 
-On the Affinity Devbox, use the optional `emr-demo` service in the sibling Affinity
-repository. It runs this checkout with hot reload at the protected URL
-[affinity.harbr.run/emr-demo/](https://affinity.harbr.run/emr-demo/):
-
-```sh
-dt services start emr-demo --environment affinity
-dt services logs emr-demo --environment affinity
-```
-
-This service sets `VITE_BASE_PATH=/emr-demo/` and `PORT=1337`. Public builds retain `/`.
-Saving source files updates development only; it does not deploy the public demo.
+To call staging from the local Worker, set `AFFINITY_API_URL=https://api-staging.affinityrx.com`
+and a staging platform Test key in the child environment. The `demo` stage ignores it.
 
 For standalone SDK experiments without a website, copy `.env.example` to the ignored
 `.env.dev`, set your own Test key, and run `bun run example`.

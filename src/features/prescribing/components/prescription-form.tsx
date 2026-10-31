@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useRef, useEffect } from "react";
-import type { OrderCreateParams } from "@affinity-health/sdk";
+import type { OrderBody } from "../../../server/affinity/prescriptions";
 import { toast } from "sonner";
 import { optionsQuery } from "../../../api/prescribing/queries";
 import { createOrder } from "../../../api/prescribing/functions";
@@ -24,7 +24,7 @@ import {
 import { Choice } from "../../../components/choice";
 import { MedicationPicker } from "./medication-picker";
 import { OrderReview } from "./order-review";
-import type { Options, Catalog, Order } from "../../../api/types";
+import type { Options, Medication, Order } from "../../../api/types";
 import {
   PrescriptionFields,
   defaultFields,
@@ -35,7 +35,7 @@ import {
 type Review = {
   prescription: PrescriptionInput;
   npi: string;
-  input: OrderCreateParams;
+  input: OrderBody;
   options: Options;
 };
 export function PrescriptionForm() {
@@ -90,7 +90,7 @@ export function PrescriptionForm() {
       onBusy(false);
     }
   }
-  async function chooseMedication(item: Catalog["data"][number]) {
+  async function chooseMedication(item: Medication) {
     setOptions(undefined);
     setFields(undefined);
     setReason("");

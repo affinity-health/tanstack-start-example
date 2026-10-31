@@ -31,14 +31,19 @@ export async function withWorkspace<T>(
     if (error instanceof AffinityError)
       throw new Error(
         (error.statusCode ?? 500) < 500
-          ? `${error.problem?.detail ?? "The request could not be completed."}${error.requestId ? ` (request ${error.requestId})` : ""}`
+          ? `${problemDetail(error) ?? "The request could not be completed."}${error.requestId ? ` (request ${error.requestId})` : ""}`
           : "Affinity is temporarily unavailable. Retry this action.",
       );
     throw error;
   }
 }
+/** The API's explanation of a refused request, from its problem document. */
+export function problemDetail(error: AffinityError): string | undefined {
+  const body = error.body as { detail?: unknown } | undefined;
+  return typeof body?.detail === "string" ? body.detail : undefined;
+}
 export async function ownedOrder(context: WorkspaceContext, orderId: string) {
-  const order = await context.affinity.orders.get(orderId);
+  const order = await context.affinity.orders.get({ orderId });
   if (order.practiceId !== context.practiceId) throw new Error("Order not found.");
   return order;
 }

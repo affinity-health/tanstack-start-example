@@ -35,7 +35,11 @@ export default Alchemy.Stack(
         DEMO_SESSIONS: Cloudflare.DurableObject("DemoSessions"),
         AFFINITY_API_KEY: Config.redacted("AFFINITY_HARBOR_DEMO_API_KEY"),
         DEMO_SESSION_SECRET: Config.redacted("AFFINITY_DEMO_SESSION_SECRET"),
-        AFFINITY_API_URL: "https://api.affinityrx.com",
+        // The public demo always calls production in Test mode; a local Worker can call staging.
+        AFFINITY_API_URL:
+          stage === "demo"
+            ? "https://api.affinityrx.com"
+            : process.env.AFFINITY_API_URL || "https://api.affinityrx.com",
       },
     });
     return { url: site.url };

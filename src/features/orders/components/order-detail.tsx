@@ -39,7 +39,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
               <h3>
                 {rx.medication.name} {rx.medication.strength}
               </h3>
-              <p className="hint">{order.pharmacy.name}</p>
+              <p className="hint">{rx.pharmacy.name}</p>
               <p className="review-directions">{rx.directions}</p>
               <p>
                 Quantity {rx.quantity} {rx.medication.quantityUnit} · Refills {rx.refills}

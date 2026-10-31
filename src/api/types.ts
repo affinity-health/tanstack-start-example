@@ -1,8 +1,4 @@
-import type {
-  MedicationGetResponse,
-  MedicationListResponse,
-  OrderGetResponse,
-} from "@affinity-health/sdk";
-export type Options = MedicationGetResponse;
-export type Order = OrderGetResponse;
-export type Catalog = MedicationListResponse;
+import type { Affinity } from "@affinity-health/sdk";
+export type Options = Affinity.Medication;
+export type Order = Affinity.Order;
+export type Medication = Affinity.Medication;

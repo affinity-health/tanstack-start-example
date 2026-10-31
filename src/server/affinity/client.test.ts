@@ -1,5 +1,6 @@
 import { afterEach, expect, spyOn, test } from "bun:test";
 import { AffinityError } from "@affinity-health/sdk";
+import { problemDetail } from "../context";
 import { createAffinity } from "./client";
 import { buildOrderInput } from "./prescriptions";
 
@@ -40,8 +41,8 @@ test("current contract preserves proxy paths, list cursors, inline identity, and
   );
   try {
     const api = createAffinity();
-    const page = await api.medications.list({ limit: "25" });
-    await api.medications.list({ limit: "25", startingAfter: page.nextCursor! });
+    const page = await api.medications.list({ limit: 25 });
+    await api.medications.list({ limit: 25, startingAfter: page.response.nextCursor! });
     expect(new URL(requests[1].url).searchParams.get("startingAfter")).toBe("opaque-page-2");
     const body = buildOrderInput(
       "prac_01j2y8m6jcc9tt24af5pw9x1bc",
@@ -56,7 +57,7 @@ test("current contract preserves proxy paths, list cursors, inline identity, and
       },
       "1234567893",
     );
-    const order = await api.orders.create(body, { idempotencyKey: "saved-order-key" });
+    const order = await api.orders.create({ ...body, idempotencyKey: "saved-order-key" });
     expect(order.status).toBe("submitted");
     expect(requests).toHaveLength(3);
     const created = requests[2];
@@ -69,7 +70,7 @@ test("current contract preserves proxy paths, list cursors, inline identity, and
         externalId: "demo-emr-patient-ca",
         firstName: "Alex",
         lastName: "Example",
-        gender: "unknown",
+        sex: "unknown",
         dateOfBirth: "1980-01-10",
         email: "alex@example.test",
         phone: "+14155550100",
@@ -91,13 +92,13 @@ test("current contract preserves proxy paths, list cursors, inline identity, and
           compoundingReason: "Synthetic patient-specific reason",
         },
       ],
-      shippingOptionId: "shp_01j2y8m6jcc9tt24af5pw9x1bc",
+      shipping: { optionId: "shp_01j2y8m6jcc9tt24af5pw9x1bc" },
       signatureAttestation: true,
     });
     for (const request of requests) {
       expect(request.headers.get("Authorization")).toBe("Bearer sk_test_synthetic");
       expect(request.headers.get("X-Api-Key")).toBe("synthetic-proxy-key");
-      expect(request.headers.get("Affinity-Version")).toBe("2026-10-20");
+      expect(request.headers.get("Affinity-Version")).toBe("2026-10-28");
     }
   } finally {
     mock.mockRestore();
@@ -124,14 +125,17 @@ test("rejects Live keys and keeps SDK API error metadata", async () => {
     ),
   );
   try {
-    const request = createAffinity().practices.get("prac_test");
-    await expect(request).rejects.toBeInstanceOf(AffinityError);
-    await expect(request).rejects.toMatchObject({
-      statusCode: 404,
-      code: "not_found",
-      requestId: "req_test",
-      problem: { detail: "Practice not found" },
-    });
+    const error = await createAffinity()
+      .practices.get({ practiceId: "prac_test" })
+      .then(
+        () => undefined,
+        (cause: unknown) => cause,
+      );
+    expect(error).toBeInstanceOf(AffinityError);
+    const refused = error as AffinityError;
+    expect(refused.statusCode).toBe(404);
+    expect((refused.body as { code: string }).code).toBe("not_found");
+    expect(problemDetail(refused)).toBe("Practice not found");
   } finally {
     mock.mockRestore();
   }

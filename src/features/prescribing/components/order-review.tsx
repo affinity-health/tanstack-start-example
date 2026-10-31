@@ -1,8 +1,8 @@
-import type { OrderCreateParams } from "@affinity-health/sdk";
+import type { OrderBody } from "../../../server/affinity/prescriptions";
 import type { Options } from "../../../api/types";
-export function OrderReview({ input, options }: { input: OrderCreateParams; options: Options }) {
+export function OrderReview({ input, options }: { input: OrderBody; options: Options }) {
   const rx = input.prescriptions[0];
-  const shipping = options.shippingOptions.find((s) => s.id === input.shippingOptionId);
+  const shipping = options.shippingOptions.find((s) => s.id === input.shipping.optionId);
   return (
     <div className="order-review">
       <div className="review-medication">
