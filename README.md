@@ -4,8 +4,8 @@ A Test-mode prescribing app built with TanStack Start and the [Affinity TypeScri
 
 [Try the demo](https://demo-emr.affinityrx.com) · [TypeScript SDK guide](https://github.com/affinity-health/affinity-typescript/blob/main/docs/guide.md) · [MIT license](LICENSE)
 
-The app uses `@affinity-health/sdk@2.0.0-beta.8` and its `AffinityClient`, targeting
-API version `2026-10-28`. SDK calls stay in server functions.
+The app uses `@affinity-health/sdk@2.0.0-beta.11` and its `AffinityClient`, targeting
+API version `2026-11-01`. SDK calls stay in server functions.
 
 ## Try the demo
 
@@ -20,7 +20,7 @@ bun add @affinity-health/sdk@next
 # npm install @affinity-health/sdk@next
 ```
 
-This repository pins `2.0.0-beta.8` for repeatable installs. Use `@next` when adding the SDK to your own app. Bare installs still select `1.16.0`, which targets a retired API version.
+This repository pins `2.0.0-beta.11` for repeatable installs. Use `@next` when adding the SDK to your own app. Bare installs still select `1.16.0`, which targets a retired API version.
 
 ## Use your own Test key
 

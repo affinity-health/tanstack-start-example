@@ -98,7 +98,7 @@ test("current contract preserves proxy paths, list cursors, inline identity, and
     for (const request of requests) {
       expect(request.headers.get("Authorization")).toBe("Bearer sk_test_synthetic");
       expect(request.headers.get("X-Api-Key")).toBe("synthetic-proxy-key");
-      expect(request.headers.get("Affinity-Version")).toBe("2026-10-28");
+      expect(request.headers.get("Affinity-Version")).toBe("2026-11-01");
     }
   } finally {
     mock.mockRestore();

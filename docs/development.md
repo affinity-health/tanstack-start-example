@@ -10,7 +10,7 @@ has one Test practice, an HttpOnly session cookie, and a fixed 12-hour expiry. R
 There is no recovery or sharing of an anonymous session.
 
 The UI uses typed TanStack Start server functions and TanStack Query.
-`AffinityClient` from SDK 2.0.0-beta.8 sends API version `2026-10-28`.
+`AffinityClient` from SDK 2.0.0-beta.11 sends API version `2026-11-01`.
 The client reads medications and creates complete orders with the session-owned `practiceId`.
 Each SDK call takes one request object; every write carries its persisted `idempotencyKey` in it.
 List calls return the API's page (`data`, `hasMore`, `nextCursor`) to the browser. The medication
